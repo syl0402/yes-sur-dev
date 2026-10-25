@@ -16,7 +16,7 @@ const { data: balance, error } = await supabase.rpc("get_my_balance");
 // balance: number (confirmed 합계, 없으면 0)
 ```
 
-### 가입 완료 `complete_signup` (2026-10-26)
+### 가입 완료 `complete_signup` (2026-10-26, 매개변수 변경 2026-10-26)
 이메일 인증번호 확인이 끝난 뒤 호출한다. 회원정보 저장과 웰컴 포인트 지급을 서버가 한 번에 처리한다.
 금액은 앱이 보내지 않는다. 두 번 불러도 한 번만 처리된다.
 
@@ -24,9 +24,15 @@ const { data: balance, error } = await supabase.rpc("get_my_balance");
 const { error } = await supabase.rpc("complete_signup", {
   p_nickname: "옛썰러",
   p_department: "경영학과",
-  p_grade: 2,              // 대학원이면 null
+  p_admission_year: 2023,
   p_degree_type: "undergrad", // 또는 "grad"
+  p_terms_agreed: true,       // 필수 약관 동의
 });
+```
+
+### 학교 목록 (로그인 전에도 가능)
+```ts
+const { data } = await supabase.from("universities").select("id, name, email_domain").order("name");
 ```
 
 오류는 `error.message`에 코드로 온다. 화면 문구 예시:
@@ -39,5 +45,6 @@ const { error } = await supabase.rpc("complete_signup", {
 | `nickname_taken` | 이미 사용 중인 닉네임이에요. |
 | `invalid_department` | 학과를 입력해 주세요. |
 | `invalid_degree_type` | 과정을 선택해 주세요. |
-| `invalid_grade` | 학년을 선택해 주세요. |
+| `invalid_admission_year` | 입학년도를 선택해 주세요. |
+| `terms_not_agreed` | 필수 약관에 동의해 주세요. |
 | 그 외 | 잠시 후 다시 시도해 주세요. |

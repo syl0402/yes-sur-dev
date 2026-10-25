@@ -12,6 +12,7 @@
 | --- | --- | --- |
 | `20261026000001_base_tables.sql` | 학교·회원정보·포인트 규칙·포인트 기록, 잔액 함수 | 2026-10-26 |
 | `20261026000002_complete_signup.sql` | 가입 완료 함수 (도메인 검사·회원정보·웰컴 지급) | 2026-10-26 |
+| `20261026000003_signup_terms.sql` | 약관 동의 시각, 학년 → 입학년도, 로그인 전 학교 목록 읽기, 가입 함수 매개변수 변경 | 2026-10-26 |
 
 ## 표
 
@@ -22,7 +23,7 @@
 | name | 학교 이름 |
 | email_domain | 이메일 도메인 (예: `cau.ac.kr`), 고유 |
 
-처음 데이터: 중앙대학교 `cau.ac.kr`. 학교 추가는 이 표에 한 줄 넣으면 된다.
+처음 데이터: 중앙대학교 `cau.ac.kr`. 학교 추가는 이 표에 한 줄 넣으면 된다. (임시: `docs/PROGRESS.md` "임시로 둔 것" 참고)
 
 ### profiles — 회원정보
 | 칸 | 설명 |
@@ -33,7 +34,10 @@
 | role | `user` / `admin` |
 | university_id | 학교 (학생은 필수, 기업은 비움) |
 | nickname | 닉네임, 고유 |
-| department, grade, degree_type | 학과, 학년, 과정 |
+| department | 학과 |
+| degree_type | 과정: `undergrad` 학부 / `grad` 대학원 |
+| admission_year | 입학년도 (예: 2023). 학년은 해마다 바뀌어 저장하지 않는다 |
+| terms_agreed_at | 필수 약관(이용약관·개인정보 수집·이용) 동의 시각 |
 
 이메일은 넣지 않는다 (Supabase Auth에만 있음).
 
@@ -56,26 +60,27 @@
 
 | 표 | 앱에서 읽기 | 앱에서 쓰기 |
 | --- | --- | --- |
-| universities | 로그인한 사람 모두 | 불가 |
+| universities | 누구나 (로그인 전 포함, 가입 화면용) | 불가 |
 | profiles | 본인 행만 | 불가 (서버 함수로만) |
 | point_rules | 로그인한 사람 모두 | 불가 (대시보드에서 운영자) |
 | point_ledger | 본인 기록만 | 불가 (서버 함수로만) |
 
-로그인 안 한 상태(anon)는 아무 표도 못 읽는다.
+로그인 안 한 상태(anon)는 universities 말고는 아무 표도 못 읽는다.
 
 ## 서버 함수
 
 | 함수 | 하는 일 | 누가 |
 | --- | --- | --- |
 | `get_my_balance()` | 본인 잔액 (confirmed 합계) | 로그인한 사람 |
-| `complete_signup(p_nickname, p_department, p_grade, p_degree_type)` | 학교 도메인 검사 → 학생 회원정보 저장 → 웰컴 포인트 지급. 이미 가입했으면 아무것도 안 함 | 로그인한 사람 (이메일 인증 완료) |
+| `complete_signup(p_nickname, p_department, p_admission_year, p_degree_type, p_terms_agreed)` | 학교 도메인 검사 → 학생 회원정보 저장 → 웰컴 포인트 지급. 이미 가입했으면 아무것도 안 함 | 로그인한 사람 (이메일 인증 완료) |
 
 ### complete_signup 입력 규칙
 
 - `p_nickname`: 앞뒤 공백 제거 후 2~12자, 다른 회원과 겹치면 안 됨
 - `p_department`: 비울 수 없음
 - `p_degree_type`: `undergrad`(학부) / `grad`(대학원)
-- `p_grade`: 학부면 1~6, 대학원이면 `null`
+- `p_admission_year`: 2000 ~ 올해
+- `p_terms_agreed`: 반드시 `true` (필수 약관 동의)
 
 ### 서버 함수 오류 코드
 
@@ -88,5 +93,6 @@
 | `nickname_taken` | 이미 쓰는 닉네임 |
 | `invalid_department` | 학과 비어 있음 |
 | `invalid_degree_type` | 과정 값이 잘못됨 |
-| `invalid_grade` | 학년 값이 잘못됨 |
+| `invalid_admission_year` | 입학년도 값이 잘못됨 |
+| `terms_not_agreed` | 필수 약관에 동의하지 않음 |
 | `rule_missing` | `point_rules`에 필요한 값이 없음 (운영 문제) |
