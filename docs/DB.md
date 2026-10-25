@@ -11,6 +11,7 @@
 | 파일 | 내용 | 적용일 |
 | --- | --- | --- |
 | `20261026000001_base_tables.sql` | 학교·회원정보·포인트 규칙·포인트 기록, 잔액 함수 | 2026-10-26 |
+| `20261026000002_complete_signup.sql` | 가입 완료 함수 (도메인 검사·회원정보·웰컴 지급) | 2026-10-26 |
 
 ## 표
 
@@ -67,3 +68,25 @@
 | 함수 | 하는 일 | 누가 |
 | --- | --- | --- |
 | `get_my_balance()` | 본인 잔액 (confirmed 합계) | 로그인한 사람 |
+| `complete_signup(p_nickname, p_department, p_grade, p_degree_type)` | 학교 도메인 검사 → 학생 회원정보 저장 → 웰컴 포인트 지급. 이미 가입했으면 아무것도 안 함 | 로그인한 사람 (이메일 인증 완료) |
+
+### complete_signup 입력 규칙
+
+- `p_nickname`: 앞뒤 공백 제거 후 2~12자, 다른 회원과 겹치면 안 됨
+- `p_department`: 비울 수 없음
+- `p_degree_type`: `undergrad`(학부) / `grad`(대학원)
+- `p_grade`: 학부면 1~6, 대학원이면 `null`
+
+### 서버 함수 오류 코드
+
+| 코드 | 뜻 |
+| --- | --- |
+| `not_authenticated` | 로그인 안 됨 |
+| `email_not_verified` | 이메일 인증 안 됨 |
+| `domain_not_allowed` | 허용 학교 이메일이 아님 |
+| `invalid_nickname` | 닉네임 2~12자 아님 |
+| `nickname_taken` | 이미 쓰는 닉네임 |
+| `invalid_department` | 학과 비어 있음 |
+| `invalid_degree_type` | 과정 값이 잘못됨 |
+| `invalid_grade` | 학년 값이 잘못됨 |
+| `rule_missing` | `point_rules`에 필요한 값이 없음 (운영 문제) |
