@@ -53,7 +53,7 @@ PRD와 planning 문서가 다르면 PRD를 따른다.
 
 - 모든 표에 RLS를 켠다. 오류를 없애려고 **RLS를 끄거나 정책을 모두 허용으로 바꾸는 해결책은 금지**
 - 중복 방지는 DB 고유 제약으로
-- `service_role` 키는 앱 코드·커밋에 넣지 않는다. 앱은 `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`만 사용
+- `service_role` 키는 앱 코드·커밋에 넣지 않는다. 앱은 `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`만 사용
 - `.env`는 커밋하지 않는다. 필요한 변수 이름은 `.env.example`에
 - DB 변경은 `supabase/migrations/`에 새 SQL 파일로. 기존 마이그레이션은 수정하지 않는다
 - 결과·CSV에 이메일·닉네임 등 개인을 알 수 있는 정보를 넣지 않는다
