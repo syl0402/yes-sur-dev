@@ -21,14 +21,14 @@ PRD와 planning 문서가 다르면 PRD를 따른다.
 
 ## 기술 스택 (변경 금지)
 
-- Expo SDK 57, Expo Router, TypeScript
+- Expo SDK 58, Expo Router, TypeScript
 - Supabase: Auth(학교 이메일 OTP + 비밀번호), PostgreSQL, RLS, Postgres 함수(RPC)
 - 화면 파일은 `src/app/`, 경로 별칭 `@/` = `src/`
 - 새 라이브러리는 설치 전에 이유를 설명하고 허락받을 것
 
 ## Expo 작업 규칙
 
-- Expo는 버전마다 바뀐다. 기억에 의존하지 말고 SDK 57 문서(https://docs.expo.dev/versions/v57.0.0/)나 https://docs.expo.dev/llms.txt 를 확인한 뒤 작성
+- Expo는 버전마다 바뀐다. 기억에 의존하지 말고 SDK 58 문서(https://docs.expo.dev/versions/v58.0.0/)나 https://docs.expo.dev/llms.txt 를 확인한 뒤 작성
 - 라이브러리 설치는 `npx expo install <패키지>` (npm install 대신. SDK에 맞는 버전을 골라줌)
 - `src/app/`에는 화면 파일만. 컴포넌트·훅·유틸은 `src/` 아래 다른 폴더에
 - 화면 이동은 Expo Router(`Link`, `router`, `useLocalSearchParams`)만 사용
