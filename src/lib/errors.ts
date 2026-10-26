@@ -9,13 +9,14 @@ const MESSAGES: Record<string, string> = {
   terms_not_agreed: "필수 약관에 동의해 주세요.",
   invalid_nickname: "닉네임은 2~12자로 입력해 주세요.",
   nickname_taken: "이미 사용 중인 닉네임이에요.",
-  invalid_department: "학과를 입력해 주세요.",
+  invalid_major_field: "전공 계열을 선택해 주세요.",
   invalid_degree_type: "과정을 선택해 주세요.",
   invalid_admission_year: "입학년도를 선택해 주세요.",
 
   // Supabase 인증
   over_email_send_rate_limit: "잠시 후 다시 보내 주세요.",
   otp_expired: "인증번호가 틀렸거나 만료됐어요.",
+  weak_password: "비밀번호가 너무 쉬워요. 8자 이상으로 정해 주세요.",
 };
 
 const DEFAULT_MESSAGE = "잠시 후 다시 시도해 주세요.";

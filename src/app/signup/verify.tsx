@@ -47,7 +47,9 @@ export default function SignupVerify() {
       setError(errorMessage(error));
       return;
     }
-    // replace: 뒤로 가기로 인증 화면에 돌아오지 않게 한다
+    // 쌓인 가입 화면을 모두 걷어내고 회원정보 화면만 남긴다
+    // → 인증이 끝난 뒤에는 뒤로 가기로 이메일·인증 화면에 돌아오지 않는다
+    router.dismissAll();
     router.replace({ pathname: "/signup/profile", params: { agreed } });
   };
 

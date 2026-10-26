@@ -10,6 +10,8 @@ export const colors = {
   danger: "#D93025",
   disabled: "#BDBDBD",
   onPrimary: "#FFFFFF",
+  // 목록 창 뒤를 어둡게 덮는 색
+  overlay: "rgba(0, 0, 0, 0.4)",
 };
 
 export const fontSize = {
