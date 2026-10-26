@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import StepIndicator from "@/components/StepIndicator";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
+import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
 
 // Supabase가 같은 이메일로 다시 보내는 것을 약 60초 동안 막는다 (Auth 설정)
@@ -51,6 +53,18 @@ export default function SignupVerify() {
       setError(errorMessage(error));
       return;
     }
+
+    // 이미 가입을 마친 메일이면 새로 가입시키지 않고 그대로 로그인 상태로 첫 화면에.
+    // 인증번호를 확인한 메일 주인에게만 알려주므로 남이 가입 여부를 알 수 없다
+    const { data: profile } = await supabase.from("profiles").select("id").maybeSingle();
+    if (profile) {
+      showNotice("이미 가입된 계정이에요", "이 메일로 로그인했어요.", () => {
+        router.dismissAll();
+        router.replace("/");
+      });
+      return;
+    }
+
     // 쌓인 가입 화면을 모두 걷어내고 회원정보 화면만 남긴다
     // → 인증이 끝난 뒤에는 뒤로 가기로 이메일·인증 화면에 돌아오지 않는다
     // 학생은 회원정보, 단체는 단체 정보 화면으로
@@ -91,6 +105,7 @@ export default function SignupVerify() {
     >
       <Stack.Screen options={{ title: "회원가입" }} />
 
+      <StepIndicator current={4} total={5} />
       <Text style={styles.heading}>인증번호를 입력해 주세요</Text>
       <Text style={styles.guide}>
         {email}(으)로 보낸 인증번호를 입력해 주세요. 메일이 안 보이면 스팸함도 확인해 주세요.

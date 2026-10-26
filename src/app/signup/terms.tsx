@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import StepIndicator from "@/components/StepIndicator";
 import { colors, fontSize, spacing } from "@/constants/theme";
 
 // TODO(임시): 약관 본문 · 기획팀 Q11 약관 초안이 오면 교체 · docs/QUESTIONS.md Q11
@@ -70,6 +71,7 @@ export default function SignupTerms() {
       <Stack.Screen options={{ title: "회원가입" }} />
 
       {isResume && <Text style={styles.notice}>가입을 이어서 진행할게요.</Text>}
+      <StepIndicator current={2} total={5} />
       <Text style={styles.heading}>약관에 동의해 주세요</Text>
 
       <Pressable style={[styles.row, styles.allRow]} onPress={toggleAll}>

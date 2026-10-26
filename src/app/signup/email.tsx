@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import StepIndicator from "@/components/StepIndicator";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
@@ -77,6 +78,7 @@ export default function SignupEmail() {
     >
       <Stack.Screen options={{ title: "회원가입" }} />
 
+      <StepIndicator current={3} total={5} />
       {isOrg ? (
         <>
           <Text style={styles.heading}>단체 공식 메일을 입력해 주세요</Text>

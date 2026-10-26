@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import StepIndicator from "@/components/StepIndicator";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { confirmLeaveSignup } from "@/lib/leaveSignup";
@@ -21,9 +22,15 @@ const KIND_OPTIONS: { value: OrgKind; label: string; example: string }[] = [
 const NAME_MIN = 2;
 const NAME_MAX = 30;
 const DESCRIPTION_MAX = 200;
+const MIN_PASSWORD_LENGTH = 8;
 
 export default function SignupOrgInfo() {
-  const { agreed } = useLocalSearchParams<{ agreed?: string }>();
+  // resubmit=1: 거절된 뒤 다시 신청 (비밀번호는 이미 정했으므로 칸을 숨긴다)
+  const { agreed, resubmit } = useLocalSearchParams<{ agreed?: string; resubmit?: string }>();
+  const isResubmit = resubmit === "1";
+
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
 
   const [universities, setUniversities] = useState<University[]>([]);
   const [kind, setKind] = useState<OrgKind | null>(null);
@@ -66,12 +73,28 @@ export default function SignupOrgInfo() {
   const descriptionOk = description.trim().length <= DESCRIPTION_MAX;
   const schoolOk = kind === "external" || universityId !== null;
 
-  const canSubmit = kind !== null && schoolOk && nameOk && evidenceOk && descriptionOk;
+  const passwordOk = isResubmit || password.length >= MIN_PASSWORD_LENGTH;
+  const passwordMatch = isResubmit || password === passwordConfirm;
+
+  const canSubmit =
+    passwordOk && passwordMatch && kind !== null && schoolOk && nameOk && evidenceOk && descriptionOk;
 
   const submit = async () => {
     if (!canSubmit || submitting) return;
     setSubmitting(true);
     setError("");
+
+    // 1. 로그인용 비밀번호 설정 (재신청이면 건너뜀, 같은 비밀번호로 이미 설정됐으면 그대로 진행)
+    if (!isResubmit) {
+      const { error: passwordError } = await supabase.auth.updateUser({ password });
+      if (passwordError && passwordError.code !== "same_password") {
+        setSubmitting(false);
+        setError(errorMessage(passwordError));
+        return;
+      }
+    }
+
+    // 2. 단체 신청
 
     const { error } = await supabase.rpc("request_org_signup", {
       p_kind: kind,
@@ -111,8 +134,39 @@ export default function SignupOrgInfo() {
         }}
       />
 
+      <StepIndicator current={5} total={5} />
       <Text style={styles.heading}>단체 정보를 입력해 주세요</Text>
       <Text style={styles.guide}>운영자가 확인한 뒤 승인하면 단체 이름으로 설문을 올릴 수 있어요.</Text>
+
+      {!isResubmit && (
+        <>
+          <Text style={styles.label}>비밀번호</Text>
+          <TextInput
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            placeholder="8자 이상 (로그인할 때 써요)"
+            secureTextEntry
+            autoCapitalize="none"
+          />
+          {password.length > 0 && password.length < MIN_PASSWORD_LENGTH && (
+            <Text style={styles.error}>비밀번호는 8자 이상으로 정해 주세요.</Text>
+          )}
+
+          <Text style={styles.label}>비밀번호 확인</Text>
+          <TextInput
+            style={styles.input}
+            value={passwordConfirm}
+            onChangeText={setPasswordConfirm}
+            placeholder="한 번 더 입력"
+            secureTextEntry
+            autoCapitalize="none"
+          />
+          {passwordConfirm.length > 0 && password !== passwordConfirm && (
+            <Text style={styles.error}>비밀번호가 서로 달라요.</Text>
+          )}
+        </>
+      )}
 
       <Text style={styles.label}>단체 종류</Text>
       <View style={styles.choiceRow}>

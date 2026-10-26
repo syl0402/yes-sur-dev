@@ -95,7 +95,7 @@ export default function SignupPending() {
             title="다시 신청하기"
             onPress={() =>
               // 처음 가입할 때 약관에 동의했으므로 그대로 이어서 재신청
-              router.replace({ pathname: "/signup/org-info", params: { agreed: "1" } })
+              router.replace({ pathname: "/signup/org-info", params: { agreed: "1", resubmit: "1" } })
             }
           />
         )}

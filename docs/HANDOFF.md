@@ -14,6 +14,12 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 <PrimaryButton title="다음" onPress={goNext} disabled={!ok} loading={sending} />
 ```
 
+### `StepIndicator` (`src/components/StepIndicator.tsx`, 2026-10-27)
+여러 화면으로 나뉜 흐름에서 지금 단계를 막대 + "2 / 5"로 보여준다. 가입은 5단계(유형·약관·이메일·인증번호·회원정보/단체정보).
+```tsx
+<StepIndicator current={2} total={5} />
+```
+
 ### `errorMessage` (`src/lib/errors.ts`)
 Supabase 오류를 한국어 문구로. 새 오류 코드가 생기면 이 파일에 한 줄 추가.
 ```ts
@@ -24,6 +30,19 @@ if (error) setError(errorMessage(error));
 포인트를 `1,000P` 형식으로.
 ```ts
 formatPoints(500); // "500P"
+```
+
+### `useSession` (`src/hooks/useSession.ts`, 2026-10-27)
+지금 로그인 상태. `undefined` = 확인 중, `null` = 로그아웃, 그 외 = 로그인(`session.user.id`).
+```ts
+const session = useSession();
+if (session?.user) { /* 로그인됨 */ }
+```
+
+### `showNotice` (`src/lib/notice.ts`, 2026-10-27)
+확인 버튼 하나짜리 안내 창 (폰은 Alert, 웹은 브라우저 알림). 닫힌 뒤 할 일은 세 번째 인자로.
+```ts
+showNotice("이미 가입된 계정이에요", "이 메일로 로그인했어요.", () => router.replace("/"));
 ```
 
 ### `useResumeSignup` (`src/hooks/useResumeSignup.ts`, 2026-10-27)

@@ -2,6 +2,7 @@
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 
+import StepIndicator from "@/components/StepIndicator";
 import { colors, fontSize, spacing } from "@/constants/theme";
 
 type SignupType = "student" | "org";
@@ -38,6 +39,7 @@ export default function SignupTypeScreen() {
       <Stack.Screen options={{ title: "회원가입" }} />
 
       {isResume && <Text style={styles.notice}>가입을 이어서 진행할게요.</Text>}
+      <StepIndicator current={1} total={5} />
       <Text style={styles.heading}>어떤 회원으로 가입할까요?</Text>
 
       {OPTIONS.map((option) => (

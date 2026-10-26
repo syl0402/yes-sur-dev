@@ -35,7 +35,8 @@
 | 인증번호 메일을 Gmail SMTP로 발송 | Supabase 대시보드 SMTP 설정 | 출시 전 도메인 구매 → Resend 등 발송 서비스로 | 2026-10-26 |
 | 기본 색·글자 크기 | `src/constants/theme.ts` | 디자인 시안이 나오면 교체 | 2026-10-26 |
 | 약관 본문 임시 문구 | `src/app/signup/terms.tsx` | 기획팀 Q11 약관 초안이 오면 교체 | 2026-10-26 |
-| 개발용 첫 화면 (회원가입·OTP 테스트 링크) | `src/app/index.tsx` | 진짜 홈·로그인 화면을 만들면 교체 | 2026-10-26 |
+| 임시 첫 화면 (로그인 전: 로그인·회원가입 / 로그인 후: 이름·포인트·로그아웃) | `src/app/index.tsx` | 진짜 홈(ys-100)을 만들면 교체 | 2026-10-26 (2026-10-27 수정) |
+| 비밀번호 찾기 "준비 중" 안내 | `src/app/login.tsx` | 다음 작업(ys-011 · F-107)에서 화면 연결 | 2026-10-27 |
 | 다크 모드 꺼 둠 (`userInterfaceStyle: "light"`) | `app.json` (JSON이라 주석 불가) | 다크 모드 디자인이 생기면 `"automatic"`으로 | 2026-10-27 |
 
 ## 가입·로그인 만들 때 할 일 (2026-10-26 메모)
@@ -50,7 +51,27 @@
 - [ ] 메일 링크를 누르면 `localhost:3000`으로 가는 문제: 인증번호 방식만 쓰면 상관없음. 양식에 링크가 남지 않게 할 것
 - [x] 같은 이메일로 **약 60초** 안에 다시 보내면 거절됨(429). 화면에 "잠시 후 다시 보내기" 안내 필요 (2026-10-26 `verify.tsx` 60초 카운트다운. 처음 메모의 15초는 잘못 계산)
 - [x] 인증번호는 한 번만 사용 가능. 두 번 누르면 `otp_expired` 오류 → 확인 버튼 연타 방지 (2026-10-26 `verify.tsx` 버튼 잠금)
-- [ ] 개발용 `src/app/otp-test.tsx` 화면은 진짜 로그인 화면이 생기면 삭제
+- [x] 개발용 `src/app/otp-test.tsx` 화면은 진짜 로그인 화면이 생기면 삭제 (2026-10-27 삭제)
+
+## 테스터 계정 (2026-10-27)
+
+비밀번호는 각자 메모장·비밀번호 앱에 둔다. **이 문서·코드에는 적지 않는다** (GitHub에 올라감).
+
+| 계정 | 용도 | 처음 만들기 |
+| --- | --- | --- |
+| 학생 (개발자 학교 메일) | 포인트·설문 등 일반 기능 | 회원정보 지우기 → 앱에서 회원가입(학생) 끝까지 → 이후 로그인만 |
+| 단체 (개발자 Gmail) | 단체·승인 기능 | 단체 정보 지우기 → 앱에서 회원가입(단체) 끝까지 → 대시보드에서 승인 |
+
+대시보드 SQL Editor에 저장해 두면 편한 쿼리 (메일 주소만 바꿔서):
+```sql
+-- 가입 전 상태로 되돌리기 (로그인 계정은 남고 회원정보·포인트·단체 정보만 지움)
+delete from profiles where id = (select id from auth.users where email = '메일주소');
+
+-- 단체 승인 / 거절
+update profiles set approval_status = 'approved' where id = (select id from auth.users where email = '메일주소');
+update profiles set approval_status = 'rejected' where id = (select id from auth.users where email = '메일주소');
+update organizations set reject_reason = '사유' where id = (select id from auth.users where email = '메일주소');
+```
 
 ## 결정: 학과 대신 표준 전공 계열 (2026-10-27)
 
@@ -85,6 +106,17 @@
 출시 후로 미룸: 사진 증빙(사업자등록증), 기업 앱 결제, 승인 알림, 교직원 구분
 
 **운영자 승인 방법 (2026-10-27):** Supabase → Table Editor → `profiles`에서 단체 계정의 `approval_status`를 `approved`(승인) 또는 `rejected`(거절)로 바꾼다. 거절이면 `organizations` 표의 `reject_reason`에 사유를 적는다. 대기 중인 단체 찾기: `profiles`에서 `account_type = org`, `approval_status = pending`으로 필터
+
+## 디자인 단계에서 할 일 (2026-10-27 메모)
+
+- [ ] 입력칸 안내 글씨(placeholder) 글자 간격이 어색하게 넓음
+- [ ] 단체 메일 입력: 국내 사이트처럼 "아이디 @ [naver.com ▾]" 도메인 선택 칸 (지금은 주소 전체 입력, 어떤 메일이든 가능)
+
+## 결정 메모 (2026-10-27)
+
+- 닉네임 중복: 허용하지 않음 (지금 DB가 막고 있음, 작업 없음)
+- 중복 가입 안내: 인증번호 확인 **후**. 이메일 입력 단계에서 알려주면 남의 학교 메일로 가입 여부를 확인할 수 있어서
+- 다른 학교: `universities` 표에 한 줄씩 추가 (기획팀 Q2 목록 받으면). 한 학교가 메일 도메인을 여러 개 쓰는지 확인
 
 ## 출시 전에 할 일
 

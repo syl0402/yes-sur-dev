@@ -24,6 +24,9 @@ const MESSAGES: Record<string, string> = {
   over_email_send_rate_limit: "잠시 후 다시 보내 주세요.",
   otp_expired: "인증번호가 틀렸거나 만료됐어요.",
   weak_password: "비밀번호가 너무 쉬워요. 8자 이상으로 정해 주세요.",
+  invalid_credentials: "이메일 또는 비밀번호가 맞지 않아요.",
+  email_not_confirmed: "이메일 인증을 먼저 완료해 주세요.",
+  over_request_rate_limit: "잠시 후 다시 시도해 주세요.",
 };
 
 const DEFAULT_MESSAGE = "잠시 후 다시 시도해 주세요.";
@@ -33,5 +36,12 @@ type ErrorLike = { code?: string; message?: string } | null | undefined;
 export function errorMessage(error: ErrorLike): string {
   if (!error) return DEFAULT_MESSAGE;
   // 인증 오류는 code에, 서버 함수 오류는 message에 코드가 온다
-  return MESSAGES[error.code ?? ""] ?? MESSAGES[error.message ?? ""] ?? DEFAULT_MESSAGE;
+  const known = MESSAGES[error.code ?? ""] ?? MESSAGES[error.message ?? ""];
+  if (known) return known;
+
+  // 모르는 오류: 개발 중(__DEV__)에만 원인을 같이 보여준다. 출시 앱에는 안 보인다
+  if (__DEV__) {
+    return `${DEFAULT_MESSAGE}\n[개발용] ${error.code ?? "-"} / ${error.message ?? "-"}`;
+  }
+  return DEFAULT_MESSAGE;
 }

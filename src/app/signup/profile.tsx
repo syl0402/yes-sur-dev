@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import StepIndicator from "@/components/StepIndicator";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { confirmLeaveSignup } from "@/lib/leaveSignup";
@@ -132,6 +133,7 @@ export default function SignupProfile() {
         }}
       />
 
+      <StepIndicator current={5} total={5} />
       <Text style={styles.heading}>회원정보를 입력해 주세요</Text>
 
       <Text style={styles.label}>비밀번호</Text>
