@@ -36,7 +36,6 @@
 | 기본 색·글자 크기 | `src/constants/theme.ts` | 디자인 시안이 나오면 교체 | 2026-10-26 |
 | 약관 본문 임시 문구 | `src/app/signup/terms.tsx` | 기획팀 Q11 약관 초안이 오면 교체 | 2026-10-26 |
 | 개발용 첫 화면 (회원가입·OTP 테스트 링크) | `src/app/index.tsx` | 진짜 홈·로그인 화면을 만들면 교체 | 2026-10-26 |
-| 단체 정보 입력 자리 화면 | `src/app/signup/org-info.tsx` | 단체 가입 C단계에서 단체 정보 입력으로 교체 | 2026-10-27 |
 | 다크 모드 꺼 둠 (`userInterfaceStyle: "light"`) | `app.json` (JSON이라 주석 불가) | 다크 모드 디자인이 생기면 `"automatic"`으로 | 2026-10-27 |
 
 ## 가입·로그인 만들 때 할 일 (2026-10-26 메모)

@@ -1,21 +1,12 @@
 // ys-001 회원가입 · F-103 회원정보 입력
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
+import { confirmLeaveSignup } from "@/lib/leaveSignup";
 import { supabase } from "@/lib/supabase";
 
 type DegreeType = "undergrad" | "grad";
@@ -120,26 +111,6 @@ export default function SignupProfile() {
     router.replace("/signup/done");
   };
 
-  // 가입 그만두기: 로그아웃하고 첫 화면으로 (같은 이메일로 다시 인증하면 이어서 가입 가능)
-  const leave = async () => {
-    await supabase.auth.signOut();
-    router.replace("/");
-  };
-
-  const confirmLeave = () => {
-    const title = "가입을 그만둘까요?";
-    const message = "입력한 내용은 저장되지 않아요.";
-    // 웹 미리보기에서는 Alert 버튼이 동작하지 않아 브라우저 확인 창을 쓴다
-    if (Platform.OS === "web") {
-      if (window.confirm(`${title}\n${message}`)) leave();
-      return;
-    }
-    Alert.alert(title, message, [
-      { text: "계속 가입하기", style: "cancel" },
-      { text: "나가기", style: "destructive", onPress: leave },
-    ]);
-  };
-
   return (
     <ScrollView
       style={styles.screen}
@@ -154,7 +125,7 @@ export default function SignupProfile() {
           headerBackVisible: false,
           gestureEnabled: false,
           headerLeft: () => (
-            <Pressable onPress={confirmLeave} hitSlop={8}>
+            <Pressable onPress={confirmLeaveSignup} hitSlop={8}>
               <Text style={styles.leave}>나가기</Text>
             </Pressable>
           ),

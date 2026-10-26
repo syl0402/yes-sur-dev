@@ -29,6 +29,10 @@ formatPoints(500); // "500P"
 ### `useResumeSignup` (`src/hooks/useResumeSignup.ts`, 2026-10-27)
 `_layout.tsx`에서 한 번 부른다. 로그인됨 + 회원정보 없음이면 `/signup/type?resume=1`(가입 유형 선택)로 보내 가입을 이어서 끝내게 한다.
 가입 화면(`/signup/...`) 안에서는 동작하지 않는다.
+승인 전(대기·거절) 단체 계정은 `/signup/pending`(승인 대기 화면)으로 보낸다.
+
+### `confirmLeaveSignup` (`src/lib/leaveSignup.ts`, 2026-10-27)
+가입 중간(인증 이후) 화면의 "나가기". 확인 창 → 로그아웃 → 첫 화면. 회원정보·단체 정보 화면에서 사용.
 
 ## 서버 함수 (DB 구조는 `docs/DB.md`)
 

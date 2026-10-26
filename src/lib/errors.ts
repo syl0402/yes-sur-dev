@@ -12,6 +12,13 @@ const MESSAGES: Record<string, string> = {
   invalid_major_field: "전공 계열을 선택해 주세요.",
   invalid_degree_type: "과정을 선택해 주세요.",
   invalid_admission_year: "입학년도를 선택해 주세요.",
+  already_student: "이미 학생으로 가입한 메일이에요. 단체는 다른 메일로 가입해 주세요.",
+  invalid_org_kind: "단체 종류를 선택해 주세요.",
+  invalid_org_name: "단체 이름은 2~30자로 입력해 주세요.",
+  invalid_org_university: "학교를 선택해 주세요.",
+  invalid_org_evidence: "증빙 링크는 http:// 또는 https://로 시작해야 해요.",
+  invalid_org_description: "소개는 200자까지 쓸 수 있어요.",
+  org_name_taken: "같은 이름의 단체가 이미 있어요.",
 
   // Supabase 인증
   over_email_send_rate_limit: "잠시 후 다시 보내 주세요.",
