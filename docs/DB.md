@@ -29,8 +29,8 @@
 | 칸 | 설명 |
 | --- | --- |
 | id | 로그인 계정 id (계정 삭제 시 함께 삭제) |
-| account_type | `student` 학생 / `org` 학생회·교내 기관 / `company` 외부 기업 |
-| approval_status | `pending` 대기 / `approved` 승인 / `rejected` 거절 |
+| account_type | `student` 학생 / `org` 단체 (지금 허용값에 남은 `company`는 단체 가입 작업 때 정리: 기업은 단체 종류 "외부"로) |
+| approval_status | 단체 계정 승인용: `pending` 대기 / `approved` 승인 / `rejected` 거절. 학생은 가입 시 바로 `approved` |
 | role | `user` / `admin` |
 | university_id | 학교 (학생은 필수, 기업은 비움) |
 | nickname | 닉네임, 고유 |
