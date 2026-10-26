@@ -52,6 +52,21 @@ const { error } = await supabase.rpc("complete_signup", {
 });
 ```
 
+### 단체 신청 `request_org_signup` (2026-10-27)
+이메일 인증 후 호출. 승인 대기 상태가 된다. 거절된 단체가 다시 부르면 재신청.
+```ts
+const { error } = await supabase.rpc("request_org_signup", {
+  p_kind: "campus",                  // 또는 "external"
+  p_name: "중앙대 총학생회",
+  p_university_id: 1,                // 외부면 null
+  p_evidence_url: "https://instagram.com/...",
+  p_description: "한 줄 소개",       // 비워도 됨
+  p_terms_agreed: true,
+});
+```
+승인 상태 확인: `supabase.from("profiles").select("account_type, approval_status").eq("id", userId).maybeSingle()`
+단체 정보·거절 사유: `supabase.from("organizations").select("*").eq("id", userId).maybeSingle()`
+
 ### 학교 목록 (로그인 전에도 가능)
 ```ts
 const { data } = await supabase.from("universities").select("id, name, email_domain").order("name");

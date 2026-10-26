@@ -84,6 +84,8 @@
 
 출시 후로 미룸: 사진 증빙(사업자등록증), 기업 앱 결제, 승인 알림, 교직원 구분
 
+**운영자 승인 방법 (2026-10-27):** Supabase → Table Editor → `profiles`에서 단체 계정의 `approval_status`를 `approved`(승인) 또는 `rejected`(거절)로 바꾼다. 거절이면 `organizations` 표의 `reject_reason`에 사유를 적는다. 대기 중인 단체 찾기: `profiles`에서 `account_type = org`, `approval_status = pending`으로 필터
+
 ## 출시 전에 할 일
 
 - [ ] 위 "임시로 둔 것" 표가 비어 있는지 확인

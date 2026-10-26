@@ -14,6 +14,7 @@
 | `20261026000002_complete_signup.sql` | 가입 완료 함수 (도메인 검사·회원정보·웰컴 지급) | 2026-10-26 |
 | `20261026000003_signup_terms.sql` | 약관 동의 시각, 학년 → 입학년도, 로그인 전 학교 목록 읽기, 가입 함수 매개변수 변경 | 2026-10-26 |
 | `20261027000001_major_fields.sql` | 표준 전공 계열 표, 학과 → 전공 계열, 가입 함수 매개변수 변경 | 2026-10-27 |
+| `20261027000002_org_signup.sql` | 회원 종류 student/org 정리, 단체 정보 표, 단체 신청 함수 | 2026-10-27 |
 
 ## 표
 
@@ -30,17 +31,30 @@
 | 칸 | 설명 |
 | --- | --- |
 | id | 로그인 계정 id (계정 삭제 시 함께 삭제) |
-| account_type | `student` 학생 / `org` 단체 (지금 허용값에 남은 `company`는 단체 가입 작업 때 정리: 기업은 단체 종류 "외부"로) |
+| account_type | `student` 학생 / `org` 단체 (기업은 단체 종류 "외부") |
 | approval_status | 단체 계정 승인용: `pending` 대기 / `approved` 승인 / `rejected` 거절. 학생은 가입 시 바로 `approved` |
 | role | `user` / `admin` |
-| university_id | 학교 (학생은 필수, 기업은 비움) |
-| nickname | 닉네임, 고유 |
+| university_id | 학교 (학생은 필수, 교내 단체는 그 학교, 외부 단체는 비움) |
+| nickname | 닉네임, 고유. 학생만 필수 (단체는 비우고 단체 이름을 씀) |
 | major_field_id | 전공 계열 (→ `major_fields`). 학과명은 받지 않는다 (2026-10-27, 아래 표 설명 참고) |
 | degree_type | 과정: `undergrad` 학부 / `grad` 대학원 |
 | admission_year | 입학년도 (예: 2023). 학년은 해마다 바뀌어 저장하지 않는다 |
 | terms_agreed_at | 필수 약관(이용약관·개인정보 수집·이용) 동의 시각 |
 
 이메일은 넣지 않는다 (Supabase Auth에만 있음).
+
+### organizations — 단체 정보 (2026-10-27)
+단체 계정 1개당 1줄. `id`는 그 단체 계정의 profiles id.
+| 칸 | 설명 |
+| --- | --- |
+| kind | `campus` 교내(학생회·동아리·센터·연구실) / `external` 외부(기업·연구기관) |
+| name | 단체 이름. 같은 학교 안에서 중복 불가, 외부 단체끼리 중복 불가 |
+| university_id | 교내 단체의 학교 (외부는 비움) |
+| evidence_url | 증빙 링크 (공식 SNS·홈페이지) |
+| description | 소개 (200자 이하, 비워도 됨) |
+| reject_reason | 거절 사유 (운영자가 적음) |
+
+**운영자 승인 방법:** Table Editor → `profiles`에서 그 계정의 `approval_status`를 `approved` 또는 `rejected`로 바꾼다. 거절이면 `organizations.reject_reason`에 사유를 적는다. 거절된 단체는 앱에서 고쳐서 다시 신청할 수 있다.
 
 ### major_fields — 전공 계열 (2026-10-27)
 한국교육개발원 학과 분류 기준. 전국 공통이라 학교가 늘어도 이 목록 하나만 쓴다.
@@ -75,6 +89,7 @@
 | --- | --- | --- |
 | universities | 누구나 (로그인 전 포함, 가입 화면용) | 불가 |
 | profiles | 본인 행만 | 불가 (서버 함수로만) |
+| organizations | 본인 단체만 | 불가 (서버 함수로만, 승인은 대시보드) |
 | major_fields | 로그인한 사람 모두 | 불가 |
 | point_rules | 로그인한 사람 모두 | 불가 (대시보드에서 운영자) |
 | point_ledger | 본인 기록만 | 불가 (서버 함수로만) |
@@ -87,6 +102,7 @@
 | --- | --- | --- |
 | `get_my_balance()` | 본인 잔액 (confirmed 합계) | 로그인한 사람 |
 | `complete_signup(p_nickname, p_major_field_id, p_admission_year, p_degree_type, p_terms_agreed)` | 학교 도메인 검사 → 학생 회원정보 저장 → 웰컴 포인트 지급. 이미 가입했으면 아무것도 안 함 | 로그인한 사람 (이메일 인증 완료) |
+| `request_org_signup(...)` | 단체 신청·재신청 → 승인 대기. 포인트 없음 | 로그인한 사람 (이메일 인증 완료) |
 
 ### complete_signup 입력 규칙
 
@@ -95,6 +111,19 @@
 - `p_degree_type`: `undergrad`(학부) / `grad`(대학원)
 - `p_admission_year`: 2000 ~ 올해
 - `p_terms_agreed`: 반드시 `true` (필수 약관 동의)
+
+### request_org_signup 입력 규칙 (2026-10-27)
+
+`request_org_signup(p_kind, p_name, p_university_id, p_evidence_url, p_description, p_terms_agreed)`
+단체 신청. profiles(`org`, `pending`)와 organizations에 저장. **포인트 지급 없음.**
+이미 학생이면 거부, 대기·승인 상태면 아무것도 안 함, 거절 상태면 내용을 고쳐 다시 대기로.
+
+- `p_kind`: `campus` / `external`
+- `p_name`: 앞뒤 공백 제거 후 2~30자
+- `p_university_id`: 교내면 필수 (외부면 무시)
+- `p_evidence_url`: `http://` 또는 `https://`로 시작, 300자 이하
+- `p_description`: 200자 이하, 비워도 됨
+- `p_terms_agreed`: 반드시 `true`
 
 ### 서버 함수 오류 코드
 
@@ -110,3 +139,10 @@
 | `invalid_admission_year` | 입학년도 값이 잘못됨 |
 | `terms_not_agreed` | 필수 약관에 동의하지 않음 |
 | `rule_missing` | `point_rules`에 필요한 값이 없음 (운영 문제) |
+| `already_student` | 이미 학생으로 가입한 계정이라 단체 신청 불가 |
+| `invalid_org_kind` | 단체 종류 값이 잘못됨 |
+| `invalid_org_name` | 단체 이름 2~30자 아님 |
+| `invalid_org_university` | 교내 단체인데 학교가 없거나 잘못됨 |
+| `invalid_org_evidence` | 증빙 링크가 http(s)로 시작하지 않거나 너무 김 |
+| `invalid_org_description` | 소개가 200자 초과 |
+| `org_name_taken` | 같은 학교(또는 외부 단체) 안에 같은 이름이 있음 |
