@@ -59,6 +59,7 @@ export default function SignupEmail() {
 
   return (
     <ScrollView
+      style={styles.screen}
       contentContainerStyle={styles.container}
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
@@ -114,6 +115,11 @@ export default function SignupEmail() {
 }
 
 const styles = StyleSheet.create({
+  // 내용이 짧아도 화면 끝까지 흰 배경
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   container: {
     padding: spacing.lg,
     gap: spacing.md,

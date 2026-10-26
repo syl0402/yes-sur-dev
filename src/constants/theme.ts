@@ -15,6 +15,7 @@ export const colors = {
 };
 
 export const fontSize = {
+  hero: 32,
   title: 22,
   body: 16,
   small: 13,

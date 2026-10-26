@@ -1,7 +1,17 @@
 // ys-001 회원가입 · F-103 회원정보 입력
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import { colors, fontSize, spacing } from "@/constants/theme";
@@ -110,15 +120,45 @@ export default function SignupProfile() {
     router.replace("/signup/done");
   };
 
+  // 가입 그만두기: 로그아웃하고 첫 화면으로 (같은 이메일로 다시 인증하면 이어서 가입 가능)
+  const leave = async () => {
+    await supabase.auth.signOut();
+    router.replace("/");
+  };
+
+  const confirmLeave = () => {
+    const title = "가입을 그만둘까요?";
+    const message = "입력한 내용은 저장되지 않아요.";
+    // 웹 미리보기에서는 Alert 버튼이 동작하지 않아 브라우저 확인 창을 쓴다
+    if (Platform.OS === "web") {
+      if (window.confirm(`${title}\n${message}`)) leave();
+      return;
+    }
+    Alert.alert(title, message, [
+      { text: "계속 가입하기", style: "cancel" },
+      { text: "나가기", style: "destructive", onPress: leave },
+    ]);
+  };
+
   return (
     <ScrollView
+      style={styles.screen}
       contentContainerStyle={styles.container}
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
     >
-      {/* 인증이 끝난 뒤에는 뒤로 가지 못하게 한다 */}
+      {/* 인증이 끝난 뒤에는 뒤로 가지 못하게 하고, 대신 "나가기"를 둔다 */}
       <Stack.Screen
-        options={{ title: "회원가입", headerBackVisible: false, gestureEnabled: false }}
+        options={{
+          title: "회원가입",
+          headerBackVisible: false,
+          gestureEnabled: false,
+          headerLeft: () => (
+            <Pressable onPress={confirmLeave} hitSlop={8}>
+              <Text style={styles.leave}>나가기</Text>
+            </Pressable>
+          ),
+        }}
       />
 
       <Text style={styles.heading}>회원정보를 입력해 주세요</Text>
@@ -273,6 +313,11 @@ function Chip({
 }
 
 const styles = StyleSheet.create({
+  // 내용이 짧아도 화면 끝까지 흰 배경
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   container: {
     padding: spacing.lg,
     gap: spacing.sm,
@@ -365,6 +410,10 @@ const styles = StyleSheet.create({
   hint: {
     fontSize: fontSize.small,
     color: colors.primary,
+  },
+  leave: {
+    fontSize: fontSize.body,
+    color: colors.text,
   },
   footer: {
     marginTop: spacing.lg,

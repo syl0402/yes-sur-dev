@@ -1,5 +1,5 @@
 // ys-001 회원가입 · F-101 약관 동의
-import { router, Stack } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -24,6 +24,10 @@ const TERMS = [
 ];
 
 export default function SignupTerms() {
+  // resume=1: 인증만 하고 가입을 마치지 않은 사람이 이어서 하는 경우 (useResumeSignup)
+  const { resume } = useLocalSearchParams<{ resume?: string }>();
+  const isResume = resume === "1";
+
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [opened, setOpened] = useState<string | null>(null);
 
@@ -39,16 +43,23 @@ export default function SignupTerms() {
   };
 
   const goNext = () => {
+    if (isResume) {
+      // 이미 인증된 상태라 이메일·인증번호를 건너뛰고 회원정보로
+      router.replace({ pathname: "/signup/profile", params: { agreed: "1" } });
+      return;
+    }
     router.push({ pathname: "/signup/email", params: { agreed: "1" } });
   };
 
   return (
     <ScrollView
+      style={styles.screen}
       contentContainerStyle={styles.container}
       contentInsetAdjustmentBehavior="automatic"
     >
       <Stack.Screen options={{ title: "회원가입" }} />
 
+      {isResume && <Text style={styles.notice}>가입을 이어서 진행할게요.</Text>}
       <Text style={styles.heading}>약관에 동의해 주세요</Text>
 
       <Pressable style={[styles.row, styles.allRow]} onPress={toggleAll}>
@@ -87,10 +98,19 @@ function CheckBox({ checked }: { checked: boolean }) {
 }
 
 const styles = StyleSheet.create({
+  // 내용이 짧아도 화면 끝까지 흰 배경
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   container: {
     padding: spacing.lg,
     gap: spacing.md,
     backgroundColor: colors.background,
+  },
+  notice: {
+    fontSize: fontSize.small,
+    color: colors.primary,
   },
   heading: {
     fontSize: fontSize.title,
