@@ -14,7 +14,11 @@ const RESEND_WAIT_SECONDS = 60;
 const MIN_CODE_LENGTH = 6;
 
 export default function SignupVerify() {
-  const { email, agreed } = useLocalSearchParams<{ email: string; agreed?: string }>();
+  const { email, agreed, type } = useLocalSearchParams<{
+    email: string;
+    agreed?: string;
+    type?: string;
+  }>();
 
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
@@ -49,8 +53,12 @@ export default function SignupVerify() {
     }
     // 쌓인 가입 화면을 모두 걷어내고 회원정보 화면만 남긴다
     // → 인증이 끝난 뒤에는 뒤로 가기로 이메일·인증 화면에 돌아오지 않는다
+    // 학생은 회원정보, 단체는 단체 정보 화면으로
     router.dismissAll();
-    router.replace({ pathname: "/signup/profile", params: { agreed } });
+    router.replace({
+      pathname: type === "org" ? "/signup/org-info" : "/signup/profile",
+      params: { agreed },
+    });
   };
 
   const resend = async () => {

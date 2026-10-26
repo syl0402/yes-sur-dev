@@ -24,8 +24,10 @@ const TERMS = [
 ];
 
 export default function SignupTerms() {
+  // type: 학생(student) / 단체(org), 가입 유형 선택 화면에서 넘어온다
   // resume=1: 인증만 하고 가입을 마치지 않은 사람이 이어서 하는 경우 (useResumeSignup)
-  const { resume } = useLocalSearchParams<{ resume?: string }>();
+  const { type, resume } = useLocalSearchParams<{ type?: string; resume?: string }>();
+  const isOrg = type === "org";
   const isResume = resume === "1";
 
   const [checked, setChecked] = useState<Record<string, boolean>>({});
@@ -44,11 +46,19 @@ export default function SignupTerms() {
 
   const goNext = () => {
     if (isResume) {
-      // 이미 인증된 상태라 이메일·인증번호를 건너뛰고 회원정보로
-      router.replace({ pathname: "/signup/profile", params: { agreed: "1" } });
+      // 이미 인증된 상태라 이메일·인증번호를 건너뛰고 회원정보(학생) 또는 단체 정보로.
+      // 쌓인 화면을 걷어내 뒤로 가기로 돌아오지 않게 한다
+      router.dismissAll();
+      router.replace({
+        pathname: isOrg ? "/signup/org-info" : "/signup/profile",
+        params: { agreed: "1" },
+      });
       return;
     }
-    router.push({ pathname: "/signup/email", params: { agreed: "1" } });
+    router.push({
+      pathname: "/signup/email",
+      params: { agreed: "1", type: isOrg ? "org" : "student" },
+    });
   };
 
   return (

@@ -16,7 +16,7 @@ export default function Index() {
       </View>
 
       <View style={styles.footer}>
-        <PrimaryButton title="회원가입" onPress={() => router.push("/signup/terms")} />
+        <PrimaryButton title="회원가입" onPress={() => router.push("/signup/type")} />
         <Link href="/otp-test" style={styles.devLink}>
           OTP 테스트 (개발용)
         </Link>

@@ -27,7 +27,7 @@ formatPoints(500); // "500P"
 ```
 
 ### `useResumeSignup` (`src/hooks/useResumeSignup.ts`, 2026-10-27)
-`_layout.tsx`에서 한 번 부른다. 로그인됨 + 회원정보 없음이면 `/signup/terms?resume=1`로 보내 가입을 이어서 끝내게 한다.
+`_layout.tsx`에서 한 번 부른다. 로그인됨 + 회원정보 없음이면 `/signup/type?resume=1`(가입 유형 선택)로 보내 가입을 이어서 끝내게 한다.
 가입 화면(`/signup/...`) 안에서는 동작하지 않는다.
 
 ## 서버 함수 (DB 구조는 `docs/DB.md`)

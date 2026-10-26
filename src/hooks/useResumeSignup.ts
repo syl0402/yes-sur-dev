@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 // 인증번호까지만 하고 앱을 끈 사람(로그인됨 + 회원정보 없음)을
-// 약관 화면으로 보내 가입을 이어서 끝내게 한다. 앱 맨 바깥(_layout)에서 한 번 부른다.
+// 가입 유형 선택 화면으로 보내 가입을 이어서 끝내게 한다. 앱 맨 바깥(_layout)에서 한 번 부른다.
 export function useResumeSignup() {
   const segments = useSegments();
   const [session, setSession] = useState<Session | null>(null);
@@ -34,7 +34,7 @@ export function useResumeSignup() {
       .maybeSingle()
       .then(({ data, error }) => {
         if (cancelled || error || data) return;
-        router.replace({ pathname: "/signup/terms", params: { resume: "1" } });
+        router.replace({ pathname: "/signup/type", params: { resume: "1" } });
       });
 
     return () => {
