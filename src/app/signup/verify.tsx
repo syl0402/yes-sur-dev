@@ -16,11 +16,14 @@ const RESEND_WAIT_SECONDS = 60;
 const MIN_CODE_LENGTH = 6;
 
 export default function SignupVerify() {
-  const { email, agreed, type } = useLocalSearchParams<{
+  // mode=reset: 비밀번호 찾기(ys-011)에서 온 경우. 같은 인증번호 화면을 함께 쓴다
+  const { email, agreed, type, mode } = useLocalSearchParams<{
     email: string;
     agreed?: string;
     type?: string;
+    mode?: string;
   }>();
+  const isReset = mode === "reset";
 
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
@@ -54,8 +57,14 @@ export default function SignupVerify() {
       return;
     }
 
-    // 이미 가입을 마친 메일이면 새로 가입시키지 않고 그대로 로그인 상태로 첫 화면에.
-    // 인증번호를 확인한 메일 주인에게만 알려주므로 남이 가입 여부를 알 수 없다
+    // 비밀번호 찾기: 본인 확인이 끝났으니 새 비밀번호 화면으로 (뒤로 가기로 돌아오지 않게)
+    if (isReset) {
+      router.dismissAll();
+      router.replace("/reset/password");
+      return;
+    }
+
+    // 이미 가입을 마친 메일이면 (이메일 단계 확인을 지나친 경우를 위한 안전장치) 새로 가입시키지 않고 그대로 로그인 상태로 첫 화면에.
     const { data: profile } = await supabase.from("profiles").select("id").maybeSingle();
     if (profile) {
       showNotice("이미 가입된 계정이에요", "이 메일로 로그인했어요.", () => {
@@ -82,7 +91,8 @@ export default function SignupVerify() {
 
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true },
+      // 비밀번호 찾기에서는 새 계정을 만들지 않는다
+      options: { shouldCreateUser: !isReset },
     });
 
     setResending(false);
@@ -103,9 +113,9 @@ export default function SignupVerify() {
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
     >
-      <Stack.Screen options={{ title: "회원가입" }} />
+      <Stack.Screen options={{ title: isReset ? "비밀번호 찾기" : "회원가입" }} />
 
-      <StepIndicator current={4} total={5} />
+      {!isReset && <StepIndicator current={4} total={5} />}
       <Text style={styles.heading}>인증번호를 입력해 주세요</Text>
       <Text style={styles.guide}>
         {email}(으)로 보낸 인증번호를 입력해 주세요. 메일이 안 보이면 스팸함도 확인해 주세요.

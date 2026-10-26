@@ -90,6 +90,12 @@ const { error } = await supabase.rpc("request_org_signup", {
 승인 상태 확인: `supabase.from("profiles").select("account_type, approval_status").eq("id", userId).maybeSingle()`
 단체 정보·거절 사유: `supabase.from("organizations").select("*").eq("id", userId).maybeSingle()`
 
+### 가입 여부 확인 `is_email_registered` (2026-10-27, 로그인 전에도 가능)
+```ts
+const { data: registered } = await supabase.rpc("is_email_registered", { p_email: email });
+// true = 가입을 마친 메일
+```
+
 ### 학교 목록 (로그인 전에도 가능)
 ```ts
 const { data } = await supabase.from("universities").select("id, name, email_domain").order("name");

@@ -6,7 +6,6 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-
 import PrimaryButton from "@/components/PrimaryButton";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
-import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
 
 export default function Login() {
@@ -36,11 +35,6 @@ export default function Login() {
     router.replace("/");
   };
 
-  // TODO(임시): 비밀번호 찾기 · 로그인 다음 작업(ys-011 · F-107)에서 화면 연결 · docs/PROGRESS.md
-  const findPassword = () => {
-    showNotice("준비 중", "비밀번호 찾기는 곧 열려요.");
-  };
-
   return (
     <ScrollView
       style={styles.screen}
@@ -51,6 +45,8 @@ export default function Login() {
       <Stack.Screen options={{ title: "로그인" }} />
 
       <Text style={styles.heading}>로그인</Text>
+      {/* 아이디 찾기 대신 안내 (2026-10-27 결정) */}
+      <Text style={styles.guide}>학생은 학교 메일, 단체는 가입한 공식 메일로 로그인해요.</Text>
 
       <Text style={styles.label}>이메일</Text>
       <TextInput
@@ -87,7 +83,7 @@ export default function Login() {
           <Text style={styles.link}>회원가입</Text>
         </Pressable>
         <Text style={styles.divider}>|</Text>
-        <Pressable onPress={findPassword} hitSlop={8}>
+        <Pressable onPress={() => router.push("/reset/email")} hitSlop={8}>
           <Text style={styles.link}>비밀번호를 잊으셨나요?</Text>
         </Pressable>
       </View>
@@ -108,6 +104,10 @@ const styles = StyleSheet.create({
     fontSize: fontSize.title,
     fontWeight: "700",
     color: colors.text,
+  },
+  guide: {
+    fontSize: fontSize.small,
+    color: colors.textMuted,
     marginBottom: spacing.sm,
   },
   label: {

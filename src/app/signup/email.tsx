@@ -24,6 +24,8 @@ export default function SignupEmail() {
   const [orgEmail, setOrgEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  // 이미 가입된 것으로 확인된 메일 (입력을 바꾸면 안내가 사라진다)
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   useEffect(() => {
     supabase
@@ -49,13 +51,22 @@ export default function SignupEmail() {
   const isValidOrgEmail = EMAIL_PATTERN.test(trimmedOrgEmail);
 
   const canSend = isOrg ? isValidOrgEmail : selected !== null && isValidLocalPart;
+  const email = isOrg ? trimmedOrgEmail : `${trimmed}@${selected?.email_domain}`;
+  const alreadyRegistered = registeredEmail !== "" && registeredEmail === email;
 
   const sendCode = async () => {
     if (!canSend) return;
     setSending(true);
     setError("");
 
-    const email = isOrg ? trimmedOrgEmail : `${trimmed}@${selected?.email_domain}`;
+    // 이미 가입을 마친 메일이면 인증번호를 보내지 않고 로그인으로 안내한다 (2026-10-27 결정)
+    const { data: registered } = await supabase.rpc("is_email_registered", { p_email: email });
+    if (registered === true) {
+      setSending(false);
+      setRegisteredEmail(email);
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { shouldCreateUser: true },
@@ -137,14 +148,28 @@ export default function SignupEmail() {
 
       {error !== "" && <Text style={styles.error}>{error}</Text>}
 
-      <View style={styles.footer}>
-        <PrimaryButton
-          title="인증번호 보내기"
-          onPress={sendCode}
-          disabled={!canSend}
-          loading={sending}
-        />
-      </View>
+      {alreadyRegistered ? (
+        <View style={styles.registeredBox}>
+          <Text style={styles.registeredText}>이미 가입된 메일이에요. 로그인해 주세요.</Text>
+          <PrimaryButton
+            title="로그인하기"
+            onPress={() => {
+              // 쌓인 가입 화면을 걷어내고 로그인 화면으로
+              router.dismissAll();
+              router.push("/login");
+            }}
+          />
+        </View>
+      ) : (
+        <View style={styles.footer}>
+          <PrimaryButton
+            title="인증번호 보내기"
+            onPress={sendCode}
+            disabled={!canSend}
+            loading={sending}
+          />
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -169,6 +194,15 @@ const styles = StyleSheet.create({
   guide: {
     fontSize: fontSize.small,
     color: colors.textMuted,
+  },
+  registeredBox: {
+    marginTop: spacing.lg,
+    gap: spacing.md,
+  },
+  registeredText: {
+    fontSize: fontSize.body,
+    color: colors.danger,
+    textAlign: "center",
   },
   school: {
     padding: spacing.md,

@@ -12,8 +12,8 @@ export function useResumeSignup() {
   const session = useSession();
 
   const userId = session?.user.id;
-  // 가입 화면 안에서는 정상 흐름(인증 → 회원정보)을 방해하지 않는다
-  const inSignup = segments[0] === "signup";
+  // 가입·비밀번호 찾기 화면 안에서는 정상 흐름(인증 → 다음 화면)을 방해하지 않는다
+  const inSignup = segments[0] === "signup" || segments[0] === "reset";
 
   useEffect(() => {
     if (!userId || inSignup) return;
