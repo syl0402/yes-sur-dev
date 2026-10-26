@@ -13,6 +13,7 @@
 | `20261026000001_base_tables.sql` | 학교·회원정보·포인트 규칙·포인트 기록, 잔액 함수 | 2026-10-26 |
 | `20261026000002_complete_signup.sql` | 가입 완료 함수 (도메인 검사·회원정보·웰컴 지급) | 2026-10-26 |
 | `20261026000003_signup_terms.sql` | 약관 동의 시각, 학년 → 입학년도, 로그인 전 학교 목록 읽기, 가입 함수 매개변수 변경 | 2026-10-26 |
+| `20261027000001_major_fields.sql` | 표준 전공 계열 표, 학과 → 전공 계열, 가입 함수 매개변수 변경 | 2026-10-27 |
 
 ## 표
 
@@ -34,12 +35,24 @@
 | role | `user` / `admin` |
 | university_id | 학교 (학생은 필수, 기업은 비움) |
 | nickname | 닉네임, 고유 |
-| department | 학과 |
+| major_field_id | 전공 계열 (→ `major_fields`). 학과명은 받지 않는다 (2026-10-27, 아래 표 설명 참고) |
 | degree_type | 과정: `undergrad` 학부 / `grad` 대학원 |
 | admission_year | 입학년도 (예: 2023). 학년은 해마다 바뀌어 저장하지 않는다 |
 | terms_agreed_at | 필수 약관(이용약관·개인정보 수집·이용) 동의 시각 |
 
 이메일은 넣지 않는다 (Supabase Auth에만 있음).
+
+### major_fields — 전공 계열 (2026-10-27)
+한국교육개발원 학과 분류 기준. 전국 공통이라 학교가 늘어도 이 목록 하나만 쓴다.
+| 칸 | 설명 |
+| --- | --- |
+| category | 대계열 키: `humanities` `social` `education` `engineering` `natural` `medical` `arts` |
+| category_name | 대계열 이름: 인문 / 사회 / 교육 / 공학 / 자연 / 의약 / 예체능 |
+| name | 중계열 이름 (35개, 예: 경영·경제, 컴퓨터·통신) |
+| sort_order | 화면 표시 순서 |
+
+- 학과명 자유 입력은 표기가 섞여 통계에 못 쓰고, 학교·학과·학번 조합은 재식별 위험이 커서 쓰지 않는다
+- 타기팅은 중계열까지, **공개 통계는 대계열까지** (PRD 7번)
 
 ### point_rules — 포인트 수치
 `key`, `value`, `description`. 값은 `docs/PRD.md` 4-2와 같다. 수치를 바꿀 때는 대시보드에서 이 표만 고친다.
@@ -62,6 +75,7 @@
 | --- | --- | --- |
 | universities | 누구나 (로그인 전 포함, 가입 화면용) | 불가 |
 | profiles | 본인 행만 | 불가 (서버 함수로만) |
+| major_fields | 로그인한 사람 모두 | 불가 |
 | point_rules | 로그인한 사람 모두 | 불가 (대시보드에서 운영자) |
 | point_ledger | 본인 기록만 | 불가 (서버 함수로만) |
 
@@ -72,12 +86,12 @@
 | 함수 | 하는 일 | 누가 |
 | --- | --- | --- |
 | `get_my_balance()` | 본인 잔액 (confirmed 합계) | 로그인한 사람 |
-| `complete_signup(p_nickname, p_department, p_admission_year, p_degree_type, p_terms_agreed)` | 학교 도메인 검사 → 학생 회원정보 저장 → 웰컴 포인트 지급. 이미 가입했으면 아무것도 안 함 | 로그인한 사람 (이메일 인증 완료) |
+| `complete_signup(p_nickname, p_major_field_id, p_admission_year, p_degree_type, p_terms_agreed)` | 학교 도메인 검사 → 학생 회원정보 저장 → 웰컴 포인트 지급. 이미 가입했으면 아무것도 안 함 | 로그인한 사람 (이메일 인증 완료) |
 
 ### complete_signup 입력 규칙
 
 - `p_nickname`: 앞뒤 공백 제거 후 2~12자, 다른 회원과 겹치면 안 됨
-- `p_department`: 비울 수 없음
+- `p_major_field_id`: `major_fields`에 있는 id (중계열)
 - `p_degree_type`: `undergrad`(학부) / `grad`(대학원)
 - `p_admission_year`: 2000 ~ 올해
 - `p_terms_agreed`: 반드시 `true` (필수 약관 동의)
@@ -91,7 +105,7 @@
 | `domain_not_allowed` | 허용 학교 이메일이 아님 |
 | `invalid_nickname` | 닉네임 2~12자 아님 |
 | `nickname_taken` | 이미 쓰는 닉네임 |
-| `invalid_department` | 학과 비어 있음 |
+| `invalid_major_field` | 전공 계열이 없거나 잘못됨 |
 | `invalid_degree_type` | 과정 값이 잘못됨 |
 | `invalid_admission_year` | 입학년도 값이 잘못됨 |
 | `terms_not_agreed` | 필수 약관에 동의하지 않음 |
