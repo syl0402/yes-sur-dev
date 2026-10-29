@@ -34,6 +34,12 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 ### `formatTimeLeft` (`src/lib/format.ts`, 2026-10-29)
 마감까지 남은 시간: `"3일 남음"` / `"5시간 남음"` / `"곧 마감"` / `"마감"`
 
+### `formatDate` (`src/lib/format.ts`, 2026-10-29)
+날짜를 `"2026.10.29"` 형식으로. 포인트 내역 등에서 사용.
+
+### 포인트 내역 (마이 탭 `src/app/(tabs)/my.tsx`, 2026-10-29)
+`point_ledger`(본인 것만 읽힘)의 confirmed 기록을 최신순으로. 설문 응답 기록은 `ref_id`(설문 번호)로 설문 이름을 붙인다.
+
 ### `PrimaryButton` (`src/components/PrimaryButton.tsx`)
 큰 파란 버튼. `disabled`면 회색, `loading`이면 돌아가는 표시 + 누르기 막힘(연타 방지).
 ```tsx

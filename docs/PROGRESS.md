@@ -110,7 +110,7 @@
 | 밸런스 탭 준비 중 | `src/app/(tabs)/balance.tsx` | 3단계 밸런스 | 2026-10-29 |
 | 데이터 탭 준비 중 | `src/app/(tabs)/data.tsx` | 2단계 데이터 허브 | 2026-10-29 |
 | 홈 "설문 등록" 준비 중 안내 | `src/app/(tabs)/home.tsx` | 2단계 설문 작성 | 2026-10-29 |
-| 마이 탭: 이름·로그아웃만 | `src/app/(tabs)/my.tsx` | 설문 1단계 ⑤ 지갑 | 2026-10-29 |
+| 포인트 내역 최근 50개만 | `src/app/(tabs)/my.tsx` | 내역이 많아지면 아래로 내릴 때 더 불러오기 | 2026-10-29 |
 | 탭 아이콘 (Ionicons 기본) | `src/constants/icons.ts` | 디자인팀 아이콘 확정 시 이름만 교체 (직접 그린 아이콘은 `AppIcon.tsx`) | 2026-10-29 |
 | 다크 모드 꺼 둠 (`userInterfaceStyle: "light"`) | `app.json` (JSON이라 주석 불가) | 다크 모드 디자인이 생기면 `"automatic"`으로 | 2026-10-27 |
 

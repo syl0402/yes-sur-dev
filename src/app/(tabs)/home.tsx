@@ -59,8 +59,8 @@ export default function Home() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
-      {/* 내 포인트 (단체는 응답·적립이 없어서 안내로 대신) */}
-      <View style={styles.pointBox}>
+      {/* 내 포인트 (단체는 응답·적립이 없어서 안내로 대신). 누르면 마이 탭의 포인트 내역으로 */}
+      <Pressable style={styles.pointBox} onPress={() => router.navigate("/my")} disabled={data.isOrg}>
         {data.isOrg ? (
           <Text style={styles.orgNotice}>단체 계정은 설문 등록·결과 확인용이에요.</Text>
         ) : (
@@ -69,7 +69,7 @@ export default function Home() {
             <Text style={styles.pointValue}>{formatPoints(data.balance)}</Text>
           </>
         )}
-      </View>
+      </Pressable>
 
       <View style={styles.actions}>
         {!data.isOrg && <PrimaryButton title="설문 참여" onPress={goSurveys} />}
