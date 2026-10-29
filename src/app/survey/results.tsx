@@ -10,18 +10,11 @@ import { errorMessage } from "@/lib/errors";
 import { formatTimeLeft } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
-import { type QuestionType, type ResultVisibility, SCALE_LABELS, VISIBILITY_LABELS } from "@/lib/surveyDraft";
+import QuestionResult, { type QuestionStats } from "@/components/results/QuestionResult";
+import { type ResultVisibility, VISIBILITY_LABELS } from "@/lib/surveyDraft";
 
-// get_survey_results가 돌려주는 모양 (docs/DB.md)
-type ResultQuestion = {
-  id: number;
-  type: QuestionType;
-  text: string;
-  answered: number;
-  options: { id: number; text: string; count: number }[];
-  scale: { avg: number | null; counts: number[] } | null;
-  texts: string[];
-};
+// get_survey_results가 돌려주는 문항 모양 (등록자라 주관식 답 원문 포함)
+type ResultQuestion = QuestionStats;
 
 type Results = {
   title: string;
@@ -61,11 +54,6 @@ async function fetchResults(id: number): Promise<Results | string> {
     excluded: result.excluded,
     questions: result.questions,
   };
-}
-
-// 0~1 비율 → 막대 너비 (% 문자열)
-function percent(count: number, total: number): number {
-  return total > 0 ? Math.round((count / total) * 100) : 0;
 }
 
 export default function SurveyResults() {
@@ -175,61 +163,9 @@ export default function SurveyResults() {
       {results.total === 0 ? (
         <Text style={styles.muted}>아직 결과에 반영된 응답이 없어요.</Text>
       ) : (
-        results.questions.map((q, index) => (
-          <View key={q.id} style={styles.card}>
-            <Text style={styles.questionText}>
-              {index + 1}. {q.text}
-            </Text>
-            <Text style={styles.hint}>응답 {q.answered}개</Text>
-
-            {(q.type === "single" || q.type === "multi") &&
-              q.options.map((o) => (
-                <Bar key={o.id} label={o.text} count={o.count} pct={percent(o.count, q.answered)} />
-              ))}
-
-            {q.type === "scale" && q.scale && (
-              <>
-                <Text style={styles.average}>평균 {q.scale.avg ?? "-"}점</Text>
-                {q.scale.counts.map((count, i) => (
-                  <Bar
-                    key={i}
-                    label={`${i + 1} ${SCALE_LABELS[i]}`}
-                    count={count}
-                    pct={percent(count, q.answered)}
-                  />
-                ))}
-              </>
-            )}
-
-            {q.type === "text" &&
-              q.texts.map((t, i) => (
-                <Text key={i} style={styles.textAnswer}>
-                  {t}
-                </Text>
-              ))}
-          </View>
-        ))
+        results.questions.map((q, index) => <QuestionResult key={q.id} index={index} question={q} />)
       )}
     </ScrollView>
-  );
-}
-
-// 가로 막대 한 줄: 보기 이름 · 막대 · 명(%)
-function Bar({ label, count, pct }: { label: string; count: number; pct: number }) {
-  return (
-    <View style={styles.barRow}>
-      <View style={styles.barLabels}>
-        <Text style={styles.barLabel} numberOfLines={1}>
-          {label}
-        </Text>
-        <Text style={styles.barCount}>
-          {count}명 ({pct}%)
-        </Text>
-      </View>
-      <View style={styles.barTrack}>
-        <View style={[styles.barFill, { width: `${pct}%` }]} />
-      </View>
-    </View>
   );
 }
 

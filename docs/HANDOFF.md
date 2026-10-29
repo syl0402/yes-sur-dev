@@ -39,6 +39,13 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 결과 공개 범위: 등록 때 `create_survey`에 `p_result_visibility: "public" | "campus" | "private"`, 나중엔 `supabase.rpc("set_result_visibility", { p_survey_id, p_visibility })`. 화면 문구는 `VISIBILITY_LABELS` (`surveyDraft.ts`)
 - 데이터 허브(공개 결과)에서도 같은 결과 화면 모양을 다시 쓸 예정
 
+### 데이터 허브 (2026-10-30)
+- 목록 `(tabs)/data.tsx` → 결과 `/data/[id]` (무료 정보 → 응답자 내 답 비교 → 열람 → 전체 결과)
+- 서버 함수: `get_hub_list`, `get_hub_preview`, `get_my_comparison`, `view_survey`, `get_full_results` (모양은 `src/lib/hub.ts` 타입, 설명은 `docs/DB.md`)
+- 결과 그래프는 공용 `QuestionResult` (`src/components/results/QuestionResult.tsx`) — 내 결과 화면과 같이 씀
+- 나눠 보기 그룹 순서는 `sortGroups` (`src/lib/hub.ts`)
+- 테스트할 때 응답자가 적으면 `dev_tools.sql` 10번(최소 응답 수 1)으로. 출시 전 5로 되돌리기
+
 ### `formatHost` (`src/lib/surveys.ts`, 2026-10-30)
 설문 작성자 표시: 인증된 단체는 `"경영학과 학생회 ✓"`, 학생 설문은 `"개인"`. 설문을 읽을 때 `host_name, host_verified`를 같이 select 한다.
 ```ts

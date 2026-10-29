@@ -1,5 +1,5 @@
 // ys-150 마일리지 지갑 · F-701
-import { router, useFocusEffect } from "expo-router";
+import { type Href, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -8,6 +8,9 @@ import { showConfirm } from "@/lib/confirm";
 import { formatDate, formatPoints } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
 import { type SavedDraft, deleteDraft, listDrafts } from "@/lib/surveyDraft";
+
+// 내 정보 화면 (account/index.tsx). 개발 서버가 경로 목록을 늦게 갱신해 타입 오류가 나는 일이 있어 Href로 고정
+const ACCOUNT_HREF = "/account" as Href;
 
 // TODO(임시): 포인트 내역은 최근 50개만 · 내역이 많아지면 아래로 내릴 때 더 불러오기 · docs/PROGRESS.md
 const LEDGER_LIMIT = 50;
@@ -87,11 +90,11 @@ async function fetchMy(): Promise<MyData> {
     fetchMySurveys(userId),
   ]);
 
-  // 설문 응답·등록 기록에 설문 이름을 붙인다 (ref_id = 설문 번호)
+  // 설문 관련 기록에 설문 이름을 붙인다 (ref_id = 설문 번호, 열람 수익은 "설문번호:열람번호")
   const surveyIds = (rows ?? [])
-    // 설문 번호(숫자)인 기록만. 개발용 포인트 기록(ref_id "dev-…")은 빼고
-    .filter((r) => ["survey_reward", "survey_create", "survey_refund", "data_view", "data_share"].includes(r.reason) && /^\d+$/.test(r.ref_id ?? ""))
-    .map((r) => Number(r.ref_id));
+    // 설문 번호가 있는 기록만. 개발용 포인트 기록(ref_id "dev-…")은 빼고
+    .map((r) => surveyIdOf(r.ref_id))
+    .filter((sid): sid is number => sid !== null);
   const titles = new Map<string, string>();
   if (surveyIds.length > 0) {
     const { data: surveys } = await supabase.from("surveys").select("id, title").in("id", surveyIds);
@@ -108,7 +111,8 @@ async function fetchMy(): Promise<MyData> {
     balance: typeof balance === "number" ? balance : 0,
     ledger: (rows ?? []).map((r) => {
       const reason = REASON_LABELS[r.reason] ?? "기타";
-      const title = r.ref_id ? titles.get(r.ref_id) : undefined;
+      const sid = surveyIdOf(r.ref_id);
+      const title = sid !== null ? titles.get(String(sid)) : undefined;
       return {
         id: r.id,
         amount: r.amount,
@@ -119,6 +123,12 @@ async function fetchMy(): Promise<MyData> {
     surveys,
     drafts: userId ? listDrafts(userId) : [],
   };
+}
+
+// 포인트 기록의 설문 번호: "12" 또는 "12:34"(열람 수익) → 12. 개발용 기록("dev-…")·웰컴은 null
+function surveyIdOf(refId: string | null): number | null {
+  const match = /^(\d+)(:\d+)?$/.exec(refId ?? "");
+  return match ? Number(match[1]) : null;
 }
 
 export default function My() {
@@ -160,7 +170,7 @@ export default function My() {
       contentContainerStyle={styles.container}
     >
       {/* 이름을 누르면 내 정보 (회원정보·비밀번호 변경·로그아웃) */}
-      <Pressable onPress={() => router.push("/account")}>
+      <Pressable onPress={() => router.push(ACCOUNT_HREF)}>
         <Text style={styles.name}>{data.name ? `${data.name}님 ›` : "내 정보 ›"}</Text>
         <Text style={styles.ledgerDate}>내 정보 · 계정 설정</Text>
         {data.needsDemographics && <Text style={styles.infoLink}>⚠️ 성별·출생연도를 입력해 주세요</Text>}

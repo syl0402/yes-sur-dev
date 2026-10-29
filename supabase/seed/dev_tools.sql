@@ -176,3 +176,12 @@ delete from public.surveys;
 
 select (select count(*) from public.surveys) as surveys_left,
        (select count(*) from public.point_ledger) as ledger_rows_left;
+
+
+-- ── 10. 데이터 허브 테스트 모드 (최소 응답 수 5 → 1) ───────────
+-- 학생 테스터가 1명뿐이라 데이터 허브에 결과가 안 올라올 때. 나눠 보기 그룹도 1명부터 보인다
+-- ⚠️ 비공개 테스트(11/12) 전에 반드시 아래 "되돌리기"로 5로 돌려놓는다 (PROGRESS 출시 전 할 일)
+update public.point_rules set value = 1 where key = 'result_min_count';
+-- 되돌리기: update public.point_rules set value = 5 where key = 'result_min_count';
+
+select key, value from public.point_rules where key = 'result_min_count';

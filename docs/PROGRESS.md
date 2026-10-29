@@ -160,7 +160,6 @@
 | 약관 본문 임시 문구 | `src/app/signup/terms.tsx` | 기획팀 Q11 약관 초안이 오면 교체 | 2026-10-26 |
 | 로그인 전 첫 화면 디자인 (로고·소개 문구) | `src/app/index.tsx` | 디자인 단계에서 교체 (로그인 후 화면은 2026-10-29 홈 탭으로 옮김) | 2026-10-26 (2026-10-29 수정) |
 | 밸런스 탭 준비 중 | `src/app/(tabs)/balance.tsx` | 3단계 밸런스 | 2026-10-29 |
-| 데이터 탭 준비 중 | `src/app/(tabs)/data.tsx` | 2단계 데이터 허브 | 2026-10-29 |
 | 단체 설문 등록 무료 (`cost_survey_create_org` = 0) | `supabase/migrations/20261030000001_survey_create.sql` | Q14 기획팀 답이 오면 point_rules 값 변경 | 2026-10-30 |
 | 내 정보에 회원 탈퇴 없음 | `src/app/account/index.tsx` | "탈퇴·신고·약관" 단계(11/12 전)에서 추가 (Google Play 계정 삭제 정책) | 2026-10-30 |
 | 포인트 내역 최근 50개만 | `src/app/(tabs)/my.tsx` | 내역이 많아지면 아래로 내릴 때 더 불러오기 | 2026-10-29 |
@@ -254,3 +253,4 @@ update organizations set reject_reason = '사유' where id = (select id from aut
 
 - [ ] 위 "임시로 둔 것" 표가 비어 있는지 확인
 - [ ] Supabase Authentication → Users의 테스트 계정 정리
+- [ ] `result_min_count`가 5인지 확인 (dev_tools 10번 "테스트 모드"로 1로 바꿨다면 되돌리기, 2026-10-30)
