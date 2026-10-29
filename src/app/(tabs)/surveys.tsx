@@ -11,6 +11,7 @@ import {
   type SortKey,
   type SurveyCard,
   fetchOpenSurveys,
+  formatHost,
   matchesDuration,
   sortSurveys,
 } from "@/lib/surveys";
@@ -102,7 +103,9 @@ export default function Surveys() {
             onPress={() => router.push({ pathname: "/survey/[id]", params: { id: String(s.id) } })}
           >
             <View style={styles.cardTop}>
-              <Text style={styles.category}>{s.category_name}</Text>
+              <Text style={styles.category}>
+                {formatHost(s)} · {s.category_name}
+              </Text>
               {s.audience === "campus" && <Text style={styles.campusBadge}>우리 학교</Text>}
             </View>
             <Text style={styles.title} numberOfLines={2}>

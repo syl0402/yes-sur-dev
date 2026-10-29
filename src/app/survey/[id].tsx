@@ -7,7 +7,7 @@ import PrimaryButton from "@/components/PrimaryButton";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints, formatTimeLeft } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
-import { remainingSpots } from "@/lib/surveys";
+import { formatHost, remainingSpots } from "@/lib/surveys";
 
 type Detail = {
   title: string;
@@ -21,6 +21,8 @@ type Detail = {
   status: "open" | "closed";
   closes_at: string | null;
   categoryName: string;
+  host_name: string | null;
+  host_verified: boolean;
   // 참여하기 버튼 상태를 정하는 정보
   isOwner: boolean;
   isOrg: boolean;
@@ -38,7 +40,7 @@ async function fetchDetail(id: number): Promise<Detail | null> {
     supabase
       .from("surveys")
       .select(
-        "owner_id, title, description, question_count, est_minutes, reward_points, target_responses, response_count, audience, status, closes_at, survey_categories(name)",
+        "owner_id, title, description, question_count, est_minutes, reward_points, target_responses, response_count, audience, status, closes_at, host_name, host_verified, survey_categories(name)",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -63,6 +65,8 @@ async function fetchDetail(id: number): Promise<Detail | null> {
     status: survey.status,
     closes_at: survey.closes_at,
     categoryName: category?.name ?? "",
+    host_name: survey.host_name,
+    host_verified: survey.host_verified,
     isOwner: survey.owner_id === myId,
     isOrg: profile?.account_type === "org",
     answered: response !== null,
@@ -123,6 +127,10 @@ export default function SurveyDetail() {
       {detail.description ? <Text style={styles.description}>{detail.description}</Text> : null}
 
       <View style={styles.infoBox}>
+        <InfoRow
+          label="작성"
+          value={detail.host_verified ? `${formatHost(detail)} 인증 단체` : formatHost(detail)}
+        />
         <InfoRow label="보상" value={formatPoints(detail.reward_points)} highlight />
         <InfoRow label="문항 · 소요시간" value={`${detail.question_count}문항 · 약 ${detail.est_minutes}분`} />
         <InfoRow label="마감" value={formatTimeLeft(detail.closes_at) || "기한 없음"} />

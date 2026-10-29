@@ -7,7 +7,7 @@ import PrimaryButton from "@/components/PrimaryButton";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints, formatTimeLeft } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
-import { type SurveyCard, fetchOpenSurveys, sortSurveys } from "@/lib/surveys";
+import { type SurveyCard, fetchOpenSurveys, formatHost, sortSurveys } from "@/lib/surveys";
 
 type HomeData = {
   isOrg: boolean;
@@ -98,7 +98,7 @@ export default function Home() {
                 {s.title}
               </Text>
               <Text style={styles.surveyMeta}>
-                {[s.category_name, `${s.est_minutes}분`, formatTimeLeft(s.closes_at)]
+                {[formatHost(s), s.category_name, `${s.est_minutes}분`, formatTimeLeft(s.closes_at)]
                   .filter(Boolean)
                   .join(" · ")}
               </Text>

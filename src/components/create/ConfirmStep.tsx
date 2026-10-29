@@ -4,6 +4,7 @@ import { formStyles } from "@/components/create/formStyles";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
 import { type SurveyDraft, estimate } from "@/lib/surveyDraft";
+import { formatHost } from "@/lib/surveys";
 
 type Props = {
   draft: SurveyDraft;
@@ -13,11 +14,14 @@ type Props = {
   cost: number;
   balance: number;
   isOrg: boolean;
+  // 단체 이름 (학생은 null → "개인")
+  orgName: string | null;
 };
 
 // 작성 ④ 등록 전 요약
-export default function ConfirmStep({ draft, rules, categoryName, cost, balance, isOrg }: Props) {
+export default function ConfirmStep({ draft, rules, categoryName, cost, balance, isOrg, orgName }: Props) {
   const { minutes, reward } = estimate(draft, rules);
+  const hostLabel = formatHost({ host_name: orgName, host_verified: orgName !== null });
   const hasAttention = draft.questions.length >= rules.attention_min_questions;
 
   return (
@@ -26,6 +30,7 @@ export default function ConfirmStep({ draft, rules, categoryName, cost, balance,
       <Text style={formStyles.hint}>{categoryName}</Text>
 
       <View style={styles.box}>
+        <Row label="작성자로 표시" value={hostLabel} />
         <Row label="문항" value={`${draft.questions.length}개${hasAttention ? " (+ 확인용 1개)" : ""}`} />
         <Row label="예상 소요시간" value={`약 ${minutes}분`} />
         <Row label="응답자 보상" value={`1명당 ${formatPoints(reward)}`} />
@@ -42,6 +47,7 @@ export default function ConfirmStep({ draft, rules, categoryName, cost, balance,
       <Text style={formStyles.hint}>
         · 응답자 보상은 소요시간에 따라 앱이 정하고, 응답자에게 앱이 지급해요.{"\n"}
         {hasAttention ? "· 성실한 응답을 확인하는 문항이 가운데쯤 1개 들어가요. 결과에는 빠져요.\n" : ""}
+        {isOrg ? "" : "· 개인 설문은 작성자가 '개인'으로만 보여요. 소속을 알리고 싶으면 설명에 적어 주세요.\n"}
         · 등록한 뒤에는 내용을 고칠 수 없어요.
       </Text>
     </>

@@ -31,6 +31,12 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - `matchesDuration(survey, "lt5" | "5to15" | "gte15" | "all")`, `remainingSpots(survey)`
 - 설문 상세로 가기: `router.push({ pathname: "/survey/[id]", params: { id: String(id) } })`
 
+### `formatHost` (`src/lib/surveys.ts`, 2026-10-30)
+설문 작성자 표시: 인증된 단체는 `"경영학과 학생회 ✓"`, 학생 설문은 `"개인"`. 설문을 읽을 때 `host_name, host_verified`를 같이 select 한다.
+```ts
+formatHost(survey); // "경영학과 학생회 ✓" 또는 "개인"
+```
+
 ### `formatTimeLeft` (`src/lib/format.ts`, 2026-10-29)
 마감까지 남은 시간: `"3일 남음"` / `"5시간 남음"` / `"곧 마감"` / `"마감"`
 

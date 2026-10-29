@@ -211,8 +211,15 @@ export default function SignupOrgInfo() {
         placeholder={kind === "external" ? "예: 옛썰리서치" : "예: 경영학과 학생회"}
         maxLength={NAME_MAX}
       />
-      {name.length > 0 && !nameOk && (
+      {name.length > 0 && !nameOk ? (
         <Text style={styles.error}>단체 이름은 2~30자로 입력해 주세요.</Text>
+      ) : (
+        // 설문에 보일 작성자 이름 미리보기 (교내 단체는 서버가 학교 이름을 앞에 붙인다)
+        <Text style={styles.counter}>
+          {kind === "campus"
+            ? `학교 이름은 자동으로 앞에 붙어요. 설문에는 "${universities.find((u) => u.id === universityId)?.name ?? "학교"} ${name.trim() || "경영학과 학생회"}"로 보여요.`
+            : "정식 이름으로 적어 주세요. 운영자가 확인한 뒤 승인해요."}
+        </Text>
       )}
 
       <Text style={styles.label}>증빙 링크</Text>

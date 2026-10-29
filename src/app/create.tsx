@@ -33,6 +33,8 @@ type Setup = {
   rules: Record<string, number>;
   categories: { id: number; name: string }[];
   isOrg: boolean;
+  // 작성자로 표시될 단체 이름 (학생은 null)
+  orgName: string | null;
   hasSchool: boolean;
   balance: number;
   cost: number;
@@ -40,17 +42,25 @@ type Setup = {
 
 // 작성에 필요한 것: 설정값·카테고리·내 계정 종류·학교·잔액 (모두 본인 것만 읽힌다)
 async function fetchSetup(): Promise<Setup> {
-  const [rules, { data: categories }, { data: profile }, { data: balance }] = await Promise.all([
+  const [rules, { data: categories }, { data: profile }, { data: balance }, { data: org }] = await Promise.all([
     fetchRules(CREATE_RULE_KEYS),
     supabase.from("survey_categories").select("id, name").order("sort_order"),
     supabase.from("profiles").select("account_type, university_id").maybeSingle(),
     supabase.rpc("get_my_balance"),
+    supabase.from("organizations").select("name, kind, universities(name)").maybeSingle(),
   ]);
   const isOrg = profile?.account_type === "org";
+
+  // 설문에 보일 작성자 이름 (서버 survey_host_name()과 같은 규칙: 교내 단체는 학교 이름을 앞에)
+  const rawSchool = org?.universities as unknown;
+  const school = ((Array.isArray(rawSchool) ? rawSchool[0] : rawSchool) as { name: string } | null)?.name;
+  const orgName =
+    org && org.kind === "campus" && school && !org.name.includes(school) ? `${school} ${org.name}` : (org?.name ?? null);
   return {
     rules,
     categories: categories ?? [],
     isOrg,
+    orgName: isOrg ? orgName : null,
     hasSchool: profile?.university_id != null,
     balance: typeof balance === "number" ? balance : 0,
     cost: isOrg ? rules.cost_survey_create_org : rules.cost_survey_create,
@@ -204,6 +214,7 @@ export default function CreateSurvey() {
             cost={setup.cost}
             balance={setup.balance}
             isOrg={setup.isOrg}
+            orgName={setup.orgName}
           />
         )}
       </ScrollView>

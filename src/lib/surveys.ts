@@ -13,6 +13,8 @@ export type SurveyCard = {
   created_at: string;
   category_key: string;
   category_name: string;
+  host_name: string | null;
+  host_verified: boolean;
 };
 
 export type SortKey = "recommended" | "latest" | "closing" | "reward";
@@ -33,7 +35,7 @@ export async function fetchOpenSurveys(): Promise<SurveyCard[]> {
     supabase
       .from("surveys")
       .select(
-        "id, owner_id, title, est_minutes, reward_points, target_responses, response_count, audience, closes_at, created_at, survey_categories(key, name)",
+        "id, owner_id, title, est_minutes, reward_points, target_responses, response_count, audience, closes_at, created_at, host_name, host_verified, survey_categories(key, name)",
       )
       .eq("status", "open")
       .or(`closes_at.is.null,closes_at.gt.${new Date().toISOString()}`),
@@ -60,6 +62,8 @@ export async function fetchOpenSurveys(): Promise<SurveyCard[]> {
         created_at: s.created_at,
         category_key: category?.key ?? "",
         category_name: category?.name ?? "",
+        host_name: s.host_name,
+        host_verified: s.host_verified,
       };
     });
 }
@@ -102,4 +106,9 @@ export function matchesDuration(s: SurveyCard, key: DurationKey): boolean {
     case "gte15":
       return s.est_minutes >= 15;
   }
+}
+
+// 작성자 표시: 인증된 단체는 "단체 이름 ✓", 학생은 "개인" (학교·닉네임은 보여주지 않는다, 2026-10-30 결정)
+export function formatHost(s: { host_name: string | null; host_verified: boolean }): string {
+  return s.host_name && s.host_verified ? `${s.host_name} ✓` : "개인";
 }
