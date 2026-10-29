@@ -151,6 +151,27 @@ const { data: reward, error } = await supabase.rpc("submit_response", {
 // reward: 받은 포인트 (예: 300) → formatPoints(reward)
 ```
 오류 코드는 `docs/DB.md` (`already_responded`, `survey_closed`, `not_target` 등)
+4종 문항 답 형식(2026-10-30): 복수 `option_ids: [7, 8]`, 척도 `scale_value: 4`, 주관식 `text_value: "…"` (자세히는 `docs/DB.md`)
+
+### 설문 등록 `create_survey` (2026-10-30)
+등록 검사·소요시간·보상 계산·주의 문항 추가·비용 차감을 서버가 한 번에. 금액은 보내지 않는다.
+`p_request_id`는 작성 화면을 열 때 한 번 만든 uuid (연타·재시도해도 설문 1개, 비용 1번).
+```ts
+const { data: surveyId, error } = await supabase.rpc("create_survey", {
+  p_request_id: requestId,
+  p_category_id: 1,
+  p_title: "대학생 스터디 습관 조사",
+  p_description: "",
+  p_audience: "all",          // 또는 "campus"
+  p_target: 50,
+  p_days: 7,
+  p_questions: [
+    { type: "single", text: "자주 공부하는 곳은?", options: ["도서관", "카페"] },
+    { type: "scale", text: "만족도는?" },
+  ],
+});
+```
+한도·기본값은 `point_rules`에서 읽는다 (`survey_max_questions`, `survey_default_target` 등).
 
 ### 설문 목록 / 문항 읽기 (2026-10-29)
 응답 대상이 아닌 설문은 RLS로 자동으로 빠진다.

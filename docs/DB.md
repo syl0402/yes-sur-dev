@@ -17,8 +17,10 @@
 | `20261027000002_org_signup.sql` | 회원 종류 student/org 정리, 단체 정보 표, 단체 신청 함수 | 2026-10-27 |
 | `20261027000003_email_check.sql` | 가입 여부 확인 함수 (로그인 전에도 사용) | 2026-10-27 |
 | `20261029000001_surveys.sql` | 설문·문항·선택지·응답·답변 표, 카테고리, 보상 계산, 응답 제출 함수 | 2026-10-29 |
+| `20261030000001_survey_create.sql` | 설문 등록 함수, 등록 설정값, 4종 문항 응답, 주의 문항 정답 숨기기 | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
+테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
 
 ## 표
 
@@ -87,11 +89,15 @@
 | audience | 응답 대상: `all` 전체 / `campus` 우리 학교만 (`university_id` 필수) |
 | status | `open` 진행 중 / `closed` 마감 |
 | closes_at | 마감 일시 |
+| request_id | 등록 요청 번호 (2026-10-30). (owner_id, request_id) 고유 → 등록 버튼 연타·재시도해도 설문 1개 |
 
 **응답 대상 ≠ 결과 공개 범위.** 응답 대상이 아니면 응답 목록에서 안 보이지만, 결과 열람(데이터 허브)은 별도 공개 설정을 따른다 → 2단계에서 별도 함수로 (예: "응답은 중앙대만, 결과는 전체 공개")
 
 ### questions · question_options — 문항·선택지 (2026-10-29)
-- questions: `survey_id`, `sort_order`, `type`(`single`/`multi`/`scale`/`text`, 1단계는 single만), `text`, `is_attention_check`·`correct_option_id`(2단계 성실도 검사용)
+- questions: `survey_id`, `sort_order`, `type`(`single`/`multi`/`scale`/`text`), `text`, `is_attention_check`·`correct_option_id`(주의 문항)
+- **앱은 `id, survey_id, sort_order, type, text`만 읽을 수 있다** (2026-10-30, 칸 단위 권한). 주의 문항 표시·정답은 서버 함수만 쓴다
+- 주의 문항: 문항이 `attention_min_questions`개 이상이면 `create_survey`가 가운데쯤에 1개 자동 추가 (5개 보기 중 무작위 정답). 문항 수·소요시간·보상 계산에는 안 넣는다
+- 척도(`scale`)는 선택지 없이 1~5 (`answers.scale_value`)
 - question_options: `question_id`, `sort_order`, `text`
 
 ### responses · answers — 응답·답변 (2026-10-29)
@@ -100,6 +106,8 @@
 
 ### point_rules — 포인트 수치
 `key`, `value`, `description`. 값은 `docs/PRD.md` 4-2와 같다. 수치를 바꿀 때는 대시보드에서 이 표만 고친다.
+
+설문 등록 설정값 (2026-10-30): `sec_per_choice` 10초 · `sec_per_text` 40초 · `survey_max_questions` 30 · `survey_max_options` 10 · `survey_min_target`~`survey_max_target` 10~300 (기본 `survey_default_target` 50) · `survey_max_days` 14 (기본 `survey_default_days` 7) · `attention_min_questions` 5 · `answer_text_max` 500 · `cost_survey_create_org` 0 (임시, Q14)
 
 ### point_ledger — 포인트 기록
 | 칸 | 설명 |
@@ -138,7 +146,9 @@
 | `complete_signup(p_nickname, p_major_field_id, p_admission_year, p_degree_type, p_terms_agreed)` | 학교 도메인 검사 → 학생 회원정보 저장 → 웰컴 포인트 지급. 이미 가입했으면 아무것도 안 함 | 로그인한 사람 (이메일 인증 완료) |
 | `request_org_signup(...)` | 단체 신청·재신청 → 승인 대기. 포인트 없음 | 로그인한 사람 (이메일 인증 완료) |
 | `calc_survey_reward(문항 수, 소요분)` | `point_rules`로 응답 1건 보상 계산 (1문항 / 5분 미만 / 5~15분 / 15분 이상) | 로그인한 사람 (설문 등록 때 서버가 사용) |
-| `submit_response(p_survey_id, p_answers)` | 응답 제출 + 보상 지급 + 응답 수 +1 + 목표 도달 시 마감. 받은 포인트를 돌려줌 | 학생 |
+| `submit_response(p_survey_id, p_answers)` | 응답 제출 + 보상 지급 + 응답 수 +1 + 목표 도달 시 마감. 받은 포인트를 돌려줌. 4종 문항 (2026-10-30) | 학생 |
+| `create_survey(...)` | 설문 등록: 검사 → 소요시간·보상 계산 → 설문·문항·주의 문항 저장 → 등록 비용 차감을 한 번에. 설문 번호를 돌려줌 (2026-10-30) | 학생, 승인된 단체 |
+| `point_rule(p_key)` | `point_rules` 값 하나 (없으면 `rule_missing`) | 서버 함수 안에서 사용 |
 | `is_email_registered(p_email)` | 그 메일로 **가입을 마친** 계정이 있으면 true (회원정보 없는 반쪽 계정은 false). 예/아니오만 돌려줌 | 누구나 (로그인 전 포함) |
 
 ### complete_signup 입력 규칙
@@ -161,6 +171,25 @@
 - `p_evidence_url`: `http://` 또는 `https://`로 시작, 300자 이하
 - `p_description`: 200자 이하, 비워도 됨
 - `p_terms_agreed`: 반드시 `true`
+
+### create_survey 입력 규칙 (2026-10-30)
+
+`create_survey(p_request_id, p_category_id, p_title, p_description, p_audience, p_target, p_days, p_questions)`
+
+- `p_request_id`: 작성 화면을 열 때 만든 uuid. 같은 번호로 다시 부르면 처음 만든 설문 번호만 돌려주고 비용을 다시 빼지 않는다
+- `p_title`: 2~60자 / `p_description`: 500자 이하, 비워도 됨
+- `p_audience`: `all` / `campus` (campus는 내 학교가 있어야 함)
+- `p_target`: `survey_min_target`~`survey_max_target` / `p_days`: 1~`survey_max_days`
+- `p_questions`: 1~`survey_max_questions`개. 문항 1~200자, single·multi는 선택지 2~`survey_max_options`개(각 1~100자)
+  `[{"type":"single","text":"…","options":["…","…"]}, {"type":"scale","text":"…"}, {"type":"text","text":"…"}]`
+- 소요시간 = 고르는 문항 × `sec_per_choice` + 주관식 × `sec_per_text`, 분으로 올림(최소 1분). 보상 = `calc_survey_reward`
+- 비용: 학생 `cost_survey_create`, 단체 `cost_survey_create_org`. 잔액 부족이면 거절. 회원정보 행을 잠가 동시 등록에도 음수 불가
+- ⚠️ 앞으로 포인트를 빼는 함수(데이터 열람 등)도 **잔액 확인 전에 `profiles` 본인 행을 `for update`로 잠근다.** 그래야 서로 다른 차감이 동시에 와도 음수가 안 된다
+
+### submit_response 답 형식 (2026-10-30)
+
+`[{"question_id":1,"option_ids":[3]}, {"question_id":2,"option_ids":[7,8]}, {"question_id":3,"scale_value":4}, {"question_id":4,"text_value":"…"}]`
+단일은 1개, 복수는 1개 이상, 척도 1~5, 주관식 1~`answer_text_max`자. 예전 형식 `"option_id": 3`도 받는다.
 
 ### 서버 함수 오류 코드
 
@@ -190,4 +219,15 @@
 | `survey_full` | 목표 응답 수에 도달 |
 | `not_target` | 응답 대상이 아님 (우리 학교 설문) |
 | `already_responded` | 이미 응답한 설문 |
-| `invalid_answers` | 답이 빠졌거나 다른 문항의 선택지 |
+| `invalid_answers` | 답이 빠졌거나 다른 문항의 선택지, 척도·주관식 범위 밖 |
+| `invalid_request` | 등록 요청 번호가 없음 |
+| `org_not_approved` | 승인 전 단체는 설문 등록 불가 |
+| `not_allowed` | 설문을 등록할 수 없는 계정 |
+| `invalid_title` | 제목 2~60자 아님 |
+| `invalid_description` | 설명 500자 초과 |
+| `invalid_category` | 카테고리가 없음 |
+| `invalid_audience` | 응답 대상 값이 잘못됐거나, 학교가 없는데 우리 학교만 선택 |
+| `invalid_target` | 목표 응답 수가 범위 밖 |
+| `invalid_days` | 마감 일수가 범위 밖 |
+| `invalid_questions` | 문항 수·종류·내용·선택지가 규칙에 안 맞음 |
+| `insufficient_points` | 등록 비용보다 잔액이 적음 |

@@ -30,6 +30,18 @@ const MESSAGES: Record<string, string> = {
   already_responded: "이미 참여한 설문이에요.",
   invalid_answers: "모든 문항에 답해 주세요.",
 
+  // 설문 등록 (create_survey)
+  org_not_approved: "승인된 단체만 설문을 등록할 수 있어요.",
+  not_allowed: "설문을 등록할 수 없는 계정이에요.",
+  invalid_title: "제목은 2~60자로 입력해 주세요.",
+  invalid_description: "설명은 500자까지 쓸 수 있어요.",
+  invalid_category: "카테고리를 선택해 주세요.",
+  invalid_audience: "응답 대상을 다시 선택해 주세요.",
+  invalid_target: "목표 인원을 다시 확인해 주세요.",
+  invalid_days: "마감 기간을 다시 확인해 주세요.",
+  invalid_questions: "문항과 선택지를 다시 확인해 주세요.",
+  insufficient_points: "포인트가 부족해요.",
+
   // Supabase 인증
   over_email_send_rate_limit: "잠시 후 다시 보내 주세요.",
   otp_expired: "인증번호가 틀렸거나 만료됐어요.",
