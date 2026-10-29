@@ -6,7 +6,6 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import PrimaryButton from "@/components/PrimaryButton";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints, formatTimeLeft } from "@/lib/format";
-import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
 import { type SurveyCard, fetchOpenSurveys, sortSurveys } from "@/lib/surveys";
 
@@ -54,8 +53,7 @@ export default function Home() {
 
   const goSurveys = () => router.navigate("/surveys");
   const goData = () => router.navigate("/data");
-  // TODO(임시): 설문 등록 준비 중 안내 · 2단계(설문 작성)에서 화면 연결 · docs/PROGRESS.md
-  const goCreate = () => showNotice("준비 중", "설문 등록은 곧 열려요.");
+  const goCreate = () => router.push("/create");
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.container}>

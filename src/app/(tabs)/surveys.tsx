@@ -72,6 +72,10 @@ export default function Surveys() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+      <Pressable style={styles.createButton} onPress={() => router.push("/create")}>
+        <Text style={styles.createText}>+ 설문 등록</Text>
+      </Pressable>
+
       {/* 필터: 카테고리 · 소요시간 · 학교 범위, 그리고 정렬 */}
       <ChipRow
         options={[{ value: "all", label: "전체" }, ...categories.map((c) => ({ value: c.key, label: c.name }))]}
@@ -149,6 +153,19 @@ const styles = StyleSheet.create({
   },
   loading: {
     marginTop: spacing.lg,
+  },
+  createButton: {
+    marginBottom: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  createText: {
+    fontSize: fontSize.body,
+    color: colors.primary,
+    fontWeight: "600",
   },
   empty: {
     marginTop: spacing.lg,

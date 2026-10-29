@@ -26,17 +26,45 @@ type LedgerItem = {
   date: string;
 };
 
+type MySurvey = {
+  id: number;
+  title: string;
+  responseCount: number;
+  target: number;
+  closed: boolean;
+};
+
 type MyData = {
   isOrg: boolean;
   name: string;
   schoolName: string;
   balance: number;
   ledger: LedgerItem[];
+  surveys: MySurvey[];
 };
 
-// 내 정보·잔액·포인트 내역 (모두 본인 것만 읽힌다)
+// 내가 올린 설문 (최신순)
+async function fetchMySurveys(): Promise<MySurvey[]> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return [];
+  const { data } = await supabase
+    .from("surveys")
+    .select("id, title, response_count, target_responses, status, closes_at")
+    .eq("owner_id", auth.user.id)
+    .order("created_at", { ascending: false });
+  const now = Date.now();
+  return (data ?? []).map((s) => ({
+    id: s.id,
+    title: s.title,
+    responseCount: s.response_count,
+    target: s.target_responses,
+    closed: s.status !== "open" || (s.closes_at !== null && new Date(s.closes_at).getTime() <= now),
+  }));
+}
+
+// 내 정보·잔액·포인트 내역·내 설문 (모두 본인 것만 읽힌다)
 async function fetchMy(): Promise<MyData> {
-  const [{ data: profile }, { data: org }, { data: balance }, { data: rows }] = await Promise.all([
+  const [{ data: profile }, { data: org }, { data: balance }, { data: rows }, surveys] = await Promise.all([
     supabase.from("profiles").select("nickname, account_type, universities(name)").maybeSingle(),
     supabase.from("organizations").select("name").maybeSingle(),
     supabase.rpc("get_my_balance"),
@@ -46,10 +74,13 @@ async function fetchMy(): Promise<MyData> {
       .eq("status", "confirmed")
       .order("created_at", { ascending: false })
       .limit(LEDGER_LIMIT),
+    fetchMySurveys(),
   ]);
 
-  // 설문 응답 기록에 설문 이름을 붙인다 (ref_id = 설문 번호)
-  const surveyIds = (rows ?? []).filter((r) => r.reason === "survey_reward" && r.ref_id).map((r) => Number(r.ref_id));
+  // 설문 응답·등록 기록에 설문 이름을 붙인다 (ref_id = 설문 번호)
+  const surveyIds = (rows ?? [])
+    .filter((r) => (r.reason === "survey_reward" || r.reason === "survey_create") && r.ref_id)
+    .map((r) => Number(r.ref_id));
   const titles = new Map<string, string>();
   if (surveyIds.length > 0) {
     const { data: surveys } = await supabase.from("surveys").select("id, title").in("id", surveyIds);
@@ -74,6 +105,7 @@ async function fetchMy(): Promise<MyData> {
         date: formatDate(r.created_at),
       };
     }),
+    surveys,
   };
 }
 
@@ -138,6 +170,29 @@ export default function My() {
             ))
           )}
         </>
+      )}
+
+      <Text style={styles.sectionTitle}>내가 올린 설문</Text>
+      {data.surveys.length === 0 ? (
+        <Text style={styles.empty}>아직 올린 설문이 없어요.</Text>
+      ) : (
+        data.surveys.map((s) => (
+          <Pressable
+            key={s.id}
+            style={styles.ledgerRow}
+            onPress={() => router.push({ pathname: "/survey/[id]", params: { id: String(s.id) } })}
+          >
+            <View style={styles.ledgerMain}>
+              <Text style={styles.ledgerLabel} numberOfLines={1}>
+                {s.title}
+              </Text>
+              <Text style={styles.ledgerDate}>
+                응답 {s.responseCount} / {s.target}명
+              </Text>
+            </View>
+            <Text style={[styles.status, s.closed && styles.statusClosed]}>{s.closed ? "마감" : "진행 중"}</Text>
+          </Pressable>
+        ))
       )}
 
       <Pressable onPress={logout} style={styles.logout}>
@@ -229,6 +284,14 @@ const styles = StyleSheet.create({
   },
   ledgerMinus: {
     color: colors.danger,
+  },
+  status: {
+    fontSize: fontSize.small,
+    fontWeight: "600",
+    color: colors.primary,
+  },
+  statusClosed: {
+    color: colors.textMuted,
   },
   logout: {
     marginTop: spacing.lg,

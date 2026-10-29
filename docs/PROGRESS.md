@@ -109,7 +109,6 @@
 | 로그인 전 첫 화면 디자인 (로고·소개 문구) | `src/app/index.tsx` | 디자인 단계에서 교체 (로그인 후 화면은 2026-10-29 홈 탭으로 옮김) | 2026-10-26 (2026-10-29 수정) |
 | 밸런스 탭 준비 중 | `src/app/(tabs)/balance.tsx` | 3단계 밸런스 | 2026-10-29 |
 | 데이터 탭 준비 중 | `src/app/(tabs)/data.tsx` | 2단계 데이터 허브 | 2026-10-29 |
-| 홈 "설문 등록" 준비 중 안내 | `src/app/(tabs)/home.tsx` | 2단계 설문 작성 | 2026-10-29 |
 | 단체 설문 등록 무료 (`cost_survey_create_org` = 0) | `supabase/migrations/20261030000001_survey_create.sql` | Q14 기획팀 답이 오면 point_rules 값 변경 | 2026-10-30 |
 | 포인트 내역 최근 50개만 | `src/app/(tabs)/my.tsx` | 내역이 많아지면 아래로 내릴 때 더 불러오기 | 2026-10-29 |
 | 탭 아이콘 (Ionicons 기본) | `src/constants/icons.ts` | 디자인팀 아이콘 확정 시 이름만 교체 (직접 그린 아이콘은 `AppIcon.tsx`) | 2026-10-29 |

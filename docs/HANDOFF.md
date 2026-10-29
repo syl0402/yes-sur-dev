@@ -87,6 +87,19 @@ showConfirm({ title: "제출할까요?", message: "제출하면 답을 바꿀 �
 상세 `/survey/[id]` → 응답 `/survey/respond?id=` → 완료 `/survey/done?reward=` (응답 화면은 완료 화면으로 교체).
 응답 화면에서 나가려 하면 `usePreventRemove`(expo-router)로 확인 창을 띄운다.
 
+### `fetchRules` (`src/lib/rules.ts`, 2026-10-30)
+`point_rules` 값을 key → 숫자로. 화면에 한도·기본값·예상 금액을 보여줄 때만 (실제 금액은 서버가 정함).
+```ts
+const rules = await fetchRules(["survey_max_questions", "cost_survey_create"]);
+rules.survey_max_questions; // 30
+```
+
+### 설문 작성 (2026-10-30)
+- 화면: `/create` 하나 안에서 단계(기본 정보 → 문항 → 대상·마감 → 확인)가 바뀐다. 단계 화면은 `src/components/create/`
+- 작성 중인 설문 모양·검사·예상 계산: `src/lib/surveyDraft.ts` (`basicsValid`, `questionsValid`, `settingsValid`, `estimate`, `toRpcQuestions`)
+- 들어가기: `router.push("/create")` (홈·설문 탭의 [설문 등록])
+- 등록 후 내 설문 상세로 교체. 내 설문 목록은 마이 탭 "내가 올린 설문"
+
 ### `useResumeSignup` (`src/hooks/useResumeSignup.ts`, 2026-10-27)
 `_layout.tsx`에서 한 번 부른다. 로그인됨 + 회원정보 없음이면 `/signup/type?resume=1`(가입 유형 선택)로 보내 가입을 이어서 끝내게 한다.
 가입 화면(`/signup/...`) 안에서는 동작하지 않는다.

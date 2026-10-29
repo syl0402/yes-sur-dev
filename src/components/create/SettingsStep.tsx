@@ -1,0 +1,70 @@
+import { Text, TextInput, View } from "react-native";
+
+import Chips from "@/components/create/Chips";
+import { formStyles } from "@/components/create/formStyles";
+import type { SurveyDraft } from "@/lib/surveyDraft";
+
+type Props = {
+  draft: SurveyDraft;
+  rules: Record<string, number>;
+  // 학교가 없는 계정(외부 단체)은 "우리 학교만"을 고를 수 없다
+  hasSchool: boolean;
+  onChange: (patch: Partial<SurveyDraft>) => void;
+};
+
+// 작성 ③ 응답 대상 · 목표 인원 · 마감
+export default function SettingsStep({ draft, rules, hasSchool, onChange }: Props) {
+  const target = Number(draft.target);
+  const days = Number(draft.days);
+  const targetBad =
+    draft.target !== "" &&
+    (!Number.isInteger(target) || target < rules.survey_min_target || target > rules.survey_max_target);
+  const daysBad = draft.days !== "" && (!Number.isInteger(days) || days < 1 || days > rules.survey_max_days);
+
+  return (
+    <>
+      <View style={formStyles.section}>
+        <Text style={formStyles.label}>응답 대상</Text>
+        <Chips
+          options={[
+            { value: "all", label: "전체 대학생" },
+            { value: "campus", label: "우리 학교 학생만", disabled: !hasSchool },
+          ]}
+          selected={draft.audience}
+          onSelect={(audience) => onChange({ audience })}
+        />
+        <Text style={formStyles.hint}>
+          {hasSchool ? "대상이 아닌 학생에게는 이 설문이 보이지 않아요." : "학교가 없는 계정은 전체 대상만 고를 수 있어요."}
+        </Text>
+      </View>
+
+      <View style={formStyles.section}>
+        <Text style={formStyles.label}>목표 인원</Text>
+        <TextInput
+          style={formStyles.input}
+          value={draft.target}
+          onChangeText={(t) => onChange({ target: t.replace(/[^0-9]/g, "") })}
+          keyboardType="number-pad"
+          maxLength={4}
+        />
+        <Text style={targetBad ? formStyles.error : formStyles.hint}>
+          {rules.survey_min_target}~{rules.survey_max_target}명. 목표에 닿으면 자동으로 마감돼요.
+        </Text>
+      </View>
+
+      <View style={formStyles.section}>
+        <Text style={formStyles.label}>마감까지 (일)</Text>
+        <TextInput
+          style={formStyles.input}
+          value={draft.days}
+          onChangeText={(t) => onChange({ days: t.replace(/[^0-9]/g, "") })}
+          keyboardType="number-pad"
+          maxLength={2}
+        />
+        <Text style={daysBad ? formStyles.error : formStyles.hint}>
+          1~{rules.survey_max_days}일. 등록한 때부터 세요.
+        </Text>
+      </View>
+    </>
+  );
+}
