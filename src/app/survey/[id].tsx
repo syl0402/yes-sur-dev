@@ -27,6 +27,8 @@ type Detail = {
   isOwner: boolean;
   isOrg: boolean;
   answered: boolean;
+  // 확인 문항을 틀려 반려된 응답이 있음 → 다시 응답 가능
+  rejected: boolean;
   // 마감됨: 상태 마감 · 자리 없음 · 마감일 지남 (불러올 때 계산)
   closed: boolean;
 };
@@ -44,7 +46,7 @@ async function fetchDetail(id: number): Promise<Detail | null> {
       )
       .eq("id", id)
       .maybeSingle(),
-    supabase.from("responses").select("id").eq("survey_id", id).maybeSingle(),
+    supabase.from("responses").select("status").eq("survey_id", id).maybeSingle(),
     supabase.from("profiles").select("account_type").maybeSingle(),
   ]);
 
@@ -69,7 +71,8 @@ async function fetchDetail(id: number): Promise<Detail | null> {
     host_verified: survey.host_verified,
     isOwner: survey.owner_id === myId,
     isOrg: profile?.account_type === "org",
-    answered: response !== null,
+    answered: response?.status === "confirmed",
+    rejected: response?.status === "rejected",
     closed:
       survey.status !== "open" ||
       remainingSpots(survey) <= 0 ||
@@ -154,7 +157,7 @@ export default function SurveyDetail() {
         ) : detail.closed ? (
           <PrimaryButton title="마감된 설문이에요" onPress={() => {}} disabled />
         ) : (
-          <PrimaryButton title="참여하기" onPress={join} />
+          <PrimaryButton title={detail.rejected ? "다시 응답하기" : "참여하기"} onPress={join} />
         )}
       </View>
     </ScrollView>

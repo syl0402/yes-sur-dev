@@ -26,6 +26,7 @@ import {
   isBlankDraft,
   makeRequestId,
   questionsValid,
+  registrationCost,
   saveDraft,
   settingsValid,
   toRpcQuestions,
@@ -43,7 +44,8 @@ type Setup = {
   orgName: string | null;
   hasSchool: boolean;
   balance: number;
-  cost: number;
+  // 가장 작은 설문(1문항·최소 인원)의 등록비. 이것도 못 내면 작성 전에 안내한다
+  minCost: number;
 };
 
 // 작성에 필요한 것: 설정값·카테고리·내 계정 종류·학교·잔액 (모두 본인 것만 읽힌다)
@@ -71,7 +73,7 @@ async function fetchSetup(): Promise<Setup> {
     orgName: isOrg ? orgName : null,
     hasSchool: profile?.university_id != null,
     balance: typeof balance === "number" ? balance : 0,
-    cost: isOrg ? rules.cost_survey_create_org : rules.cost_survey_create,
+    minCost: isOrg ? rules.cost_survey_create_org : rules.price_1q * rules.survey_min_target,
   };
 }
 
@@ -107,7 +109,7 @@ export default function CreateSurvey() {
     if (setup && !isBlankDraft(draft)) saveDraft(setup.userId, draftId, draft, step);
   }, [setup, draftId, draft, step]);
 
-  const notEnough = setup !== null && setup.balance < setup.cost;
+  const notEnough = setup !== null && setup.balance < setup.minCost;
 
   // 뒤로 가기: 2단계 이상이면 이전 단계로, 1단계면 그만둘지 확인 (쓴 내용은 이 폰에 임시저장돼 있다)
   const allowLeave = usePreventRemove(setup !== null && !notEnough, ({ repeat }) => {
@@ -143,7 +145,7 @@ export default function CreateSurvey() {
     return (
       <View style={styles.center}>
         <Stack.Screen options={{ title: "설문 등록" }} />
-        <Text style={styles.gateTitle}>등록에 {formatPoints(setup.cost)}가 필요해요</Text>
+        <Text style={styles.gateTitle}>등록에 최소 {formatPoints(setup.minCost)}가 필요해요</Text>
         <Text style={styles.gateText}>지금 내 포인트는 {formatPoints(setup.balance)}예요.</Text>
         <Text style={styles.gateText}>다른 설문에 참여해서 포인트를 모아 보세요.</Text>
         <View style={styles.gateButton}>
@@ -156,14 +158,18 @@ export default function CreateSurvey() {
   const { rules } = setup;
   const update = (patch: Partial<SurveyDraft>) => setDraft((d) => ({ ...d, ...patch }));
 
+  // 등록비 = 응답 1명 받는 값 × 목표 인원 (화면 표시용. 실제 차감은 서버)
+  const cost = registrationCost(draft, rules, setup.isOrg);
+  const affordable = cost <= setup.balance;
+
   const stepOk =
     step === 1
       ? basicsValid(draft)
       : step === 2
         ? questionsValid(draft, rules)
         : step === 3
-          ? settingsValid(draft, rules, setup.hasSchool)
-          : true;
+          ? settingsValid(draft, rules, setup.hasSchool) && affordable
+          : affordable;
 
   const submit = async () => {
     setSending(true);
@@ -199,7 +205,7 @@ export default function CreateSurvey() {
     }
     showConfirm({
       title: "등록할까요?",
-      message: setup.cost > 0 ? `${formatPoints(setup.cost)}가 차감돼요.` : "등록한 뒤에는 고칠 수 없어요.",
+      message: cost > 0 ? `${formatPoints(cost)}가 차감돼요.` : "등록한 뒤에는 고칠 수 없어요.",
       okLabel: "등록",
       cancelLabel: "다시 보기",
       onOk: submit,
@@ -243,13 +249,23 @@ export default function CreateSurvey() {
 
         {step === 1 && <BasicsStep draft={draft} categories={setup.categories} onChange={update} />}
         {step === 2 && <QuestionsStep draft={draft} rules={rules} onChange={update} />}
-        {step === 3 && <SettingsStep draft={draft} rules={rules} hasSchool={setup.hasSchool} onChange={update} />}
+        {step === 3 && (
+          <SettingsStep
+            draft={draft}
+            rules={rules}
+            hasSchool={setup.hasSchool}
+            isOrg={setup.isOrg}
+            cost={cost}
+            balance={setup.balance}
+            onChange={update}
+          />
+        )}
         {step === 4 && (
           <ConfirmStep
             draft={draft}
             rules={rules}
             categoryName={categoryName}
-            cost={setup.cost}
+            cost={cost}
             balance={setup.balance}
             isOrg={setup.isOrg}
             orgName={setup.orgName}

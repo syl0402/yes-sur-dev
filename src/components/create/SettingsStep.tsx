@@ -2,18 +2,24 @@ import { Text, TextInput, View } from "react-native";
 
 import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
-import type { SurveyDraft } from "@/lib/surveyDraft";
+import { formatPoints } from "@/lib/format";
+import { type SurveyDraft, estimate } from "@/lib/surveyDraft";
 
 type Props = {
   draft: SurveyDraft;
   rules: Record<string, number>;
   // 학교가 없는 계정(외부 단체)은 "우리 학교만"을 고를 수 없다
   hasSchool: boolean;
+  isOrg: boolean;
+  // 등록비 (응답 1명 받는 값 × 목표 인원) · 내 포인트
+  cost: number;
+  balance: number;
   onChange: (patch: Partial<SurveyDraft>) => void;
 };
 
 // 작성 ③ 응답 대상 · 목표 인원 · 마감
-export default function SettingsStep({ draft, rules, hasSchool, onChange }: Props) {
+export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, balance, onChange }: Props) {
+  const { price } = estimate(draft, rules);
   const target = Number(draft.target);
   const days = Number(draft.days);
   const targetBad =
@@ -50,6 +56,18 @@ export default function SettingsStep({ draft, rules, hasSchool, onChange }: Prop
         <Text style={targetBad ? formStyles.error : formStyles.hint}>
           {rules.survey_min_target}~{rules.survey_max_target}명. 목표에 닿으면 자동으로 마감돼요.
         </Text>
+        {/* 등록비 바로 계산: 인원을 바꾸면 바로 바뀐다 */}
+        {isOrg ? (
+          <Text style={formStyles.hint}>단체 계정은 테스트 기간 동안 등록비가 없어요.</Text>
+        ) : (
+          !targetBad &&
+          draft.target !== "" && (
+            <Text style={cost > balance ? formStyles.error : formStyles.label}>
+              등록비: 응답 1명당 {formatPoints(price)} × {target}명 = {formatPoints(cost)}
+              {cost > balance ? ` (내 포인트 ${formatPoints(balance)} · 인원을 줄여 주세요)` : ""}
+            </Text>
+          )
+        )}
       </View>
 
       <View style={formStyles.section}>

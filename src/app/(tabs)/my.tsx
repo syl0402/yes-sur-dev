@@ -17,7 +17,9 @@ const REASON_LABELS: Record<string, string> = {
   welcome: "가입 축하",
   survey_reward: "설문 응답",
   survey_create: "설문 등록",
+  survey_refund: "설문 마감 환불",
   data_view: "데이터 열람",
+  data_share: "열람 수익",
   balance_vote: "밸런스 투표",
 };
 
@@ -87,7 +89,7 @@ async function fetchMy(): Promise<MyData> {
   // 설문 응답·등록 기록에 설문 이름을 붙인다 (ref_id = 설문 번호)
   const surveyIds = (rows ?? [])
     // 설문 번호(숫자)인 기록만. 개발용 포인트 기록(ref_id "dev-…")은 빼고
-    .filter((r) => (r.reason === "survey_reward" || r.reason === "survey_create") && /^\d+$/.test(r.ref_id ?? ""))
+    .filter((r) => ["survey_reward", "survey_create", "survey_refund", "data_view", "data_share"].includes(r.reason) && /^\d+$/.test(r.ref_id ?? ""))
     .map((r) => Number(r.ref_id));
   const titles = new Map<string, string>();
   if (surveyIds.length > 0) {

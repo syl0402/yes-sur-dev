@@ -1,6 +1,6 @@
 // ys-112 설문 응답 · F-301~302
 import { Stack, router, useLocalSearchParams, usePreventRemove } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
@@ -66,6 +66,12 @@ export default function SurveyRespond() {
   // 문항 id → 답
   const [answers, setAnswers] = useState<Record<number, Answer>>({});
   const [sending, setSending] = useState(false);
+  // 응답 화면을 연 시각 → 제출까지 걸린 시간(초)을 서버에 함께 저장 (나중에 무성의 응답 필터용, 지금은 참고만)
+  const startedAt = useRef(0);
+
+  useEffect(() => {
+    startedAt.current = Date.now();
+  }, []);
 
   useEffect(() => {
     Promise.all([fetchQuestions(surveyId), fetchRules(["answer_text_max"])]).then(([qs, rules]) => {
@@ -130,9 +136,10 @@ export default function SurveyRespond() {
   const submit = async () => {
     setSending(true);
     // 금액은 보내지 않는다. 서버가 설문에 정해진 보상으로 지급한다
-    const { data: reward, error } = await supabase.rpc("submit_response", {
+    const { data, error } = await supabase.rpc("submit_response", {
       p_survey_id: surveyId,
       p_answers: questions.map((q) => toRpcAnswer(q, answers[q.id])),
+      p_duration_seconds: Math.round((Date.now() - startedAt.current) / 1000),
     });
     setSending(false);
 
@@ -145,9 +152,15 @@ export default function SurveyRespond() {
       return;
     }
 
+    // 결과: { reward, passed } — 확인 문항을 틀리면 passed=false, 포인트 0 (다시 응답 가능)
+    const result = data as { reward: number; passed: boolean };
+
     // 완료 화면으로 교체 (뒤로 가기로 문항 화면에 돌아오지 않게)
     leaveWithoutAsking(() =>
-      router.replace({ pathname: "/survey/done", params: { reward: String(reward ?? 0) } }),
+      router.replace({
+        pathname: "/survey/done",
+        params: { id: String(surveyId), reward: String(result.reward), passed: result.passed ? "1" : "0" },
+      }),
     );
   };
 

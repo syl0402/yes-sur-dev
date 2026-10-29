@@ -20,7 +20,7 @@ type Props = {
 
 // 작성 ④ 등록 전 요약
 export default function ConfirmStep({ draft, rules, categoryName, cost, balance, isOrg, orgName }: Props) {
-  const { minutes, reward } = estimate(draft, rules);
+  const { minutes, reward, price } = estimate(draft, rules);
   const hostLabel = formatHost({ host_name: orgName, host_verified: orgName !== null });
   const hasAttention = draft.questions.length >= rules.attention_min_questions;
 
@@ -40,12 +40,16 @@ export default function ConfirmStep({ draft, rules, categoryName, cost, balance,
       </View>
 
       <View style={styles.box}>
-        <Row label="등록 비용" value={formatPoints(cost)} highlight />
+        {!isOrg && (
+          <Row label="등록비 계산" value={`${formatPoints(price)} × ${Number(draft.target)}명`} />
+        )}
+        <Row label="등록비" value={formatPoints(cost)} highlight />
         {!isOrg && <Row label="등록 후 내 포인트" value={formatPoints(balance - cost)} />}
       </View>
 
       <Text style={formStyles.hint}>
         · 응답자 보상은 소요시간에 따라 앱이 정하고, 응답자에게 앱이 지급해요.{"\n"}
+        {isOrg ? "" : "· 일찍 마감하면 못 받은 인원만큼 등록비를 돌려받아요.\n"}
         {hasAttention ? "· 성실한 응답을 확인하는 문항이 가운데쯤 1개 들어가요. 결과에는 빠져요.\n" : ""}
         {isOrg ? "" : "· 개인 설문은 작성자가 '개인'으로만 보여요. 소속을 알리고 싶으면 설명에 적어 주세요.\n"}
         · 등록한 뒤에는 내용을 고칠 수 없어요.

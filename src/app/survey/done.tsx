@@ -9,8 +9,8 @@ import { formatPoints } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
 
 export default function SurveyDone() {
-  // 받은 포인트는 제출 결과(서버가 정한 금액)를 넘겨받는다
-  const { reward } = useLocalSearchParams<{ reward: string }>();
+  // 받은 포인트·확인 문항 통과 여부는 제출 결과(서버가 정한 값)를 넘겨받는다
+  const { id, reward, passed } = useLocalSearchParams<{ id: string; reward: string; passed: string }>();
   const [balance, setBalance] = useState<number | null>(null);
 
   useEffect(() => {
@@ -22,6 +22,31 @@ export default function SurveyDone() {
     router.dismissAll();
     router.navigate(tab);
   };
+
+  // 확인 문항을 틀린 경우: 포인트 없음, 다시 응답 가능 (2026-10-30 결정)
+  if (passed === "0") {
+    return (
+      <View style={styles.screen}>
+        <Stack.Screen options={{ title: "응답 완료", headerBackVisible: false, gestureEnabled: false }} />
+
+        <View style={styles.body}>
+          <Text style={styles.failTitle}>포인트가 지급되지 않았어요</Text>
+          <Text style={styles.thanks}>성실한 응답 확인 문항의 답이 달랐어요.</Text>
+          <Text style={styles.thanks}>다시 응답하면 포인트를 받을 수 있어요.</Text>
+        </View>
+
+        <View style={styles.footer}>
+          <PrimaryButton
+            title="다시 응답하기"
+            onPress={() => router.replace({ pathname: "/survey/respond", params: { id } })}
+          />
+          <Pressable style={styles.secondaryButton} onPress={() => goTab("/surveys")}>
+            <Text style={styles.secondaryText}>다른 설문 보기</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.screen}>
@@ -59,6 +84,12 @@ const styles = StyleSheet.create({
     fontSize: fontSize.hero,
     fontWeight: "800",
     color: colors.primary,
+  },
+  failTitle: {
+    fontSize: fontSize.title,
+    fontWeight: "800",
+    color: colors.danger,
+    textAlign: "center",
   },
   thanks: {
     fontSize: fontSize.body,

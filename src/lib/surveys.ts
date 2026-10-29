@@ -39,7 +39,8 @@ export async function fetchOpenSurveys(): Promise<SurveyCard[]> {
       )
       .eq("status", "open")
       .or(`closes_at.is.null,closes_at.gt.${new Date().toISOString()}`),
-    supabase.from("responses").select("survey_id"),
+    // 확인 문항을 틀려 반려된 응답은 다시 응답할 수 있으니 목록에 남긴다
+    supabase.from("responses").select("survey_id").eq("status", "confirmed"),
   ]);
 
   const answered = new Set((responses ?? []).map((r) => r.survey_id));

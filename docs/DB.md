@@ -21,6 +21,7 @@
 | `20261030000002_survey_host.sql` | 설문 작성자 표시 칸(단체 이름·인증), 등록 함수가 함께 저장 | 2026-10-30 |
 | `20261030000003_survey_host_school.sql` | 교내 단체는 학교 이름을 붙여 표시. 설문 저장 때 트리거가 작성자 이름을 채움 | 2026-10-30 |
 | `20261030000004_survey_results.sql` | 내 설문 결과 집계 함수, 응답 마감 함수 | 2026-10-30 |
+| `20261030000005_point_economy.sql` | 포인트 구조 변경(보상 낮춤, 등록비 = 1명당 값 × 인원, 조기 마감 환불), 확인 문항 오답 = 미지급·다시 응답, 응답 시간 저장 | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -95,6 +96,7 @@
 | status | `open` 진행 중 / `closed` 마감 |
 | closes_at | 마감 일시 |
 | request_id | 등록 요청 번호 (2026-10-30). (owner_id, request_id) 고유 → 등록 버튼 연타·재시도해도 설문 1개 |
+| price_per_response | 등록 때 정한 "응답 1명 받는 값" (2026-10-30). 조기 마감 환불 계산용. 예전 설문·단체 설문은 0 |
 | host_name, host_verified | 작성자 표시 (2026-10-30). 단체 설문은 저장될 때 트리거(`surveys_set_host` → `survey_host_name()`)가 승인된 단체 이름 + `true`로 채움. 교내 단체는 "중앙대학교 경영학과 학생회"처럼 학교 이름을 앞에 붙임(이미 들어 있으면 생략). 규칙을 바꿀 때는 `survey_host_name()`만 고친다. 학생 설문은 비움/`false` → 화면에 "개인". 다른 사람은 작성자의 profiles·organizations를 못 읽어서 설문에 따로 저장한다 |
 
 **응답 대상 ≠ 결과 공개 범위.** 응답 대상이 아니면 응답 목록에서 안 보이지만, 결과 열람(데이터 허브)은 별도 공개 설정을 따른다 → 2단계에서 별도 함수로 (예: "응답은 중앙대만, 결과는 전체 공개")
@@ -115,13 +117,15 @@
 
 설문 등록 설정값 (2026-10-30): `sec_per_choice` 10초 · `sec_per_text` 40초 · `survey_max_questions` 30 · `survey_max_options` 10 · `survey_min_target`~`survey_max_target` 10~300 (기본 `survey_default_target` 50) · `survey_max_days` 14 (기본 `survey_default_days` 7) · `attention_min_questions` 5 · `answer_text_max` 500 · `cost_survey_create_org` 0 (임시, Q14)
 
+포인트 구조 (2026-10-30 변경, `20261030000005`): 응답 보상(앱 지급) `reward_1q` 10 · `reward_lt5` 30 · `reward_5to15` 80 · `reward_gte15` 150. 등록비 = 1명당 값 × 목표 인원, 1명당 값 `price_1q` 5 · `price_lt5` 15 · `price_5to15` 40 · `price_gte15` 75. 열람료 `cost_data_view` 100, 등록자 분배율 `data_share_rate` 0.4. `cost_survey_create`(700)는 더 이상 쓰지 않음
+
 ### point_ledger — 포인트 기록
 | 칸 | 설명 |
 | --- | --- |
 | user_id | 누구의 기록인지 |
 | amount | 적립은 +, 차감은 − (0 불가) |
 | status | `pending` / `confirmed` / `rejected` / `revoked` |
-| reason | `welcome` / `survey_reward` / `survey_create` / `data_view` / `balance_vote` |
+| reason | `welcome` / `survey_reward` / `survey_create` / `survey_refund`(조기 마감 환불) / `data_view` / `data_share`(열람 수익) / `balance_vote` |
 | ref_id | 어떤 설문·게시물인지 (웰컴은 비움) |
 
 - 잔액 = `confirmed` 합계. 잔액 칸은 없다
@@ -152,11 +156,12 @@
 | `complete_signup(p_nickname, p_major_field_id, p_admission_year, p_degree_type, p_terms_agreed)` | 학교 도메인 검사 → 학생 회원정보 저장 → 웰컴 포인트 지급. 이미 가입했으면 아무것도 안 함 | 로그인한 사람 (이메일 인증 완료) |
 | `request_org_signup(...)` | 단체 신청·재신청 → 승인 대기. 포인트 없음 | 로그인한 사람 (이메일 인증 완료) |
 | `calc_survey_reward(문항 수, 소요분)` | `point_rules`로 응답 1건 보상 계산 (1문항 / 5분 미만 / 5~15분 / 15분 이상) | 로그인한 사람 (설문 등록 때 서버가 사용) |
-| `submit_response(p_survey_id, p_answers)` | 응답 제출 + 보상 지급 + 응답 수 +1 + 목표 도달 시 마감. 받은 포인트를 돌려줌. 4종 문항 (2026-10-30) | 학생 |
+| `submit_response(p_survey_id, p_answers, p_duration_seconds)` | 응답 제출 + 보상 지급 + 응답 수 +1 + 목표 도달 시 마감. **`{ reward, passed }`를 돌려줌** (2026-10-30). 확인 문항을 틀리면 응답은 `rejected`, 보상 0, 응답 수 그대로 → 다시 응답하면 이전 반려 응답을 지우고 새로 받음. `p_duration_seconds`(걸린 초)는 참고용 저장 | 학생 |
+| `calc_survey_price(문항 수, 소요분)` | 응답 1명 받는 값 (`calc_survey_reward`와 같은 구간) | 서버 함수 안에서 사용 |
 | `create_survey(...)` | 설문 등록: 검사 → 소요시간·보상 계산 → 설문·문항·주의 문항 저장 → 등록 비용 차감을 한 번에. 설문 번호를 돌려줌 (2026-10-30) | 학생, 승인된 단체 |
 | `point_rule(p_key)` | `point_rules` 값 하나 (없으면 `rule_missing`) | 서버 함수 안에서 사용 |
 | `get_survey_results(p_survey_id)` | 문항별 집계 결과 (2026-10-30). **유효 응답** = 확인 문항 정답을 고른 응답(확인 문항이 없으면 전부). `{ total, excluded, questions: [{ id, type, text, answered, options[{id,text,count}], scale{avg,counts[5]}, texts[] }] }`. 확인 문항은 빼고, 응답자 정보는 넣지 않는다. 응답 1개부터 | 작성자 본인 |
-| `close_survey(p_survey_id)` | 응답 마감 (status → closed). 이미 마감이면 그대로. 환불·다시 열기 없음 (2026-10-30) | 작성자 본인 |
+| `close_survey(p_survey_id)` | 응답 마감 (status → closed) + **못 받은 인원 × 1명당 값 환불** (`survey_refund`, 설문당 1번). 이미 마감이면 그대로. 다시 열기 없음 (2026-10-30) | 작성자 본인 |
 | `is_email_registered(p_email)` | 그 메일로 **가입을 마친** 계정이 있으면 true (회원정보 없는 반쪽 계정은 false). 예/아니오만 돌려줌 | 누구나 (로그인 전 포함) |
 
 ### complete_signup 입력 규칙
@@ -191,7 +196,7 @@
 - `p_questions`: 1~`survey_max_questions`개. 문항 1~200자, single·multi는 선택지 2~`survey_max_options`개(각 1~100자)
   `[{"type":"single","text":"…","options":["…","…"]}, {"type":"scale","text":"…"}, {"type":"text","text":"…"}]`
 - 소요시간 = 고르는 문항 × `sec_per_choice` + 주관식 × `sec_per_text`, 분으로 올림(최소 1분). 보상 = `calc_survey_reward`
-- 비용: 학생 `cost_survey_create`, 단체 `cost_survey_create_org`. 잔액 부족이면 거절. 회원정보 행을 잠가 동시 등록에도 음수 불가
+- 비용: 학생 = `calc_survey_price` × 목표 인원 (2026-10-30), 단체 = `cost_survey_create_org`. 잔액 부족이면 거절. 회원정보 행을 잠가 동시 등록에도 음수 불가
 - ⚠️ 앞으로 포인트를 빼는 함수(데이터 열람 등)도 **잔액 확인 전에 `profiles` 본인 행을 `for update`로 잠근다.** 그래야 서로 다른 차감이 동시에 와도 음수가 안 된다
 
 ### submit_response 답 형식 (2026-10-30)

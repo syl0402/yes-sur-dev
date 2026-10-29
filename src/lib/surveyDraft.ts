@@ -46,7 +46,10 @@ export const CREATE_RULE_KEYS = [
   "reward_lt5",
   "reward_5to15",
   "reward_gte15",
-  "cost_survey_create",
+  "price_1q",
+  "price_lt5",
+  "price_5to15",
+  "price_gte15",
   "cost_survey_create_org",
 ];
 
@@ -194,22 +197,25 @@ export function settingsValid(d: SurveyDraft, rules: Record<string, number>, has
 }
 
 // 예상 소요시간·응답자 보상 (화면 표시용. 서버 create_survey·calc_survey_reward와 같은 계산)
-export function estimate(d: SurveyDraft, rules: Record<string, number>): { minutes: number; reward: number } {
+// price: 응답 1명 받는 값 (등록비 = price × 목표 인원, 서버 calc_survey_price와 같은 구간)
+export function estimate(
+  d: SurveyDraft,
+  rules: Record<string, number>,
+): { minutes: number; reward: number; price: number } {
   const seconds = d.questions.reduce(
     (sum, q) => sum + (q.type === "text" ? rules.sec_per_text : rules.sec_per_choice),
     0,
   );
   const minutes = Math.max(1, Math.ceil(seconds / 60));
-  const count = d.questions.length;
-  const reward =
-    count === 1
-      ? rules.reward_1q
-      : minutes < 5
-        ? rules.reward_lt5
-        : minutes < 15
-          ? rules.reward_5to15
-          : rules.reward_gte15;
-  return { minutes, reward };
+  const band = d.questions.length === 1 ? "1q" : minutes < 5 ? "lt5" : minutes < 15 ? "5to15" : "gte15";
+  return { minutes, reward: rules[`reward_${band}`], price: rules[`price_${band}`] };
+}
+
+// 등록비 (화면 표시용. 실제 차감은 서버). 단체는 cost_survey_create_org (테스트 동안 0)
+export function registrationCost(d: SurveyDraft, rules: Record<string, number>, isOrg: boolean): number {
+  if (isOrg) return rules.cost_survey_create_org;
+  const target = Number(d.target);
+  return Number.isInteger(target) ? estimate(d, rules).price * target : 0;
 }
 
 // create_survey에 보낼 문항 형식

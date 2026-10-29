@@ -13,7 +13,7 @@ begin
 
   perform set_config('request.jwt.claims', json_build_object('sub', v_org, 'role', 'authenticated')::text, true);
 
-  -- ① 6문항 (4종 모두 + 확인용 문항 자동) → 약 2분, 300P
+  -- ① 6문항 (4종 모두 + 확인용 문항 자동) → 약 2분, 보상 30P
   perform public.create_survey(gen_random_uuid(),
     (select id from public.survey_categories where key = 'life'),
     '[테스트] 대학생 아침 식사 습관', '아침을 먹는지, 먹는다면 무엇을 먹는지 알려 주세요.', 'all', 30, 7,
@@ -26,7 +26,7 @@ begin
       {"type": "scale",  "text": "아침을 먹으면 수업 집중이 잘 된다고 느끼나요?"}
     ]');
 
-  -- ② 척도 3 + 주관식 1 → 약 2분, 300P
+  -- ② 척도 3 + 주관식 1 → 약 2분, 보상 30P
   perform public.create_survey(gen_random_uuid(),
     (select id from public.survey_categories where key = 'community'),
     '[테스트] 동아리 활동 만족도', null, 'all', 30, 7,
@@ -37,7 +37,7 @@ begin
       {"type": "text",  "text": "동아리에 바라는 점을 적어 주세요"}
     ]');
 
-  -- ③ 1문항 → 50P
+  -- ③ 1문항 → 보상 10P
   perform public.create_survey(gen_random_uuid(),
     (select id from public.survey_categories where key = 'taste'),
     '[테스트] 한 줄 취향: 민트초코', '1문항짜리 짧은 설문이에요.', 'all', 30, 3,
@@ -45,7 +45,7 @@ begin
       {"type": "single", "text": "민트초코는?", "options": ["좋아요", "싫어요"]}
     ]');
 
-  -- ④ 복수 + 단일 + 주관식 → 약 2분, 300P
+  -- ④ 복수 + 단일 + 주관식 → 약 2분, 보상 30P
   perform public.create_survey(gen_random_uuid(),
     (select id from public.survey_categories where key = 'consume'),
     '[테스트] 시험 기간 카페 이용', null, 'all', 30, 7,
@@ -55,7 +55,7 @@ begin
       {"type": "text",   "text": "공부하기 좋은 카페의 조건은 무엇인가요?"}
     ]');
 
-  -- ⑤ 7문항 (확인용 문항 자동) → 약 2분, 300P
+  -- ⑤ 7문항 (확인용 문항 자동) → 약 2분, 보상 30P
   perform public.create_survey(gen_random_uuid(),
     (select id from public.survey_categories where key = 'study'),
     '[테스트] 캠퍼스 앱 사용 실태', '학교생활에 쓰는 앱을 조사해요.', 'all', 30, 7,

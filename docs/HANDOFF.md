@@ -168,14 +168,15 @@ const { data: registered } = await supabase.rpc("is_email_registered", { p_email
 ### 응답 제출 `submit_response` (2026-10-29)
 모든 문항의 답을 한 번에 보낸다. 금액은 보내지 않는다(서버가 설문에 저장된 값으로 지급). 같은 설문은 한 번만.
 ```ts
-const { data: reward, error } = await supabase.rpc("submit_response", {
+const { data, error } = await supabase.rpc("submit_response", {
   p_survey_id: surveyId,
   p_answers: [
-    { question_id: 1, option_id: 3 },
-    { question_id: 2, option_id: 7 },
+    { question_id: 1, option_ids: [3] },
+    { question_id: 2, option_ids: [7] },
   ],
+  p_duration_seconds: 95, // 응답에 걸린 초 (참고용)
 });
-// reward: 받은 포인트 (예: 300) → formatPoints(reward)
+// data: { reward: 30, passed: true } — 확인 문항을 틀리면 { reward: 0, passed: false } (다시 응답 가능, 2026-10-30)
 ```
 오류 코드는 `docs/DB.md` (`already_responded`, `survey_closed`, `not_target` 등)
 4종 문항 답 형식(2026-10-30): 복수 `option_ids: [7, 8]`, 척도 `scale_value: 4`, 주관식 `text_value: "…"` (자세히는 `docs/DB.md`)

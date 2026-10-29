@@ -74,7 +74,7 @@ select id, title, host_name, reward_points from public.surveys order by id desc 
 
 
 -- ── 4. 개인(학생) 설문 1개 만들기 (작성자 = 학생 테스터) ─────
--- 등록비 700P가 빠진다. 잔액이 모자라면 먼저 자동으로 채운다
+-- 등록비(3문항·1분 → 1명당 15P × 30명 = 450P)가 빠진다. 잔액이 모자라면 먼저 자동으로 채운다
 -- 참고: 학생 테스터는 자기 설문에 응답할 수 없다. 응답 테스트는 다른 학생 계정으로
 do $$
 declare
@@ -87,7 +87,7 @@ begin
 
   select coalesce(sum(amount), 0) into v_balance
     from public.point_ledger where user_id = v_student and status = 'confirmed';
-  if v_balance < public.point_rule('cost_survey_create') then
+  if v_balance < public.calc_survey_price(3, 1) * 30 then
     insert into public.point_ledger (user_id, amount, status, reason, ref_id)
     values (v_student, 1000, 'confirmed', 'survey_reward', 'dev-' || extract(epoch from clock_timestamp())::bigint);
   end if;
@@ -126,7 +126,7 @@ begin
                     when c.cnt < s.target_responses and (s.closes_at is null or s.closes_at > now()) then 'open'
                     else s.status
                   end
-    from (select s2.id, (select count(*) from public.responses r where r.survey_id = s2.id)::integer as cnt
+    from (select s2.id, (select count(*) from public.responses r where r.survey_id = s2.id and r.status = 'confirmed')::integer as cnt
             from public.surveys s2) c
    where c.id = s.id;
 end;
@@ -165,3 +165,14 @@ delete from public.point_ledger
 delete from public.surveys where title like '[테스트]%';
 
 select count(*) as test_surveys_left from public.surveys where title like '[테스트]%';
+
+
+-- ── 9. 개발 데이터 전부 초기화 (설문·응답·포인트 기록. 웰컴 500P만 남김) ──
+-- 2026-10-30 포인트 규칙을 바꾼 뒤 예전 규칙으로 쌓인 데이터를 지울 때.
+-- ⚠️ 모든 사람의 설문·응답이 지워진다. 실제 사용자가 생긴 뒤에는 절대 쓰지 않는다
+-- 실행 후 test_surveys_mixed.sql로 테스트 설문을 새 규칙으로 다시 만든다
+delete from public.point_ledger where reason <> 'welcome';
+delete from public.surveys;
+
+select (select count(*) from public.surveys) as surveys_left,
+       (select count(*) from public.point_ledger) as ledger_rows_left;

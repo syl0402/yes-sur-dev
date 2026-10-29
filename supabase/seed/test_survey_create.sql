@@ -46,10 +46,10 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', v_student, 'role', 'authenticated')::text, true);
   v_before := public.get_my_balance();
 
-  -- 1. 정상 등록 (5문항 → 주의 문항 1개 추가, 80초 → 2분, 보상 300P, 비용 700P)
+  -- 1. 정상 등록 (5문항 → 주의 문항 1개 추가, 80초 → 2분, 보상 30P, 등록비 15P × 50명 = 750P)
   v_id := public.create_survey(v_request, v_category, '테스트 설문', null, 'all', 50, 7, v_five);
   v_after := public.get_my_balance();
-  select format('1. 등록: 문항 줄 %s개(기대 6) · 주의 문항 %s개(1) · 소요 %s분(2) · 보상 %sP(300) · 차감 %sP(700)',
+  select format('1. 등록: 문항 줄 %s개(기대 6) · 주의 문항 %s개(1) · 소요 %s분(2) · 보상 %sP(30) · 차감 %sP(750)',
                 (select count(*) from public.questions where survey_id = v_id),
                 (select count(*) from public.questions where survey_id = v_id and is_attention_check and correct_option_id is not null),
                 s.est_minutes, s.reward_points, v_before - v_after) || E'\n'
@@ -107,9 +107,9 @@ begin
     end;
   end loop;
 
-  -- 7. 4종 응답 제출 (4문항, 70초 → 2분 → 보상 300P)
-  v_reward := public.submit_response(v_org_survey, v_answers);
-  v_log := v_log || format('7. 4종 응답: 보상 %sP(300) · 저장된 답 %s개(4) · 복수 선택 %s개(3) · 척도 %s(4) · 주관식 %s(좋아요)',
+  -- 7. 4종 응답 제출 (4문항, 70초 → 2분 → 보상 30P)
+  v_reward := (public.submit_response(v_org_survey, v_answers) ->> 'reward')::integer;
+  v_log := v_log || format('7. 4종 응답: 보상 %sP(30) · 저장된 답 %s개(4) · 복수 선택 %s개(3) · 척도 %s(4) · 주관식 %s(좋아요)',
     v_reward,
     (select count(*) from public.answers a join public.responses r on r.id = a.response_id where r.survey_id = v_org_survey),
     (select max(cardinality(a.option_ids)) from public.answers a join public.responses r on r.id = a.response_id where r.survey_id = v_org_survey),

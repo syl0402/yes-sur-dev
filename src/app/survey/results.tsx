@@ -100,7 +100,7 @@ export default function SurveyResults() {
   const closeNow = () =>
     showConfirm({
       title: "응답을 마감할까요?",
-      message: "마감하면 더 이상 응답을 받지 않아요.\n다시 열 수 없고, 등록 포인트는 돌려받지 않아요.",
+      message: "마감하면 더 이상 응답을 받지 않아요.\n다시 열 수 없고, 못 받은 인원만큼 등록비를 돌려받아요.",
       okLabel: "마감하기",
       cancelLabel: "취소",
       destructive: true,
