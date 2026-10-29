@@ -71,6 +71,16 @@ if (session?.user) { /* 로그인됨 */ }
 showNotice("이미 가입된 계정이에요", "이 메일로 로그인했어요.", () => router.replace("/"));
 ```
 
+### `showConfirm` (`src/lib/confirm.ts`, 2026-10-29)
+버튼 두 개짜리 확인 창 (폰은 Alert, 웹은 브라우저 확인 창). 진행 버튼을 누를 때만 `onOk` 실행.
+```ts
+showConfirm({ title: "제출할까요?", message: "제출하면 답을 바꿀 수 없어요.", okLabel: "제출", cancelLabel: "다시 보기", onOk: submit });
+```
+
+### 설문 응답 흐름 (2026-10-29)
+상세 `/survey/[id]` → 응답 `/survey/respond?id=` → 완료 `/survey/done?reward=` (응답 화면은 완료 화면으로 교체).
+응답 화면에서 나가려 하면 `usePreventRemove`(expo-router)로 확인 창을 띄운다.
+
 ### `useResumeSignup` (`src/hooks/useResumeSignup.ts`, 2026-10-27)
 `_layout.tsx`에서 한 번 부른다. 로그인됨 + 회원정보 없음이면 `/signup/type?resume=1`(가입 유형 선택)로 보내 가입을 이어서 끝내게 한다.
 가입 화면(`/signup/...`) 안에서는 동작하지 않는다.

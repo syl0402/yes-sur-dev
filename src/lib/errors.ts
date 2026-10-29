@@ -20,6 +20,16 @@ const MESSAGES: Record<string, string> = {
   invalid_org_description: "소개는 200자까지 쓸 수 있어요.",
   org_name_taken: "같은 이름의 단체가 이미 있어요.",
 
+  // 응답 제출 (submit_response)
+  not_student: "학생 계정만 설문에 응답할 수 있어요.",
+  survey_not_found: "찾을 수 없는 설문이에요.",
+  own_survey: "내가 올린 설문에는 응답할 수 없어요.",
+  survey_closed: "마감된 설문이에요.",
+  survey_full: "응답 인원이 다 찼어요.",
+  not_target: "응답 대상이 아닌 설문이에요.",
+  already_responded: "이미 참여한 설문이에요.",
+  invalid_answers: "모든 문항에 답해 주세요.",
+
   // Supabase 인증
   over_email_send_rate_limit: "잠시 후 다시 보내 주세요.",
   otp_expired: "인증번호가 틀렸거나 만료됐어요.",

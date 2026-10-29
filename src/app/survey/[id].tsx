@@ -1,12 +1,11 @@
 // ys-111 설문 상세 · F-205
-import { Stack, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { Stack, router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints, formatTimeLeft } from "@/lib/format";
-import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
 import { remainingSpots } from "@/lib/surveys";
 
@@ -79,9 +78,12 @@ export default function SurveyDetail() {
   // undefined = 불러오는 중, null = 찾을 수 없음
   const [detail, setDetail] = useState<Detail | null | undefined>(undefined);
 
-  useEffect(() => {
-    fetchDetail(Number(id)).then(setDetail);
-  }, [id]);
+  // 화면에 돌아올 때마다 새로 불러온다 (응답 화면에서 나왔을 때 마감·참여 상태가 바로 바뀌게)
+  useFocusEffect(
+    useCallback(() => {
+      fetchDetail(Number(id)).then(setDetail);
+    }, [id]),
+  );
 
   if (detail === undefined) {
     return (
@@ -103,8 +105,7 @@ export default function SurveyDetail() {
 
   const spots = remainingSpots(detail);
 
-  // TODO(임시): 참여하기 준비 중 안내 · 설문 1단계 ④에서 응답 화면 연결 · docs/PROGRESS.md
-  const join = () => showNotice("준비 중", "설문 응답은 곧 열려요.");
+  const join = () => router.push({ pathname: "/survey/respond", params: { id: String(id) } });
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
