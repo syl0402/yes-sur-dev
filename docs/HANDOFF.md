@@ -12,6 +12,7 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 로그인 전: `src/app/index.tsx` (로그인되면 `/home`으로 이동)
 - 로그인 후: 하단 탭 `src/app/(tabs)/` — `home` · `surveys` · `balance` · `data` · `my`
 - 탭 사이 이동은 `router.navigate("/surveys")`
+- 내 정보 (2026-10-30): 마이 탭 이름을 누르면 `/account` — 회원정보 보기(고치려면 문의), 성별·출생연도 한 번 입력(`/account/demographics`, 비어 있을 때만), 비밀번호 변경(`/account/password`, 현재 비밀번호 확인 후), 로그아웃. 회원 탈퇴는 다음 단계에서 이 페이지에 추가
 
 ### `AppIcon` · `tabIcons` (`src/components/AppIcon.tsx`, `src/constants/icons.ts`, 2026-10-29)
 아이콘은 `@expo/vector-icons`의 Ionicons. 아이콘 이름은 `icons.ts` 한 곳에 모은다(디자인팀 교체 지점). 목록: https://icons.expo.fyi
@@ -142,6 +143,8 @@ const { error } = await supabase.rpc("complete_signup", {
   p_admission_year: 2023,
   p_degree_type: "undergrad", // 또는 "grad"
   p_terms_agreed: true,       // 필수 약관 동의
+  p_gender: "female",         // "male" | "female" | "undisclosed" (2026-10-30)
+  p_birth_year: 2004,         // 출생연도 (2026-10-30)
 });
 ```
 

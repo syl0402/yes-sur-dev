@@ -1,11 +1,13 @@
 // ys-001 회원가입 · F-103 회원정보 입력
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import StepIndicator from "@/components/StepIndicator";
+import YearPicker from "@/components/YearPicker";
 import { colors, fontSize, spacing } from "@/constants/theme";
+import { GENDER_OPTIONS, type Gender, birthYearOptions } from "@/lib/demographics";
 import { errorMessage } from "@/lib/errors";
 import { confirmLeaveSignup } from "@/lib/leaveSignup";
 import { supabase } from "@/lib/supabase";
@@ -34,6 +36,10 @@ export default function SignupProfile() {
   const [degreeType, setDegreeType] = useState<DegreeType | null>(null);
   const [admissionYear, setAdmissionYear] = useState<number | null>(null);
   const [yearPickerOpen, setYearPickerOpen] = useState(false);
+  // 통계(나눠 보기)용 응답자 정보 (2026-10-30 추가)
+  const [gender, setGender] = useState<Gender | null>(null);
+  const [birthYear, setBirthYear] = useState<number | null>(null);
+  const [birthPickerOpen, setBirthPickerOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -75,7 +81,9 @@ export default function SignupProfile() {
     nicknameOk &&
     majorFieldId !== null &&
     degreeType !== null &&
-    admissionYear !== null;
+    admissionYear !== null &&
+    gender !== null &&
+    birthYear !== null;
 
   const chooseCategory = (value: string) => {
     setCategory(value);
@@ -102,6 +110,8 @@ export default function SignupProfile() {
       p_admission_year: admissionYear,
       p_degree_type: degreeType,
       p_terms_agreed: agreed === "1",
+      p_gender: gender,
+      p_birth_year: birthYear,
     });
     if (signupError) {
       setSubmitting(false);
@@ -226,6 +236,31 @@ export default function SignupProfile() {
         </Text>
       </Pressable>
 
+      <Text style={styles.label}>성별</Text>
+      <View style={styles.choiceRow}>
+        {GENDER_OPTIONS.map((option) => (
+          <Pressable
+            key={option.value}
+            style={[styles.choice, gender === option.value && styles.choiceSelected]}
+            onPress={() => setGender(option.value)}
+          >
+            <Text style={[styles.choiceText, gender === option.value && styles.choiceTextSelected]}>
+              {option.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <Text style={styles.label}>출생연도</Text>
+      <Pressable style={styles.input} onPress={() => setBirthPickerOpen(true)}>
+        <Text style={birthYear === null ? styles.placeholder : styles.inputText}>
+          {birthYear === null ? "선택해 주세요" : `${birthYear}년`}
+        </Text>
+      </Pressable>
+      <Text style={styles.note}>
+        성별·출생연도는 설문 결과를 묶어서 볼 때만 쓰여요 (예: ‘20대 초반 여성 58%’). 다른 사람에게 내 정보가 보이지 않아요.
+      </Text>
+
       {error !== "" && <Text style={styles.error}>{error}</Text>}
 
       <View style={styles.footer}>
@@ -237,34 +272,22 @@ export default function SignupProfile() {
         />
       </View>
 
-      {/* 입학년도 목록 창 (React Native 기본 Modal) */}
-      <Modal
+      <YearPicker
         visible={yearPickerOpen}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setYearPickerOpen(false)}
-      >
-        <Pressable style={styles.backdrop} onPress={() => setYearPickerOpen(false)} />
-        <View style={styles.sheet}>
-          <Text style={styles.sheetTitle}>입학년도</Text>
-          <ScrollView>
-            {years.map((year) => (
-              <Pressable
-                key={year}
-                style={styles.yearRow}
-                onPress={() => {
-                  setAdmissionYear(year);
-                  setYearPickerOpen(false);
-                }}
-              >
-                <Text style={[styles.yearText, admissionYear === year && styles.yearSelected]}>
-                  {year}년
-                </Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-      </Modal>
+        title="입학년도"
+        years={years}
+        selected={admissionYear}
+        onSelect={setAdmissionYear}
+        onClose={() => setYearPickerOpen(false)}
+      />
+      <YearPicker
+        visible={birthPickerOpen}
+        title="출생연도"
+        years={birthYearOptions(currentYear)}
+        selected={birthYear}
+        onSelect={setBirthYear}
+        onClose={() => setBirthPickerOpen(false)}
+      />
     </ScrollView>
   );
 }
@@ -391,35 +414,8 @@ const styles = StyleSheet.create({
   footer: {
     marginTop: spacing.lg,
   },
-  backdrop: {
-    flex: 1,
-    backgroundColor: colors.overlay,
-  },
-  sheet: {
-    maxHeight: "50%",
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  sheetTitle: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  yearRow: {
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  yearText: {
-    fontSize: fontSize.body,
-    color: colors.text,
-    textAlign: "center",
-  },
-  yearSelected: {
-    color: colors.primary,
-    fontWeight: "700",
+  note: {
+    fontSize: fontSize.small,
+    color: colors.textMuted,
   },
 });

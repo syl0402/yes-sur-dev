@@ -41,8 +41,9 @@ type MySurvey = {
 type MyData = {
   userId: string;
   isOrg: boolean;
+  // 학생인데 성별·출생연도가 비어 있음 (기능 추가 전 가입) → 한 번만 입력
+  needsDemographics: boolean;
   name: string;
-  schoolName: string;
   balance: number;
   ledger: LedgerItem[];
   surveys: MySurvey[];
@@ -74,7 +75,7 @@ async function fetchMy(): Promise<MyData> {
   const userId = auth.user?.id ?? "";
 
   const [{ data: profile }, { data: org }, { data: balance }, { data: rows }, surveys] = await Promise.all([
-    supabase.from("profiles").select("nickname, account_type, universities(name)").maybeSingle(),
+    supabase.from("profiles").select("nickname, account_type, gender, birth_year").maybeSingle(),
     supabase.from("organizations").select("name").maybeSingle(),
     supabase.rpc("get_my_balance"),
     supabase
@@ -97,14 +98,13 @@ async function fetchMy(): Promise<MyData> {
     (surveys ?? []).forEach((s) => titles.set(String(s.id), s.title));
   }
 
-  const rawSchool = profile?.universities as unknown;
-  const school = (Array.isArray(rawSchool) ? rawSchool[0] : rawSchool) as { name: string } | null;
+  const isOrg = profile?.account_type === "org";
 
   return {
     userId,
-    isOrg: profile?.account_type === "org",
+    isOrg,
+    needsDemographics: !isOrg && (profile?.gender == null || profile?.birth_year == null),
     name: org?.name ?? profile?.nickname ?? "",
-    schoolName: school?.name ?? "",
     balance: typeof balance === "number" ? balance : 0,
     ledger: (rows ?? []).map((r) => {
       const reason = REASON_LABELS[r.reason] ?? "기타";
@@ -130,11 +130,6 @@ export default function My() {
       fetchMy().then(setData);
     }, []),
   );
-
-  const logout = async () => {
-    await supabase.auth.signOut();
-    router.replace("/");
-  };
 
   const removeDraft = (d: SavedDraft) =>
     showConfirm({
@@ -164,10 +159,12 @@ export default function My() {
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={styles.container}
     >
-      <View>
-        <Text style={styles.name}>{data.name ? `${data.name}님` : ""}</Text>
-        {data.schoolName ? <Text style={styles.school}>{data.schoolName}</Text> : null}
-      </View>
+      {/* 이름을 누르면 내 정보 (회원정보·비밀번호 변경·로그아웃) */}
+      <Pressable onPress={() => router.push("/account")}>
+        <Text style={styles.name}>{data.name ? `${data.name}님 ›` : "내 정보 ›"}</Text>
+        <Text style={styles.ledgerDate}>내 정보 · 계정 설정</Text>
+        {data.needsDemographics && <Text style={styles.infoLink}>⚠️ 성별·출생연도를 입력해 주세요</Text>}
+      </Pressable>
 
       {data.isOrg ? (
         <View style={styles.pointBox}>
@@ -252,9 +249,6 @@ export default function My() {
         ))
       )}
 
-      <Pressable onPress={logout} style={styles.logout}>
-        <Text style={styles.logoutText}>로그아웃</Text>
-      </Pressable>
     </ScrollView>
   );
 }
@@ -279,10 +273,11 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.text,
   },
-  school: {
-    marginTop: 4,
+  infoLink: {
+    marginTop: spacing.sm,
     fontSize: fontSize.small,
-    color: colors.textMuted,
+    color: colors.primary,
+    fontWeight: "600",
   },
   pointBox: {
     padding: spacing.lg,
@@ -353,17 +348,5 @@ const styles = StyleSheet.create({
   deleteText: {
     fontSize: fontSize.small,
     color: colors.danger,
-  },
-  logout: {
-    marginTop: spacing.lg,
-    paddingVertical: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  logoutText: {
-    fontSize: fontSize.body,
-    color: colors.textMuted,
   },
 });

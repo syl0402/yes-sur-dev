@@ -46,6 +46,11 @@ const MESSAGES: Record<string, string> = {
   not_owner: "내 설문만 볼 수 있어요.",
   invalid_visibility: "학교가 없는 계정은 '우리 학교만'을 고를 수 없어요.",
 
+  // 응답자 정보 (complete_signup, update_my_demographics)
+  invalid_gender: "성별을 선택해 주세요.",
+  invalid_birth_year: "출생연도를 선택해 주세요.",
+  demographics_locked: "이미 입력한 정보예요. 고치려면 문의해 주세요.",
+
   // Supabase 인증
   over_email_send_rate_limit: "잠시 후 다시 보내 주세요.",
   otp_expired: "인증번호가 틀렸거나 만료됐어요.",

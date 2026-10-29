@@ -23,6 +23,8 @@
 | `20261030000004_survey_results.sql` | 내 설문 결과 집계 함수, 응답 마감 함수 | 2026-10-30 |
 | `20261030000005_point_economy.sql` | 포인트 구조 변경(보상 낮춤, 등록비 = 1명당 값 × 인원, 조기 마감 환불), 확인 문항 오답 = 미지급·다시 응답, 응답 시간 저장 | 2026-10-30 |
 | `20261030000006_result_visibility.sql` | 결과 공개 범위(전체·우리 학교만·비공개), 등록 때 함께 저장, 작성자가 바꾸는 함수 | 2026-10-30 |
+| `20261030000007_demographics.sql` | 회원정보에 성별·출생연도, 가입 함수 매개변수 추가, 본인 수정 함수 | 2026-10-30 |
+| `20261030000008_demographics_lock.sql` | 성별·출생연도는 한 번 정하면 고정 (비어 있는 칸만 채움) | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -51,6 +53,8 @@
 | degree_type | 과정: `undergrad` 학부 / `grad` 대학원 |
 | admission_year | 입학년도 (예: 2023). 학년은 해마다 바뀌어 저장하지 않는다 |
 | terms_agreed_at | 필수 약관(이용약관·개인정보 수집·이용) 동의 시각 |
+| gender | 성별 (2026-10-30): `male` / `female` / `undisclosed`(선택 안 함). 비어 있음 = 기능 추가 전 가입 → 마이 탭 "내 정보"에서 입력. 결과에는 묶어서만 (5명 미만 숨김) |
+| birth_year | 출생연도 (2026-10-30). 생년월일은 받지 않음(최소 수집). 학생은 가입 때 필수. 나이대로만 사용 |
 
 이메일은 넣지 않는다 (Supabase Auth에만 있음).
 
@@ -155,7 +159,8 @@
 | 함수 | 하는 일 | 누가 |
 | --- | --- | --- |
 | `get_my_balance()` | 본인 잔액 (confirmed 합계) | 로그인한 사람 |
-| `complete_signup(p_nickname, p_major_field_id, p_admission_year, p_degree_type, p_terms_agreed)` | 학교 도메인 검사 → 학생 회원정보 저장 → 웰컴 포인트 지급. 이미 가입했으면 아무것도 안 함 | 로그인한 사람 (이메일 인증 완료) |
+| `update_my_demographics(p_gender, p_birth_year)` | 본인 성별·출생연도 **한 번만** 입력 (기존 회원용, 비어 있는 칸만 채움. 둘 다 있으면 `demographics_locked`). 고치려면 운영자가 대시보드에서 (2026-10-30) | 학생 |
+| `complete_signup(p_nickname, p_major_field_id, p_admission_year, p_degree_type, p_terms_agreed, p_gender, p_birth_year)` | 학교 도메인 검사 → 학생 회원정보 저장 → 웰컴 포인트 지급. 이미 가입했으면 아무것도 안 함 | 로그인한 사람 (이메일 인증 완료) |
 | `request_org_signup(...)` | 단체 신청·재신청 → 승인 대기. 포인트 없음 | 로그인한 사람 (이메일 인증 완료) |
 | `calc_survey_reward(문항 수, 소요분)` | `point_rules`로 응답 1건 보상 계산 (1문항 / 5분 미만 / 5~15분 / 15분 이상) | 로그인한 사람 (설문 등록 때 서버가 사용) |
 | `submit_response(p_survey_id, p_answers, p_duration_seconds)` | 응답 제출 + 보상 지급 + 응답 수 +1 + 목표 도달 시 마감. **`{ reward, passed }`를 돌려줌** (2026-10-30). 확인 문항을 틀리면 응답은 `rejected`, 보상 0, 응답 수 그대로 → 다시 응답하면 이전 반려 응답을 지우고 새로 받음. `p_duration_seconds`(걸린 초)는 참고용 저장 | 학생 |
@@ -174,6 +179,8 @@
 - `p_degree_type`: `undergrad`(학부) / `grad`(대학원)
 - `p_admission_year`: 2000 ~ 올해
 - `p_terms_agreed`: 반드시 `true` (필수 약관 동의)
+- `p_gender`: `male` / `female` / `undisclosed` (2026-10-30)
+- `p_birth_year`: 올해-60 ~ 올해-14 (2026-10-30)
 
 ### request_org_signup 입력 규칙 (2026-10-27)
 
@@ -249,3 +256,6 @@
 | `insufficient_points` | 등록 비용보다 잔액이 적음 |
 | `not_owner` | 내 설문이 아님 (결과 보기·마감·공개 범위) |
 | `invalid_visibility` | 공개 범위 값이 틀렸거나, 학교 없는 계정이 "우리 학교만" 선택 |
+| `invalid_gender` | 성별 값이 잘못됨 |
+| `invalid_birth_year` | 출생연도가 비었거나 범위 밖 |
+| `demographics_locked` | 성별·출생연도를 이미 입력함 (고치려면 문의) |
