@@ -25,6 +25,7 @@
 | `20261030000006_result_visibility.sql` | 결과 공개 범위(전체·우리 학교만·비공개), 등록 때 함께 저장, 작성자가 바꾸는 함수 | 2026-10-30 |
 | `20261030000007_demographics.sql` | 회원정보에 성별·출생연도, 가입 함수 매개변수 추가, 본인 수정 함수 | 2026-10-30 |
 | `20261030000008_demographics_lock.sql` | 성별·출생연도는 한 번 정하면 고정 (비어 있는 칸만 채움) | 2026-10-30 |
+| `20261030000009_data_hub.sql` | 데이터 허브: 열람 기록 표, 목록·미리보기·내 답 비교·열람(차감·분배)·전체 결과(나눠 보기) 함수 | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -118,6 +119,9 @@
 - responses: `survey_id`, `user_id`, `submitted_at`, `status`(`confirmed`/`rejected`), `quality_score`(2단계). **(survey_id, user_id) 고유 → 설문당 1번**
 - answers: `response_id`, `question_id`, `option_ids`(배열), `scale_value`, `text_value`. (response_id, question_id) 고유
 
+### survey_views — 데이터 허브 열람 기록 (2026-10-30)
+`survey_id`, `user_id`, `paid`(낸 포인트), `free_reason`(`paid` / `one_question` / `official` / `org` / `welcome` 첫 열람 무료), `created_at`. **(survey_id, user_id) 고유 → 한 번만 차감**. 공개 범위를 좁혀도 열람 기록이 있으면 계속 볼 수 있다
+
 ### point_rules — 포인트 수치
 `key`, `value`, `description`. 값은 `docs/PRD.md` 4-2와 같다. 수치를 바꿀 때는 대시보드에서 이 표만 고친다.
 
@@ -151,6 +155,7 @@
 | responses, answers | 본인 것만 | 불가 (`submit_response`로만) |
 | point_rules | 로그인한 사람 모두 | 불가 (대시보드에서 운영자) |
 | point_ledger | 본인 기록만 | 불가 (서버 함수로만) |
+| survey_views | 본인 열람 기록만 | 불가 (`view_survey`로만) |
 
 로그인 안 한 상태(anon)는 universities 말고는 아무 표도 못 읽는다.
 
@@ -170,6 +175,11 @@
 | `point_rule(p_key)` | `point_rules` 값 하나 (없으면 `rule_missing`) | 서버 함수 안에서 사용 |
 | `get_survey_results(p_survey_id)` | 문항별 집계 결과 (2026-10-30). **유효 응답** = 확인 문항 정답을 고른 응답(확인 문항이 없으면 전부). `{ total, excluded, questions: [{ id, type, text, answered, options[{id,text,count}], scale{avg,counts[5]}, texts[] }] }`. 확인 문항은 빼고, 응답자 정보는 넣지 않는다. 응답 1개부터 | 작성자 본인 |
 | `close_survey(p_survey_id)` | 응답 마감 (status → closed) + **못 받은 인원 × 1명당 값 환불** (`survey_refund`, 설문당 1번). 이미 마감이면 그대로. 다시 열기 없음 (2026-10-30) | 작성자 본인 |
+| `get_hub_list(p_category, p_sort)` | 데이터 허브 목록 (popular·latest·responses). 열람함·응답함·무료·신뢰도·참고용 표시 (2026-10-30) | 로그인한 사람 |
+| `get_hub_preview(p_survey_id)` | 무료 정보: 설문 정보·문항 목록·응답자 구성(5명 미만 숨김)·열람 상태·무료 이유·가격 | 볼 수 있는 사람 |
+| `get_my_comparison(p_survey_id)` | 내 답 비교 (문항별 내 답과 같은 답 비율, 주관식 제외) | 그 설문 응답자 |
+| `view_survey(p_survey_id)` | 전체 열람: 무료 이유가 없으면 `cost_data_view` 차감 → 등록자에게 `data_share_rate` 분배 → `survey_views` 기록. 한 번만. 회원정보 행 잠금 | 볼 수 있는 사람 |
+| `get_full_results(p_survey_id)` | 전체 결과: 문항별 집계 + 계열·학년·성별·나이대 나눠 보기(5명 미만 그룹 숨김) + 신뢰 정보. 주관식 원문 없음 | 작성자, 열람한 사람 |
 | `is_email_registered(p_email)` | 그 메일로 **가입을 마친** 계정이 있으면 true (회원정보 없는 반쪽 계정은 false). 예/아니오만 돌려줌 | 누구나 (로그인 전 포함) |
 
 ### complete_signup 입력 규칙
@@ -259,3 +269,6 @@
 | `invalid_gender` | 성별 값이 잘못됨 |
 | `invalid_birth_year` | 출생연도가 비었거나 범위 밖 |
 | `demographics_locked` | 성별·출생연도를 이미 입력함 (고치려면 문의) |
+| `not_listed` | 데이터 허브에서 볼 수 없는 결과 (공개 범위·마감·응답 수 조건) |
+| `not_respondent` | 내 답 비교는 그 설문에 응답한 사람만 |
+| `not_viewed` | 전체 결과는 열람한 뒤에 (view_survey 먼저) |
