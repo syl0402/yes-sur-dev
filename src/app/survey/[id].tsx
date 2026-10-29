@@ -108,7 +108,11 @@ export default function SurveyDetail() {
   const join = () => router.push({ pathname: "/survey/respond", params: { id: String(id) } });
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+    <ScrollView
+      style={styles.screen}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={styles.container}
+    >
       <Stack.Screen options={{ title: "설문 상세" }} />
 
       <Text style={styles.category}>

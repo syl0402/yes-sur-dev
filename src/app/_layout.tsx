@@ -12,6 +12,8 @@ export default function RootLayout() {
       screenOptions={{
         headerTintColor: colors.text,
         headerTitleStyle: { color: colors.text },
+        // 뒤로 버튼은 화살표만 (이전 화면 이름이 "(tabs)" 같은 폴더 이름으로 나오지 않게)
+        headerBackButtonDisplayMode: "minimal",
       }}
     >
       {/* 하단 탭은 각 탭이 제목줄을 가지므로 바깥 제목줄은 숨긴다 */}

@@ -133,7 +133,11 @@ export default function My() {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+    <ScrollView
+      style={styles.screen}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={styles.container}
+    >
       <View>
         <Text style={styles.name}>{data.name ? `${data.name}님` : ""}</Text>
         {data.schoolName ? <Text style={styles.school}>{data.schoolName}</Text> : null}

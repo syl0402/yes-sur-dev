@@ -56,7 +56,11 @@ export default function Home() {
   const goCreate = () => router.push("/create");
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+    <ScrollView
+      style={styles.screen}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={styles.container}
+    >
       {/* 내 포인트 (단체는 응답·적립이 없어서 안내로 대신). 누르면 마이 탭의 포인트 내역으로 */}
       <Pressable style={styles.pointBox} onPress={() => router.navigate("/my")} disabled={data.isOrg}>
         {data.isOrg ? (

@@ -71,7 +71,11 @@ export default function Surveys() {
         );
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+    <ScrollView
+      style={styles.screen}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={styles.container}
+    >
       <Pressable style={styles.createButton} onPress={() => router.push("/create")}>
         <Text style={styles.createText}>+ 설문 등록</Text>
       </Pressable>
