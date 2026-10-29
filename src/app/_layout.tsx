@@ -13,6 +13,9 @@ export default function RootLayout() {
         headerTintColor: colors.text,
         headerTitleStyle: { color: colors.text },
       }}
-    />
+    >
+      {/* 하단 탭은 각 탭이 제목줄을 가지므로 바깥 제목줄은 숨긴다 */}
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    </Stack>
   );
 }

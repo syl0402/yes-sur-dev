@@ -8,6 +8,26 @@
 Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로 가져온다.
 로그인 정보는 폰에서는 `expo-sqlite`, 웹에서는 브라우저에 저장된다 (`src/lib/storage*.ts`).
 
+### 화면 구조 (2026-10-29)
+- 로그인 전: `src/app/index.tsx` (로그인되면 `/home`으로 이동)
+- 로그인 후: 하단 탭 `src/app/(tabs)/` — `home` · `surveys` · `balance` · `data` · `my`
+- 탭 사이 이동은 `router.navigate("/surveys")`
+
+### `AppIcon` · `tabIcons` (`src/components/AppIcon.tsx`, `src/constants/icons.ts`, 2026-10-29)
+아이콘은 `@expo/vector-icons`의 Ionicons. 아이콘 이름은 `icons.ts` 한 곳에 모은다(디자인팀 교체 지점). 목록: https://icons.expo.fyi
+```tsx
+<AppIcon name={tabIcons.home} color={colors.primary} size={24} />
+```
+
+### `ComingSoon` (`src/components/ComingSoon.tsx`, 2026-10-29)
+아직 만들지 않은 화면의 "준비 중" 안내.
+```tsx
+<ComingSoon title="데이터 허브" message="설문 결과 열람은 곧 열려요." />
+```
+
+### `formatTimeLeft` (`src/lib/format.ts`, 2026-10-29)
+마감까지 남은 시간: `"3일 남음"` / `"5시간 남음"` / `"곧 마감"` / `"마감"`
+
 ### `PrimaryButton` (`src/components/PrimaryButton.tsx`)
 큰 파란 버튼. `disabled`면 회색, `loading`이면 돌아가는 표시 + 누르기 막힘(연타 방지).
 ```tsx
