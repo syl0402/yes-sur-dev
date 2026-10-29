@@ -34,7 +34,8 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 ### 내 설문 결과 · 응답 마감 (2026-10-30)
 - 화면: `router.push({ pathname: "/survey/results", params: { id } })` (상세에서 작성자에게만 [결과 보기])
 - 결과: `supabase.rpc("get_survey_results", { p_survey_id })` → 작성자 본인만. 모양은 `docs/DB.md`
-- 마감: `supabase.rpc("close_survey", { p_survey_id })` → 작성자 본인만
+- 마감: `supabase.rpc("close_survey", { p_survey_id })` → 작성자 본인만 (못 받은 인원만큼 환불)
+- 결과 공개 범위: 등록 때 `create_survey`에 `p_result_visibility: "public" | "campus" | "private"`, 나중엔 `supabase.rpc("set_result_visibility", { p_survey_id, p_visibility })`. 화면 문구는 `VISIBILITY_LABELS` (`surveyDraft.ts`)
 - 데이터 허브(공개 결과)에서도 같은 결과 화면 모양을 다시 쓸 예정
 
 ### `formatHost` (`src/lib/surveys.ts`, 2026-10-30)

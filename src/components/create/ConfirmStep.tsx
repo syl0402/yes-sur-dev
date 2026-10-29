@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { formStyles } from "@/components/create/formStyles";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
-import { type SurveyDraft, estimate } from "@/lib/surveyDraft";
+import { type SurveyDraft, VISIBILITY_LABELS, estimate } from "@/lib/surveyDraft";
 import { formatHost } from "@/lib/surveys";
 
 type Props = {
@@ -35,6 +35,7 @@ export default function ConfirmStep({ draft, rules, categoryName, cost, balance,
         <Row label="예상 소요시간" value={`약 ${minutes}분`} />
         <Row label="응답자 보상" value={`1명당 ${formatPoints(reward)}`} />
         <Row label="응답 대상" value={draft.audience === "campus" ? "우리 학교 학생만" : "전체 대학생"} />
+        <Row label="결과 공개" value={VISIBILITY_LABELS[draft.resultVisibility]} />
         <Row label="목표 인원" value={`${Number(draft.target)}명`} />
         <Row label="마감" value={`등록 후 ${Number(draft.days)}일`} />
       </View>

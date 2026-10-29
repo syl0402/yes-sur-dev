@@ -44,6 +44,7 @@ const MESSAGES: Record<string, string> = {
 
   // 결과 보기·마감 (get_survey_results, close_survey)
   not_owner: "내 설문만 볼 수 있어요.",
+  invalid_visibility: "학교가 없는 계정은 '우리 학교만'을 고를 수 없어요.",
 
   // Supabase 인증
   over_email_send_rate_limit: "잠시 후 다시 보내 주세요.",

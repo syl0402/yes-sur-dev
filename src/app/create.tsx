@@ -92,7 +92,8 @@ export default function CreateSurvey() {
       setSetup(s);
       const saved = getDraft(s.userId, draftId);
       if (saved) {
-        setDraft(saved.draft);
+        // 공개 범위가 생기기 전에 임시저장한 설문은 기본값(전체 공개)으로
+        setDraft({ ...saved.draft, resultVisibility: saved.draft.resultVisibility ?? "public" });
         setStep(saved.step);
         return;
       }
@@ -183,6 +184,7 @@ export default function CreateSurvey() {
       p_target: Number(draft.target),
       p_days: Number(draft.days),
       p_questions: toRpcQuestions(draft),
+      p_result_visibility: draft.resultVisibility,
     });
     setSending(false);
 

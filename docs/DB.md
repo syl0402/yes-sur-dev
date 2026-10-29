@@ -22,6 +22,7 @@
 | `20261030000003_survey_host_school.sql` | 교내 단체는 학교 이름을 붙여 표시. 설문 저장 때 트리거가 작성자 이름을 채움 | 2026-10-30 |
 | `20261030000004_survey_results.sql` | 내 설문 결과 집계 함수, 응답 마감 함수 | 2026-10-30 |
 | `20261030000005_point_economy.sql` | 포인트 구조 변경(보상 낮춤, 등록비 = 1명당 값 × 인원, 조기 마감 환불), 확인 문항 오답 = 미지급·다시 응답, 응답 시간 저장 | 2026-10-30 |
+| `20261030000006_result_visibility.sql` | 결과 공개 범위(전체·우리 학교만·비공개), 등록 때 함께 저장, 작성자가 바꾸는 함수 | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -96,6 +97,7 @@
 | status | `open` 진행 중 / `closed` 마감 |
 | closes_at | 마감 일시 |
 | request_id | 등록 요청 번호 (2026-10-30). (owner_id, request_id) 고유 → 등록 버튼 연타·재시도해도 설문 1개 |
+| result_visibility, result_university_id | 결과 공개 범위 (2026-10-30): `public` 전체(기본) / `campus` 작성자 학교만(학교를 `result_university_id`에 저장) / `private` 작성자만 — **응답자도 공개 범위를 따른다**. 응답 대상(audience)과 별개. 등록 때 `create_survey`의 `p_result_visibility`로 함께 저장, 나중엔 `set_result_visibility` |
 | price_per_response | 등록 때 정한 "응답 1명 받는 값" (2026-10-30). 조기 마감 환불 계산용. 예전 설문·단체 설문은 0 |
 | host_name, host_verified | 작성자 표시 (2026-10-30). 단체 설문은 저장될 때 트리거(`surveys_set_host` → `survey_host_name()`)가 승인된 단체 이름 + `true`로 채움. 교내 단체는 "중앙대학교 경영학과 학생회"처럼 학교 이름을 앞에 붙임(이미 들어 있으면 생략). 규칙을 바꿀 때는 `survey_host_name()`만 고친다. 학생 설문은 비움/`false` → 화면에 "개인". 다른 사람은 작성자의 profiles·organizations를 못 읽어서 설문에 따로 저장한다 |
 
@@ -157,6 +159,7 @@
 | `request_org_signup(...)` | 단체 신청·재신청 → 승인 대기. 포인트 없음 | 로그인한 사람 (이메일 인증 완료) |
 | `calc_survey_reward(문항 수, 소요분)` | `point_rules`로 응답 1건 보상 계산 (1문항 / 5분 미만 / 5~15분 / 15분 이상) | 로그인한 사람 (설문 등록 때 서버가 사용) |
 | `submit_response(p_survey_id, p_answers, p_duration_seconds)` | 응답 제출 + 보상 지급 + 응답 수 +1 + 목표 도달 시 마감. **`{ reward, passed }`를 돌려줌** (2026-10-30). 확인 문항을 틀리면 응답은 `rejected`, 보상 0, 응답 수 그대로 → 다시 응답하면 이전 반려 응답을 지우고 새로 받음. `p_duration_seconds`(걸린 초)는 참고용 저장 | 학생 |
+| `set_result_visibility(p_survey_id, p_visibility)` | 결과 공개 범위 바꾸기 (`invalid_visibility`: 값이 틀렸거나 학교 없는 계정이 campus) (2026-10-30) | 작성자 본인 |
 | `calc_survey_price(문항 수, 소요분)` | 응답 1명 받는 값 (`calc_survey_reward`와 같은 구간) | 서버 함수 안에서 사용 |
 | `create_survey(...)` | 설문 등록: 검사 → 소요시간·보상 계산 → 설문·문항·주의 문항 저장 → 등록 비용 차감을 한 번에. 설문 번호를 돌려줌 (2026-10-30) | 학생, 승인된 단체 |
 | `point_rule(p_key)` | `point_rules` 값 하나 (없으면 `rule_missing`) | 서버 함수 안에서 사용 |
@@ -244,4 +247,5 @@
 | `invalid_days` | 마감 일수가 범위 밖 |
 | `invalid_questions` | 문항 수·종류·내용·선택지가 규칙에 안 맞음 |
 | `insufficient_points` | 등록 비용보다 잔액이 적음 |
-| `not_owner` | 내 설문이 아님 (결과 보기·마감) |
+| `not_owner` | 내 설문이 아님 (결과 보기·마감·공개 범위) |
+| `invalid_visibility` | 공개 범위 값이 틀렸거나, 학교 없는 계정이 "우리 학교만" 선택 |

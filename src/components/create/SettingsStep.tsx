@@ -3,7 +3,7 @@ import { Text, TextInput, View } from "react-native";
 import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
 import { formatPoints } from "@/lib/format";
-import { type SurveyDraft, estimate } from "@/lib/surveyDraft";
+import { type SurveyDraft, VISIBILITY_LABELS, estimate } from "@/lib/surveyDraft";
 
 type Props = {
   draft: SurveyDraft;
@@ -41,6 +41,24 @@ export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, bal
         />
         <Text style={formStyles.hint}>
           {hasSchool ? "대상이 아닌 학생에게는 이 설문이 보이지 않아요." : "학교가 없는 계정은 전체 대상만 고를 수 있어요."}
+        </Text>
+      </View>
+
+      <View style={formStyles.section}>
+        <Text style={formStyles.label}>결과 공개</Text>
+        <Chips
+          options={[
+            { value: "public", label: VISIBILITY_LABELS.public },
+            { value: "campus", label: VISIBILITY_LABELS.campus, disabled: !hasSchool },
+            { value: "private", label: VISIBILITY_LABELS.private },
+          ]}
+          selected={draft.resultVisibility}
+          onSelect={(resultVisibility) => onChange({ resultVisibility })}
+        />
+        <Text style={formStyles.hint}>
+          {draft.resultVisibility === "private"
+            ? "결과는 나만 봐요. 응답한 사람도 볼 수 없어요."
+            : "마감 후 응답이 5개 이상이면 데이터 허브에 공개돼요. 누가 열람하면 포인트 일부를 받아요. 주관식 답과 개인별 답은 공개되지 않아요."}
         </Text>
       </View>
 

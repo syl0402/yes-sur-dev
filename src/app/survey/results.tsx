@@ -4,12 +4,13 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { colors, fontSize, spacing } from "@/constants/theme";
+import Chips from "@/components/create/Chips";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
 import { formatTimeLeft } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
-import { type QuestionType, SCALE_LABELS } from "@/lib/surveyDraft";
+import { type QuestionType, type ResultVisibility, SCALE_LABELS, VISIBILITY_LABELS } from "@/lib/surveyDraft";
 
 // get_survey_results가 돌려주는 모양 (docs/DB.md)
 type ResultQuestion = {
@@ -28,6 +29,7 @@ type Results = {
   target: number;
   closesAt: string | null;
   closed: boolean;
+  visibility: ResultVisibility;
   total: number;
   excluded: number;
   questions: ResultQuestion[];
@@ -38,7 +40,7 @@ async function fetchResults(id: number): Promise<Results | string> {
   const [{ data: survey }, { data, error }] = await Promise.all([
     supabase
       .from("surveys")
-      .select("title, response_count, target_responses, status, closes_at")
+      .select("title, response_count, target_responses, status, closes_at, result_visibility")
       .eq("id", id)
       .maybeSingle(),
     supabase.rpc("get_survey_results", { p_survey_id: id }),
@@ -51,6 +53,7 @@ async function fetchResults(id: number): Promise<Results | string> {
     responseCount: survey.response_count,
     target: survey.target_responses,
     closesAt: survey.closes_at,
+    visibility: survey.result_visibility,
     closed:
       survey.status !== "open" ||
       (survey.closes_at !== null && new Date(survey.closes_at).getTime() <= Date.now()),
@@ -116,6 +119,20 @@ export default function SurveyResults() {
       },
     });
 
+  // 결과 공개 범위 바꾸기 (작성자만). 좁혀도 이미 열람한 사람은 계속 볼 수 있다
+  const changeVisibility = async (next: ResultVisibility) => {
+    if (next === results.visibility) return;
+    const { error } = await supabase.rpc("set_result_visibility", {
+      p_survey_id: surveyId,
+      p_visibility: next,
+    });
+    if (error) {
+      showNotice("바꾸지 못했어요", errorMessage(error));
+      return;
+    }
+    load();
+  };
+
   return (
     <ScrollView style={styles.screen} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
       <Stack.Screen options={{ title: "설문 결과" }} />
@@ -139,6 +156,20 @@ export default function SurveyResults() {
             <Text style={styles.closeText}>{closing ? "마감하는 중…" : "응답 마감하기"}</Text>
           </Pressable>
         )}
+      </View>
+
+      <View style={styles.summary}>
+        <Text style={styles.summaryMain}>결과 공개</Text>
+        <Chips
+          options={(["public", "campus", "private"] as const).map((v) => ({ value: v, label: VISIBILITY_LABELS[v] }))}
+          selected={results.visibility}
+          onSelect={changeVisibility}
+        />
+        <Text style={styles.hint}>
+          {results.visibility === "private"
+            ? "결과는 나만 봐요. 이미 열람한 사람은 계속 볼 수 있어요."
+            : "마감 후 응답이 5개 이상이면 데이터 허브에 공개돼요. 주관식 답은 공개되지 않아요."}
+        </Text>
       </View>
 
       {results.total === 0 ? (

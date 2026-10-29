@@ -9,6 +9,13 @@ import { formatPoints, formatTimeLeft } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
 import { formatHost, remainingSpots } from "@/lib/surveys";
 
+// 응답 전 결과 공개 안내 (결과 공개 범위별)
+const VISIBILITY_NOTICE: Record<"public" | "campus" | "private", string> = {
+  public: "이 설문 결과는 개인을 알 수 없게 묶어서 데이터 허브에 공개돼요. 주관식 답은 공개되지 않아요.",
+  campus: "이 설문 결과는 개인을 알 수 없게 묶어서 우리 학교 학생에게만 공개돼요. 주관식 답은 공개되지 않아요.",
+  private: "이 설문 결과는 등록자만 봐요.",
+};
+
 type Detail = {
   title: string;
   description: string | null;
@@ -23,6 +30,7 @@ type Detail = {
   categoryName: string;
   host_name: string | null;
   host_verified: boolean;
+  result_visibility: "public" | "campus" | "private";
   // 참여하기 버튼 상태를 정하는 정보
   isOwner: boolean;
   isOrg: boolean;
@@ -42,7 +50,7 @@ async function fetchDetail(id: number): Promise<Detail | null> {
     supabase
       .from("surveys")
       .select(
-        "owner_id, title, description, question_count, est_minutes, reward_points, target_responses, response_count, audience, status, closes_at, host_name, host_verified, survey_categories(name)",
+        "owner_id, title, description, question_count, est_minutes, reward_points, target_responses, response_count, audience, status, closes_at, host_name, host_verified, result_visibility, survey_categories(name)",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -69,6 +77,7 @@ async function fetchDetail(id: number): Promise<Detail | null> {
     categoryName: category?.name ?? "",
     host_name: survey.host_name,
     host_verified: survey.host_verified,
+    result_visibility: survey.result_visibility,
     isOwner: survey.owner_id === myId,
     isOrg: profile?.account_type === "org",
     answered: response?.status === "confirmed",
@@ -140,6 +149,9 @@ export default function SurveyDetail() {
         <InfoRow label="남은 자리" value={`${spots}명`} />
         <InfoRow label="응답 대상" value={detail.audience === "campus" ? "우리 학교 학생" : "전체 대학생"} />
       </View>
+
+      {/* 응답 전에 결과가 어디까지 공개되는지 알린다 (2026-10-30 결정) */}
+      {!detail.isOwner && <Text style={styles.notice}>{VISIBILITY_NOTICE[detail.result_visibility]}</Text>}
 
       <View style={styles.footer}>
         {detail.isOwner ? (
@@ -224,6 +236,11 @@ const styles = StyleSheet.create({
   },
   infoValueHighlight: {
     color: colors.primary,
+  },
+  notice: {
+    fontSize: fontSize.small,
+    color: colors.textMuted,
+    lineHeight: 18,
   },
   footer: {
     marginTop: spacing.md,

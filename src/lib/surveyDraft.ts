@@ -3,6 +3,14 @@
 
 export type QuestionType = "single" | "multi" | "scale" | "text";
 
+export type ResultVisibility = "public" | "campus" | "private";
+
+export const VISIBILITY_LABELS: Record<ResultVisibility, string> = {
+  public: "전체 공개",
+  campus: "우리 학교만",
+  private: "비공개",
+};
+
 export type DraftQuestion = {
   // 화면 목록용 임시 번호 (DB 번호 아님)
   key: string;
@@ -18,6 +26,8 @@ export type SurveyDraft = {
   categoryId: number | null;
   questions: DraftQuestion[];
   audience: "all" | "campus";
+  // 결과 공개 범위: 전체 / 우리 학교만 / 비공개 (응답 대상과는 따로)
+  resultVisibility: ResultVisibility;
   // 입력칸 글자 그대로 (숫자 검사는 settingsValid에서)
   target: string;
   days: string;
@@ -150,6 +160,7 @@ export function emptyDraft(): SurveyDraft {
     categoryId: null,
     questions: [newQuestion()],
     audience: "all",
+    resultVisibility: "public",
     target: "",
     days: "",
   };
