@@ -16,6 +16,9 @@
 | `20261027000001_major_fields.sql` | 표준 전공 계열 표, 학과 → 전공 계열, 가입 함수 매개변수 변경 | 2026-10-27 |
 | `20261027000002_org_signup.sql` | 회원 종류 student/org 정리, 단체 정보 표, 단체 신청 함수 | 2026-10-27 |
 | `20261027000003_email_check.sql` | 가입 여부 확인 함수 (로그인 전에도 사용) | 2026-10-27 |
+| `20261029000001_surveys.sql` | 설문·문항·선택지·응답·답변 표, 카테고리, 보상 계산, 응답 제출 함수 | 2026-10-29 |
+
+테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 
 ## 표
 
@@ -69,6 +72,32 @@
 - 학과명 자유 입력은 표기가 섞여 통계에 못 쓰고, 학교·학과·학번 조합은 재식별 위험이 커서 쓰지 않는다
 - 타기팅은 중계열까지, **공개 통계는 대계열까지** (PRD 7번)
 
+### survey_categories — 설문 카테고리 (2026-10-29)
+`key`(study/life/consume/taste/community), `name`(학업·생활·소비·취향·커뮤니티), `sort_order`. 바꿀 때는 이 표만 고친다.
+
+### surveys — 설문 (2026-10-29)
+| 칸 | 설명 |
+| --- | --- |
+| owner_id | 작성자 (단체 설문은 단체 계정. 별도 단체 칸 없음) |
+| category_id | 카테고리 |
+| title, description | 제목, 설명 |
+| question_count, est_minutes | 문항 수, 예상 소요시간(분) |
+| reward_points | 응답 1건 보상. **등록 때 서버가 `calc_survey_reward`로 계산해 저장** (규칙이 바뀌어도 이미 올라간 설문의 약속은 유지) |
+| target_responses, response_count | 목표 응답 수, 현재 응답 수. 목표에 닿으면 자동 마감 |
+| audience | 응답 대상: `all` 전체 / `campus` 우리 학교만 (`university_id` 필수) |
+| status | `open` 진행 중 / `closed` 마감 |
+| closes_at | 마감 일시 |
+
+**응답 대상 ≠ 결과 공개 범위.** 응답 대상이 아니면 응답 목록에서 안 보이지만, 결과 열람(데이터 허브)은 별도 공개 설정을 따른다 → 2단계에서 별도 함수로 (예: "응답은 중앙대만, 결과는 전체 공개")
+
+### questions · question_options — 문항·선택지 (2026-10-29)
+- questions: `survey_id`, `sort_order`, `type`(`single`/`multi`/`scale`/`text`, 1단계는 single만), `text`, `is_attention_check`·`correct_option_id`(2단계 성실도 검사용)
+- question_options: `question_id`, `sort_order`, `text`
+
+### responses · answers — 응답·답변 (2026-10-29)
+- responses: `survey_id`, `user_id`, `submitted_at`, `status`(`confirmed`/`rejected`), `quality_score`(2단계). **(survey_id, user_id) 고유 → 설문당 1번**
+- answers: `response_id`, `question_id`, `option_ids`(배열), `scale_value`, `text_value`. (response_id, question_id) 고유
+
 ### point_rules — 포인트 수치
 `key`, `value`, `description`. 값은 `docs/PRD.md` 4-2와 같다. 수치를 바꿀 때는 대시보드에서 이 표만 고친다.
 
@@ -92,6 +121,10 @@
 | profiles | 본인 행만 | 불가 (서버 함수로만) |
 | organizations | 본인 단체만 | 불가 (서버 함수로만, 승인은 대시보드) |
 | major_fields | 로그인한 사람 모두 | 불가 |
+| survey_categories | 로그인한 사람 모두 | 불가 |
+| surveys | 응답 대상(전체 / 같은 학교) + 작성자 본인 | 불가 (서버 함수로만) |
+| questions, question_options | 그 설문을 볼 수 있는 사람 | 불가 |
+| responses, answers | 본인 것만 | 불가 (`submit_response`로만) |
 | point_rules | 로그인한 사람 모두 | 불가 (대시보드에서 운영자) |
 | point_ledger | 본인 기록만 | 불가 (서버 함수로만) |
 
@@ -104,6 +137,8 @@
 | `get_my_balance()` | 본인 잔액 (confirmed 합계) | 로그인한 사람 |
 | `complete_signup(p_nickname, p_major_field_id, p_admission_year, p_degree_type, p_terms_agreed)` | 학교 도메인 검사 → 학생 회원정보 저장 → 웰컴 포인트 지급. 이미 가입했으면 아무것도 안 함 | 로그인한 사람 (이메일 인증 완료) |
 | `request_org_signup(...)` | 단체 신청·재신청 → 승인 대기. 포인트 없음 | 로그인한 사람 (이메일 인증 완료) |
+| `calc_survey_reward(문항 수, 소요분)` | `point_rules`로 응답 1건 보상 계산 (1문항 / 5분 미만 / 5~15분 / 15분 이상) | 로그인한 사람 (설문 등록 때 서버가 사용) |
+| `submit_response(p_survey_id, p_answers)` | 응답 제출 + 보상 지급 + 응답 수 +1 + 목표 도달 시 마감. 받은 포인트를 돌려줌 | 학생 |
 | `is_email_registered(p_email)` | 그 메일로 **가입을 마친** 계정이 있으면 true (회원정보 없는 반쪽 계정은 false). 예/아니오만 돌려줌 | 누구나 (로그인 전 포함) |
 
 ### complete_signup 입력 규칙
@@ -148,3 +183,11 @@
 | `invalid_org_evidence` | 증빙 링크가 http(s)로 시작하지 않거나 너무 김 |
 | `invalid_org_description` | 소개가 200자 초과 |
 | `org_name_taken` | 같은 학교(또는 외부 단체) 안에 같은 이름이 있음 |
+| `not_student` | 학생 계정이 아님 (단체는 응답 불가) |
+| `survey_not_found` | 설문이 없거나 볼 수 없음 |
+| `own_survey` | 본인 설문에는 응답 불가 |
+| `survey_closed` | 마감된 설문 (상태 마감 또는 마감일 지남) |
+| `survey_full` | 목표 응답 수에 도달 |
+| `not_target` | 응답 대상이 아님 (우리 학교 설문) |
+| `already_responded` | 이미 응답한 설문 |
+| `invalid_answers` | 답이 빠졌거나 다른 문항의 선택지 |

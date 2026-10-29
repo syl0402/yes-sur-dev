@@ -96,6 +96,36 @@ const { data: registered } = await supabase.rpc("is_email_registered", { p_email
 // true = 가입을 마친 메일
 ```
 
+### 응답 제출 `submit_response` (2026-10-29)
+모든 문항의 답을 한 번에 보낸다. 금액은 보내지 않는다(서버가 설문에 저장된 값으로 지급). 같은 설문은 한 번만.
+```ts
+const { data: reward, error } = await supabase.rpc("submit_response", {
+  p_survey_id: surveyId,
+  p_answers: [
+    { question_id: 1, option_id: 3 },
+    { question_id: 2, option_id: 7 },
+  ],
+});
+// reward: 받은 포인트 (예: 300) → formatPoints(reward)
+```
+오류 코드는 `docs/DB.md` (`already_responded`, `survey_closed`, `not_target` 등)
+
+### 설문 목록 / 문항 읽기 (2026-10-29)
+응답 대상이 아닌 설문은 RLS로 자동으로 빠진다.
+```ts
+const { data } = await supabase
+  .from("surveys")
+  .select("id, title, est_minutes, reward_points, closes_at, status, survey_categories(name)")
+  .eq("status", "open")
+  .order("created_at", { ascending: false });
+
+const { data: questions } = await supabase
+  .from("questions")
+  .select("id, sort_order, text, question_options(id, sort_order, text)")
+  .eq("survey_id", surveyId)
+  .order("sort_order");
+```
+
 ### 학교 목록 (로그인 전에도 가능)
 ```ts
 const { data } = await supabase.from("universities").select("id, name, email_domain").order("name");
