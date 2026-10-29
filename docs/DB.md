@@ -20,6 +20,7 @@
 | `20261030000001_survey_create.sql` | 설문 등록 함수, 등록 설정값, 4종 문항 응답, 주의 문항 정답 숨기기 | 2026-10-30 |
 | `20261030000002_survey_host.sql` | 설문 작성자 표시 칸(단체 이름·인증), 등록 함수가 함께 저장 | 2026-10-30 |
 | `20261030000003_survey_host_school.sql` | 교내 단체는 학교 이름을 붙여 표시. 설문 저장 때 트리거가 작성자 이름을 채움 | 2026-10-30 |
+| `20261030000004_survey_results.sql` | 내 설문 결과 집계 함수, 응답 마감 함수 | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -154,6 +155,8 @@
 | `submit_response(p_survey_id, p_answers)` | 응답 제출 + 보상 지급 + 응답 수 +1 + 목표 도달 시 마감. 받은 포인트를 돌려줌. 4종 문항 (2026-10-30) | 학생 |
 | `create_survey(...)` | 설문 등록: 검사 → 소요시간·보상 계산 → 설문·문항·주의 문항 저장 → 등록 비용 차감을 한 번에. 설문 번호를 돌려줌 (2026-10-30) | 학생, 승인된 단체 |
 | `point_rule(p_key)` | `point_rules` 값 하나 (없으면 `rule_missing`) | 서버 함수 안에서 사용 |
+| `get_survey_results(p_survey_id)` | 문항별 집계 결과 (2026-10-30). **유효 응답** = 확인 문항 정답을 고른 응답(확인 문항이 없으면 전부). `{ total, excluded, questions: [{ id, type, text, answered, options[{id,text,count}], scale{avg,counts[5]}, texts[] }] }`. 확인 문항은 빼고, 응답자 정보는 넣지 않는다. 응답 1개부터 | 작성자 본인 |
+| `close_survey(p_survey_id)` | 응답 마감 (status → closed). 이미 마감이면 그대로. 환불·다시 열기 없음 (2026-10-30) | 작성자 본인 |
 | `is_email_registered(p_email)` | 그 메일로 **가입을 마친** 계정이 있으면 true (회원정보 없는 반쪽 계정은 false). 예/아니오만 돌려줌 | 누구나 (로그인 전 포함) |
 
 ### complete_signup 입력 규칙
@@ -236,3 +239,4 @@
 | `invalid_days` | 마감 일수가 범위 밖 |
 | `invalid_questions` | 문항 수·종류·내용·선택지가 규칙에 안 맞음 |
 | `insufficient_points` | 등록 비용보다 잔액이 적음 |
+| `not_owner` | 내 설문이 아님 (결과 보기·마감) |

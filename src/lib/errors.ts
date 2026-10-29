@@ -42,6 +42,9 @@ const MESSAGES: Record<string, string> = {
   invalid_questions: "문항과 선택지를 다시 확인해 주세요.",
   insufficient_points: "포인트가 부족해요.",
 
+  // 결과 보기·마감 (get_survey_results, close_survey)
+  not_owner: "내 설문만 볼 수 있어요.",
+
   // Supabase 인증
   over_email_send_rate_limit: "잠시 후 다시 보내 주세요.",
   otp_expired: "인증번호가 틀렸거나 만료됐어요.",

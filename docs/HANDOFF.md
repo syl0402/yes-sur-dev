@@ -31,6 +31,12 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - `matchesDuration(survey, "lt5" | "5to15" | "gte15" | "all")`, `remainingSpots(survey)`
 - 설문 상세로 가기: `router.push({ pathname: "/survey/[id]", params: { id: String(id) } })`
 
+### 내 설문 결과 · 응답 마감 (2026-10-30)
+- 화면: `router.push({ pathname: "/survey/results", params: { id } })` (상세에서 작성자에게만 [결과 보기])
+- 결과: `supabase.rpc("get_survey_results", { p_survey_id })` → 작성자 본인만. 모양은 `docs/DB.md`
+- 마감: `supabase.rpc("close_survey", { p_survey_id })` → 작성자 본인만
+- 데이터 허브(공개 결과)에서도 같은 결과 화면 모양을 다시 쓸 예정
+
 ### `formatHost` (`src/lib/surveys.ts`, 2026-10-30)
 설문 작성자 표시: 인증된 단체는 `"경영학과 학생회 ✓"`, 학생 설문은 `"개인"`. 설문을 읽을 때 `host_name, host_verified`를 같이 select 한다.
 ```ts

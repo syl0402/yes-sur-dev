@@ -139,10 +139,16 @@ export default function SurveyDetail() {
       </View>
 
       <View style={styles.footer}>
-        {detail.isOrg ? (
+        {detail.isOwner ? (
+          <View style={styles.ownerBox}>
+            <Text style={styles.muted}>내가 올린 설문이에요.</Text>
+            <PrimaryButton
+              title="결과 보기"
+              onPress={() => router.push({ pathname: "/survey/results", params: { id: String(id) } })}
+            />
+          </View>
+        ) : detail.isOrg ? (
           <Text style={styles.muted}>단체 계정은 설문에 응답할 수 없어요.</Text>
-        ) : detail.isOwner ? (
-          <Text style={styles.muted}>내가 올린 설문이에요.</Text>
         ) : detail.answered ? (
           <PrimaryButton title="이미 참여한 설문이에요" onPress={() => {}} disabled />
         ) : detail.closed ? (
@@ -218,6 +224,9 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: spacing.md,
+  },
+  ownerBox: {
+    gap: spacing.md,
   },
   muted: {
     fontSize: fontSize.body,
