@@ -8,54 +8,29 @@ import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints, formatTimeLeft } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
-
-type SurveyItem = {
-  id: number;
-  title: string;
-  est_minutes: number;
-  reward_points: number;
-  closes_at: string | null;
-  survey_categories: { name: string } | null;
-};
+import { type SurveyCard, fetchOpenSurveys, sortSurveys } from "@/lib/surveys";
 
 type HomeData = {
   isOrg: boolean;
   balance: number;
-  surveys: SurveyItem[];
+  surveys: SurveyCard[];
 };
 
 // 홈에 보여줄 마감 임박 설문 개수
 const HOME_SURVEY_COUNT = 5;
 
-// 내 계정 종류·잔액, 그리고 내가 응답할 수 있는 마감 임박 설문 (모두 본인·대상 것만 읽힌다)
+// 내 계정 종류·잔액, 그리고 내가 참여할 수 있는 마감 임박 설문 (모두 본인·대상 것만 읽힌다)
 async function fetchHome(): Promise<HomeData> {
-  const { data: auth } = await supabase.auth.getUser();
-  const myId = auth.user?.id;
-
-  const [{ data: profile }, { data: balance }, { data: surveys }, { data: responses }] =
-    await Promise.all([
-      supabase.from("profiles").select("account_type").maybeSingle(),
-      supabase.rpc("get_my_balance"),
-      supabase
-        .from("surveys")
-        .select("id, owner_id, title, est_minutes, reward_points, closes_at, survey_categories(name)")
-        .eq("status", "open")
-        .or(`closes_at.is.null,closes_at.gt.${new Date().toISOString()}`)
-        .order("closes_at", { ascending: true, nullsFirst: false })
-        .limit(30),
-      supabase.from("responses").select("survey_id"),
-    ]);
-
-  // 이미 응답한 설문, 내가 올린 설문은 뺀다
-  const answered = new Set((responses ?? []).map((r) => r.survey_id));
-  const open = (surveys ?? [])
-    .filter((s) => !answered.has(s.id) && s.owner_id !== myId)
-    .slice(0, HOME_SURVEY_COUNT);
+  const [{ data: profile }, { data: balance }, surveys] = await Promise.all([
+    supabase.from("profiles").select("account_type").maybeSingle(),
+    supabase.rpc("get_my_balance"),
+    fetchOpenSurveys(),
+  ]);
 
   return {
     isOrg: profile?.account_type === "org",
     balance: typeof balance === "number" ? balance : 0,
-    surveys: open as unknown as SurveyItem[],
+    surveys: sortSurveys(surveys, "closing").slice(0, HOME_SURVEY_COUNT),
   };
 }
 
@@ -111,14 +86,17 @@ export default function Home() {
         <Text style={styles.empty}>지금 참여할 수 있는 설문이 없어요.</Text>
       ) : (
         data.surveys.map((s) => (
-          // TODO(임시): 누르면 설문 탭으로 · ③에서 설문 상세로 연결 · docs/PROGRESS.md
-          <Pressable key={s.id} style={styles.surveyRow} onPress={goSurveys}>
+          <Pressable
+            key={s.id}
+            style={styles.surveyRow}
+            onPress={() => router.push({ pathname: "/survey/[id]", params: { id: String(s.id) } })}
+          >
             <View style={styles.surveyMain}>
               <Text style={styles.surveyTitle} numberOfLines={1}>
                 {s.title}
               </Text>
               <Text style={styles.surveyMeta}>
-                {[s.survey_categories?.name, `${s.est_minutes}분`, formatTimeLeft(s.closes_at)]
+                {[s.category_name, `${s.est_minutes}분`, formatTimeLeft(s.closes_at)]
                   .filter(Boolean)
                   .join(" · ")}
               </Text>

@@ -1,0 +1,214 @@
+// ys-111 설문 상세 · F-205
+import { Stack, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+
+import PrimaryButton from "@/components/PrimaryButton";
+import { colors, fontSize, spacing } from "@/constants/theme";
+import { formatPoints, formatTimeLeft } from "@/lib/format";
+import { showNotice } from "@/lib/notice";
+import { supabase } from "@/lib/supabase";
+import { remainingSpots } from "@/lib/surveys";
+
+type Detail = {
+  title: string;
+  description: string | null;
+  question_count: number;
+  est_minutes: number;
+  reward_points: number;
+  target_responses: number;
+  response_count: number;
+  audience: "all" | "campus";
+  status: "open" | "closed";
+  closes_at: string | null;
+  categoryName: string;
+  // 참여하기 버튼 상태를 정하는 정보
+  isOwner: boolean;
+  isOrg: boolean;
+  answered: boolean;
+  // 마감됨: 상태 마감 · 자리 없음 · 마감일 지남 (불러올 때 계산)
+  closed: boolean;
+};
+
+// 설문 상세 + 내 상태 (응답 대상이 아니면 DB 권한 때문에 설문이 안 읽힌다 → 찾을 수 없음)
+async function fetchDetail(id: number): Promise<Detail | null> {
+  const { data: auth } = await supabase.auth.getUser();
+  const myId = auth.user?.id;
+
+  const [{ data: survey }, { data: response }, { data: profile }] = await Promise.all([
+    supabase
+      .from("surveys")
+      .select(
+        "owner_id, title, description, question_count, est_minutes, reward_points, target_responses, response_count, audience, status, closes_at, survey_categories(name)",
+      )
+      .eq("id", id)
+      .maybeSingle(),
+    supabase.from("responses").select("id").eq("survey_id", id).maybeSingle(),
+    supabase.from("profiles").select("account_type").maybeSingle(),
+  ]);
+
+  if (!survey) return null;
+
+  const raw = survey.survey_categories as unknown;
+  const category = (Array.isArray(raw) ? raw[0] : raw) as { name: string } | null;
+
+  return {
+    title: survey.title,
+    description: survey.description,
+    question_count: survey.question_count,
+    est_minutes: survey.est_minutes,
+    reward_points: survey.reward_points,
+    target_responses: survey.target_responses,
+    response_count: survey.response_count,
+    audience: survey.audience,
+    status: survey.status,
+    closes_at: survey.closes_at,
+    categoryName: category?.name ?? "",
+    isOwner: survey.owner_id === myId,
+    isOrg: profile?.account_type === "org",
+    answered: response !== null,
+    closed:
+      survey.status !== "open" ||
+      remainingSpots(survey) <= 0 ||
+      (survey.closes_at !== null && new Date(survey.closes_at).getTime() <= Date.now()),
+  };
+}
+
+export default function SurveyDetail() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  // undefined = 불러오는 중, null = 찾을 수 없음
+  const [detail, setDetail] = useState<Detail | null | undefined>(undefined);
+
+  useEffect(() => {
+    fetchDetail(Number(id)).then(setDetail);
+  }, [id]);
+
+  if (detail === undefined) {
+    return (
+      <View style={styles.center}>
+        <Stack.Screen options={{ title: "설문 상세" }} />
+        <ActivityIndicator color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (detail === null) {
+    return (
+      <View style={styles.center}>
+        <Stack.Screen options={{ title: "설문 상세" }} />
+        <Text style={styles.muted}>찾을 수 없는 설문이에요.</Text>
+      </View>
+    );
+  }
+
+  const spots = remainingSpots(detail);
+
+  // TODO(임시): 참여하기 준비 중 안내 · 설문 1단계 ④에서 응답 화면 연결 · docs/PROGRESS.md
+  const join = () => showNotice("준비 중", "설문 응답은 곧 열려요.");
+
+  return (
+    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+      <Stack.Screen options={{ title: "설문 상세" }} />
+
+      <Text style={styles.category}>
+        {detail.categoryName}
+        {detail.audience === "campus" ? " · 우리 학교 학생만" : ""}
+      </Text>
+      <Text style={styles.title}>{detail.title}</Text>
+      {detail.description ? <Text style={styles.description}>{detail.description}</Text> : null}
+
+      <View style={styles.infoBox}>
+        <InfoRow label="보상" value={formatPoints(detail.reward_points)} highlight />
+        <InfoRow label="문항 · 소요시간" value={`${detail.question_count}문항 · 약 ${detail.est_minutes}분`} />
+        <InfoRow label="마감" value={formatTimeLeft(detail.closes_at) || "기한 없음"} />
+        <InfoRow label="남은 자리" value={`${spots}명`} />
+        <InfoRow label="응답 대상" value={detail.audience === "campus" ? "우리 학교 학생" : "전체 대학생"} />
+      </View>
+
+      <View style={styles.footer}>
+        {detail.isOrg ? (
+          <Text style={styles.muted}>단체 계정은 설문에 응답할 수 없어요.</Text>
+        ) : detail.isOwner ? (
+          <Text style={styles.muted}>내가 올린 설문이에요.</Text>
+        ) : detail.answered ? (
+          <PrimaryButton title="이미 참여한 설문이에요" onPress={() => {}} disabled />
+        ) : detail.closed ? (
+          <PrimaryButton title="마감된 설문이에요" onPress={() => {}} disabled />
+        ) : (
+          <PrimaryButton title="참여하기" onPress={join} />
+        )}
+      </View>
+    </ScrollView>
+  );
+}
+
+function InfoRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+  return (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={[styles.infoValue, highlight && styles.infoValueHighlight]}>{value}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: spacing.lg,
+    backgroundColor: colors.background,
+  },
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  container: {
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  category: {
+    fontSize: fontSize.small,
+    color: colors.textMuted,
+  },
+  title: {
+    fontSize: fontSize.title,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  description: {
+    fontSize: fontSize.body,
+    color: colors.text,
+  },
+  infoBox: {
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    gap: spacing.sm,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  infoLabel: {
+    fontSize: fontSize.body,
+    color: colors.textMuted,
+  },
+  infoValue: {
+    fontSize: fontSize.body,
+    color: colors.text,
+    fontWeight: "600",
+  },
+  infoValueHighlight: {
+    color: colors.primary,
+  },
+  footer: {
+    marginTop: spacing.md,
+  },
+  muted: {
+    fontSize: fontSize.body,
+    color: colors.textMuted,
+    textAlign: "center",
+  },
+});

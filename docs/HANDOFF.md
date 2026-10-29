@@ -25,6 +25,12 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 <ComingSoon title="데이터 허브" message="설문 결과 열람은 곧 열려요." />
 ```
 
+### 설문 목록 도우미 (`src/lib/surveys.ts`, 2026-10-29)
+- `fetchOpenSurveys()`: 내가 지금 참여할 수 있는 설문 (진행 중 · 마감 전 · 자리 있음 · 응답 안 함 · 내 설문 아님). 응답 대상이 아닌 설문은 RLS에서 이미 빠짐
+- `sortSurveys(list, "recommended" | "latest" | "closing" | "reward")`: 추천순 = 우리 학교 → 마감 임박 → 남은 자리 적은 순
+- `matchesDuration(survey, "lt5" | "5to15" | "gte15" | "all")`, `remainingSpots(survey)`
+- 설문 상세로 가기: `router.push({ pathname: "/survey/[id]", params: { id: String(id) } })`
+
 ### `formatTimeLeft` (`src/lib/format.ts`, 2026-10-29)
 마감까지 남은 시간: `"3일 남음"` / `"5시간 남음"` / `"곧 마감"` / `"마감"`
 
