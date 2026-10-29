@@ -44,6 +44,8 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 서버 함수: `get_hub_list`, `get_hub_preview`, `get_my_comparison`, `view_survey`, `get_full_results` (모양은 `src/lib/hub.ts` 타입, 설명은 `docs/DB.md`)
 - 결과 그래프는 공용 `QuestionResult` (`src/components/results/QuestionResult.tsx`) — 내 결과 화면과 같이 씀
 - 나눠 보기 그룹 순서는 `sortGroups` (`src/lib/hub.ts`)
+- 전체 결과 묶음은 `ResultsView` (`src/components/results/ResultsView.tsx`): 응답 정보 · 핵심 요약 · 출처 복사(expo-clipboard) · 나눠 보기 칩 · 문항별 결과. 데이터 결과 화면과 내 결과 화면이 같이 씀
+- 요약 문장 규칙은 `src/lib/resultSummary.ts` (`questionLine`, `biggestGap`, `formatSeconds`)
 - 테스트할 때 응답자가 적으면 `dev_tools.sql` 10번(최소 응답 수 1)으로. 출시 전 5로 되돌리기
 
 ### `formatHost` (`src/lib/surveys.ts`, 2026-10-30)

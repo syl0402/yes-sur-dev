@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
-import QuestionResult from "@/components/results/QuestionResult";
+import ResultsView from "@/components/results/ResultsView";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
@@ -170,12 +170,7 @@ export default function HubResult() {
       )}
 
       {/* ── 열람 (전체 결과) ── */}
-      {full &&
-        (full.total === 0 ? (
-          <Text style={styles.muted}>결과에 반영된 응답이 없어요.</Text>
-        ) : (
-          full.overall.map((q, index) => <QuestionResult key={q.id} index={index} question={q} />)
-        ))}
+      {full && <ResultsView full={full} title={p.title} host={formatHost(p)} />}
     </ScrollView>
   );
 }

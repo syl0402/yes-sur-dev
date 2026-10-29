@@ -10,14 +10,18 @@ import { errorMessage } from "@/lib/errors";
 import { formatTimeLeft } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
-import QuestionResult, { type QuestionStats } from "@/components/results/QuestionResult";
+import { type QuestionStats } from "@/components/results/QuestionResult";
+import ResultsView from "@/components/results/ResultsView";
+import { type FullResults } from "@/lib/hub";
 import { type ResultVisibility, VISIBILITY_LABELS } from "@/lib/surveyDraft";
+import { formatHost } from "@/lib/surveys";
 
 // get_survey_results가 돌려주는 문항 모양 (등록자라 주관식 답 원문 포함)
 type ResultQuestion = QuestionStats;
 
 type Results = {
   title: string;
+  host: string;
   responseCount: number;
   target: number;
   closesAt: string | null;
@@ -26,23 +30,28 @@ type Results = {
   total: number;
   excluded: number;
   questions: ResultQuestion[];
+  // 나눠 보기·신뢰 정보·열람 수익 (데이터 허브와 같은 집계)
+  full: FullResults;
 };
 
 // 결과 + 설문 기본 정보. 결과는 작성자 본인만 받는다 (아니면 오류)
 async function fetchResults(id: number): Promise<Results | string> {
-  const [{ data: survey }, { data, error }] = await Promise.all([
+  const [{ data: survey }, { data, error }, { data: full, error: fullError }] = await Promise.all([
     supabase
       .from("surveys")
-      .select("title, response_count, target_responses, status, closes_at, result_visibility")
+      .select("title, host_name, host_verified, response_count, target_responses, status, closes_at, result_visibility")
       .eq("id", id)
       .maybeSingle(),
     supabase.rpc("get_survey_results", { p_survey_id: id }),
+    supabase.rpc("get_full_results", { p_survey_id: id }),
   ]);
-  if (error || !survey) return errorMessage(error);
+  if (error || fullError || !survey) return errorMessage(error ?? fullError);
 
   const result = data as { total: number; excluded: number; questions: ResultQuestion[] };
   return {
     title: survey.title,
+    host: formatHost(survey),
+    full: full as FullResults,
     responseCount: survey.response_count,
     target: survey.target_responses,
     closesAt: survey.closes_at,
@@ -134,11 +143,6 @@ export default function SurveyResults() {
         <Text style={styles.muted}>
           {results.closed ? "마감됨" : formatTimeLeft(results.closesAt) || "진행 중"}
         </Text>
-        {results.excluded > 0 && (
-          <Text style={styles.hint}>
-            확인 문항을 틀린 응답 {results.excluded}건은 결과에서 뺐어요.
-          </Text>
-        )}
         {!results.closed && (
           <Pressable style={styles.closeButton} onPress={closeNow} disabled={closing}>
             <Text style={styles.closeText}>{closing ? "마감하는 중…" : "응답 마감하기"}</Text>
@@ -160,11 +164,8 @@ export default function SurveyResults() {
         </Text>
       </View>
 
-      {results.total === 0 ? (
-        <Text style={styles.muted}>아직 결과에 반영된 응답이 없어요.</Text>
-      ) : (
-        results.questions.map((q, index) => <QuestionResult key={q.id} index={index} question={q} />)
-      )}
+      <ResultsView full={results.full} title={results.title} host={results.host} questions={results.questions} />
+
     </ScrollView>
   );
 }
@@ -214,57 +215,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.body,
     color: colors.danger,
     fontWeight: "600",
-  },
-  card: {
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    gap: spacing.sm,
-  },
-  questionText: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  average: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.primary,
-  },
-  barRow: {
-    gap: 4,
-  },
-  barLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: spacing.sm,
-  },
-  barLabel: {
-    flex: 1,
-    fontSize: fontSize.small,
-    color: colors.text,
-  },
-  barCount: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
-  },
-  barTrack: {
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.border,
-    overflow: "hidden",
-  },
-  barFill: {
-    height: "100%",
-    backgroundColor: colors.primary,
-  },
-  textAnswer: {
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    fontSize: fontSize.body,
-    color: colors.text,
   },
   hint: {
     fontSize: fontSize.small,
