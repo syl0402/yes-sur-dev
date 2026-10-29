@@ -105,6 +105,8 @@ rules.survey_max_questions; // 30
 - 작성 중인 설문 모양·검사·예상 계산: `src/lib/surveyDraft.ts` (`basicsValid`, `questionsValid`, `settingsValid`, `estimate`, `toRpcQuestions`)
 - 들어가기: `router.push("/create")` (홈·설문 탭의 [설문 등록])
 - 등록 후 내 설문 상세로 교체. 내 설문 목록은 마이 탭 "내가 올린 설문"
+- 임시저장함 (2026-10-30): `listDrafts` / `getDraft` / `saveDraft` / `deleteDraft` / `isBlankDraft` (`surveyDraft.ts`). 이 폰의 `localStorage`에 계정마다 여러 개(`survey_drafts:<userId>`). 작성 화면이 자동 저장, 마이 탭 "임시저장한 설문"에서 이어 쓰기(`router.push({ pathname: "/create", params: { draft: id } })`)·삭제. 임시저장 번호 = 등록 요청 번호라 같은 임시저장을 두 번 등록해도 설문 1개. 등록하면 지운다
+- `showConfirm`의 `onCancel`: 취소 버튼을 눌렀을 때 할 일 (예: [새로 쓰기] → 저장본 지우기)
 
 ### `useResumeSignup` (`src/hooks/useResumeSignup.ts`, 2026-10-27)
 `_layout.tsx`에서 한 번 부른다. 로그인됨 + 회원정보 없음이면 `/signup/type?resume=1`(가입 유형 선택)로 보내 가입을 이어서 끝내게 한다.

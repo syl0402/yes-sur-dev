@@ -1,5 +1,5 @@
 // ys-120 설문 작성 · F-401~405
-import { Stack, router, usePreventRemove } from "expo-router";
+import { Stack, router, useLocalSearchParams, usePreventRemove } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -20,9 +20,13 @@ import {
   CREATE_RULE_KEYS,
   type SurveyDraft,
   basicsValid,
+  deleteDraft,
   emptyDraft,
+  getDraft,
+  isBlankDraft,
   makeRequestId,
   questionsValid,
+  saveDraft,
   settingsValid,
   toRpcQuestions,
 } from "@/lib/surveyDraft";
@@ -30,6 +34,8 @@ import {
 const STEP_COUNT = 4;
 
 type Setup = {
+  // 임시저장을 계정마다 따로 두기 위한 내 계정 id
+  userId: string;
   rules: Record<string, number>;
   categories: { id: number; name: string }[];
   isOrg: boolean;
@@ -42,7 +48,8 @@ type Setup = {
 
 // 작성에 필요한 것: 설정값·카테고리·내 계정 종류·학교·잔액 (모두 본인 것만 읽힌다)
 async function fetchSetup(): Promise<Setup> {
-  const [rules, { data: categories }, { data: profile }, { data: balance }, { data: org }] = await Promise.all([
+  const [{ data: auth }, rules, { data: categories }, { data: profile }, { data: balance }, { data: org }] = await Promise.all([
+    supabase.auth.getUser(),
     fetchRules(CREATE_RULE_KEYS),
     supabase.from("survey_categories").select("id, name").order("sort_order"),
     supabase.from("profiles").select("account_type, university_id").maybeSingle(),
@@ -57,6 +64,7 @@ async function fetchSetup(): Promise<Setup> {
   const orgName =
     org && org.kind === "campus" && school && !org.name.includes(school) ? `${school} ${org.name}` : (org?.name ?? null);
   return {
+    userId: auth.user?.id ?? "",
     rules,
     categories: categories ?? [],
     isOrg,
@@ -68,27 +76,40 @@ async function fetchSetup(): Promise<Setup> {
 }
 
 export default function CreateSurvey() {
+  // ?draft=번호 로 들어오면 임시저장함의 그 설문을 이어 쓴다 (마이 탭 "임시저장한 설문")
+  const { draft: draftParam } = useLocalSearchParams<{ draft?: string }>();
   const [setup, setSetup] = useState<Setup | null>(null);
   const [draft, setDraft] = useState<SurveyDraft>(emptyDraft);
   const [step, setStep] = useState(1);
   const [sending, setSending] = useState(false);
-  // 이 작성 화면의 요청 번호: [등록]을 연타·재시도해도 설문 1개, 비용 1번
-  const [requestId] = useState(makeRequestId);
+  // 임시저장 번호 = 등록 요청 번호: [등록]을 연타·재시도하거나 임시저장에서 다시 등록해도 설문 1개, 비용 1번
+  const [draftId] = useState(() => draftParam ?? makeRequestId());
 
   useEffect(() => {
     fetchSetup().then((s) => {
       setSetup(s);
+      const saved = getDraft(s.userId, draftId);
+      if (saved) {
+        setDraft(saved.draft);
+        setStep(saved.step);
+        return;
+      }
       setDraft((d) => ({
         ...d,
         target: String(s.rules.survey_default_target),
         days: String(s.rules.survey_default_days),
       }));
     });
-  }, []);
+  }, [draftId]);
+
+  // 쓰는 내용이 바뀔 때마다 이 폰 임시저장함에 자동 저장 (아직 아무것도 안 썼으면 저장하지 않는다)
+  useEffect(() => {
+    if (setup && !isBlankDraft(draft)) saveDraft(setup.userId, draftId, draft, step);
+  }, [setup, draftId, draft, step]);
 
   const notEnough = setup !== null && setup.balance < setup.cost;
 
-  // 뒤로 가기: 2단계 이상이면 이전 단계로, 1단계면 그만둘지 확인 (작성 내용은 저장되지 않는다)
+  // 뒤로 가기: 2단계 이상이면 이전 단계로, 1단계면 그만둘지 확인 (쓴 내용은 이 폰에 임시저장돼 있다)
   const allowLeave = usePreventRemove(setup !== null && !notEnough, ({ repeat }) => {
     if (step > 1) {
       setStep(step - 1);
@@ -96,7 +117,7 @@ export default function CreateSurvey() {
     }
     showConfirm({
       title: "작성을 그만둘까요?",
-      message: "입력한 내용은 저장되지 않아요.",
+      message: "작성한 내용은 마이 탭 '임시저장한 설문'에 저장돼요.\n언제든 이어 쓸 수 있어요.",
       okLabel: "나가기",
       cancelLabel: "계속 작성",
       destructive: true,
@@ -148,7 +169,7 @@ export default function CreateSurvey() {
     setSending(true);
     // 금액은 보내지 않는다. 소요시간·보상·비용은 서버가 정한다
     const { data: surveyId, error } = await supabase.rpc("create_survey", {
-      p_request_id: requestId,
+      p_request_id: draftId,
       p_category_id: draft.categoryId,
       p_title: draft.title.trim(),
       p_description: draft.description.trim(),
@@ -164,7 +185,8 @@ export default function CreateSurvey() {
       return;
     }
 
-    // 작성 화면을 내 설문 상세로 교체 (뒤로 가기로 작성 화면에 돌아오지 않게)
+    // 등록됐으니 임시저장은 지운다. 작성 화면을 내 설문 상세로 교체 (뒤로 가기로 돌아오지 않게)
+    deleteDraft(setup.userId, draftId);
     allowLeave();
     router.replace({ pathname: "/survey/[id]", params: { id: String(surveyId) } });
     showNotice("등록했어요", "응답이 모이면 마이 탭 '내가 올린 설문'에서 볼 수 있어요.");
@@ -186,9 +208,25 @@ export default function CreateSurvey() {
 
   const categoryName = setup.categories.find((c) => c.id === draft.categoryId)?.name ?? "";
 
+  // 오른쪽 위 [임시저장]: 자동 저장과 같지만, 눌러서 저장됐다는 걸 확인할 수 있게
+  const canSave = !isBlankDraft(draft) && !sending;
+  const saveNow = () => {
+    saveDraft(setup.userId, draftId, draft, step);
+    showNotice("임시저장했어요", "마이 탭 '임시저장한 설문'에서 이어 쓸 수 있어요.");
+  };
+
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: "설문 등록" }} />
+      <Stack.Screen
+        options={{
+          title: "설문 등록",
+          headerRight: () => (
+            <Pressable onPress={saveNow} disabled={!canSave} hitSlop={8}>
+              <Text style={[styles.headerButton, !canSave && styles.headerButtonDisabled]}>임시저장</Text>
+            </Pressable>
+          ),
+        }}
+      />
 
       {/* 아이폰 반투명 헤더·키보드에 입력칸이 가리지 않게. 단계가 바뀌면 맨 위부터 보이게(key) */}
       <ScrollView
@@ -286,6 +324,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 10,
+  },
+  headerButton: {
+    fontSize: fontSize.body,
+    color: colors.primary,
+  },
+  headerButtonDisabled: {
+    color: colors.disabled,
   },
   prevText: {
     fontSize: fontSize.body,

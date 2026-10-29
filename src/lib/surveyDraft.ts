@@ -64,6 +64,70 @@ export function isChoice(type: QuestionType): boolean {
   return type === "single" || type === "multi";
 }
 
+// ── 임시저장함 (2026-10-30): 이 폰 안에 계정마다 여러 개. 서버에는 저장하지 않는다 ──
+// 폰은 expo-sqlite가 만든 localStorage(src/lib/storage.native.ts), 웹은 브라우저 localStorage
+// 임시저장 번호(id)는 등록할 때 요청 번호로도 쓴다 → 같은 임시저장을 두 번 등록해도 설문은 1개
+
+export type SavedDraft = {
+  id: string;
+  draft: SurveyDraft;
+  step: number;
+  // 마지막으로 저장한 시각 (ISO 문자열)
+  savedAt: string;
+};
+
+function draftsKey(userId: string): string {
+  return `survey_drafts:${userId}`;
+}
+
+function readAll(userId: string): SavedDraft[] {
+  try {
+    const raw = localStorage.getItem(draftsKey(userId));
+    return raw ? (JSON.parse(raw) as SavedDraft[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeAll(userId: string, list: SavedDraft[]) {
+  try {
+    localStorage.setItem(draftsKey(userId), JSON.stringify(list));
+  } catch {
+    // 저장이 안 돼도 작성은 계속할 수 있게 조용히 넘어간다
+  }
+}
+
+// 임시저장 목록 (최근 저장 순)
+export function listDrafts(userId: string): SavedDraft[] {
+  return readAll(userId).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+}
+
+export function getDraft(userId: string, id: string): SavedDraft | null {
+  return readAll(userId).find((d) => d.id === id) ?? null;
+}
+
+export function saveDraft(userId: string, id: string, draft: SurveyDraft, step: number) {
+  const others = readAll(userId).filter((d) => d.id !== id);
+  writeAll(userId, [...others, { id, draft, step, savedAt: new Date().toISOString() }]);
+}
+
+export function deleteDraft(userId: string, id: string) {
+  writeAll(
+    userId,
+    readAll(userId).filter((d) => d.id !== id),
+  );
+}
+
+// 아직 아무것도 안 쓴 상태인지 (목표 인원·마감 기본값은 빼고 본다) → 이때는 저장하지 않는다
+export function isBlankDraft(d: SurveyDraft): boolean {
+  return (
+    d.title.trim() === "" &&
+    d.description.trim() === "" &&
+    d.categoryId === null &&
+    d.questions.every((q) => q.text.trim() === "" && q.options.every((o) => o.trim() === ""))
+  );
+}
+
 // 같은 요청이 두 번 와도 설문이 하나만 만들어지게 하는 요청 번호 (무작위 uuid 형식)
 export function makeRequestId(): string {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {

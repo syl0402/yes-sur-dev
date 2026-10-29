@@ -4,8 +4,10 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { colors, fontSize, spacing } from "@/constants/theme";
+import { showConfirm } from "@/lib/confirm";
 import { formatDate, formatPoints } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
+import { type SavedDraft, deleteDraft, listDrafts } from "@/lib/surveyDraft";
 
 // TODO(임시): 포인트 내역은 최근 50개만 · 내역이 많아지면 아래로 내릴 때 더 불러오기 · docs/PROGRESS.md
 const LEDGER_LIMIT = 50;
@@ -35,22 +37,24 @@ type MySurvey = {
 };
 
 type MyData = {
+  userId: string;
   isOrg: boolean;
   name: string;
   schoolName: string;
   balance: number;
   ledger: LedgerItem[];
   surveys: MySurvey[];
+  // 이 폰에 임시저장한 설문 (서버에는 없음)
+  drafts: SavedDraft[];
 };
 
 // 내가 올린 설문 (최신순)
-async function fetchMySurveys(): Promise<MySurvey[]> {
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return [];
+async function fetchMySurveys(userId: string): Promise<MySurvey[]> {
+  if (!userId) return [];
   const { data } = await supabase
     .from("surveys")
     .select("id, title, response_count, target_responses, status, closes_at")
-    .eq("owner_id", auth.user.id)
+    .eq("owner_id", userId)
     .order("created_at", { ascending: false });
   const now = Date.now();
   return (data ?? []).map((s) => ({
@@ -62,8 +66,11 @@ async function fetchMySurveys(): Promise<MySurvey[]> {
   }));
 }
 
-// 내 정보·잔액·포인트 내역·내 설문 (모두 본인 것만 읽힌다)
+// 내 정보·잔액·포인트 내역·내 설문·임시저장 (모두 본인 것만 읽힌다)
 async function fetchMy(): Promise<MyData> {
+  const { data: auth } = await supabase.auth.getUser();
+  const userId = auth.user?.id ?? "";
+
   const [{ data: profile }, { data: org }, { data: balance }, { data: rows }, surveys] = await Promise.all([
     supabase.from("profiles").select("nickname, account_type, universities(name)").maybeSingle(),
     supabase.from("organizations").select("name").maybeSingle(),
@@ -74,7 +81,7 @@ async function fetchMy(): Promise<MyData> {
       .eq("status", "confirmed")
       .order("created_at", { ascending: false })
       .limit(LEDGER_LIMIT),
-    fetchMySurveys(),
+    fetchMySurveys(userId),
   ]);
 
   // 설문 응답·등록 기록에 설문 이름을 붙인다 (ref_id = 설문 번호)
@@ -92,6 +99,7 @@ async function fetchMy(): Promise<MyData> {
   const school = (Array.isArray(rawSchool) ? rawSchool[0] : rawSchool) as { name: string } | null;
 
   return {
+    userId,
     isOrg: profile?.account_type === "org",
     name: org?.name ?? profile?.nickname ?? "",
     schoolName: school?.name ?? "",
@@ -107,6 +115,7 @@ async function fetchMy(): Promise<MyData> {
       };
     }),
     surveys,
+    drafts: userId ? listDrafts(userId) : [],
   };
 }
 
@@ -124,6 +133,20 @@ export default function My() {
     await supabase.auth.signOut();
     router.replace("/");
   };
+
+  const removeDraft = (d: SavedDraft) =>
+    showConfirm({
+      title: "임시저장을 지울까요?",
+      message: d.draft.title.trim() || "제목 없는 설문",
+      okLabel: "지우기",
+      cancelLabel: "취소",
+      destructive: true,
+      onOk: () => {
+        if (!data) return;
+        deleteDraft(data.userId, d.id);
+        setData({ ...data, drafts: listDrafts(data.userId) });
+      },
+    });
 
   if (data === null) {
     return (
@@ -174,6 +197,33 @@ export default function My() {
               </View>
             ))
           )}
+        </>
+      )}
+
+      {/* 임시저장함: 이 폰에만 있고, 있을 때만 보인다 */}
+      {data.drafts.length > 0 && (
+        <>
+          <Text style={styles.sectionTitle}>임시저장한 설문</Text>
+          {data.drafts.map((d) => (
+            <Pressable
+              key={d.id}
+              style={styles.ledgerRow}
+              onPress={() => router.push({ pathname: "/create", params: { draft: d.id } })}
+            >
+              <View style={styles.ledgerMain}>
+                <Text style={styles.ledgerLabel} numberOfLines={1}>
+                  {d.draft.title.trim() || "제목 없는 설문"}
+                </Text>
+                <Text style={styles.ledgerDate}>
+                  {formatDate(d.savedAt)} 저장 · 문항 {d.draft.questions.length}개
+                </Text>
+              </View>
+              <Pressable onPress={() => removeDraft(d)} hitSlop={8}>
+                <Text style={styles.deleteText}>삭제</Text>
+              </Pressable>
+            </Pressable>
+          ))}
+          <Text style={styles.ledgerDate}>임시저장은 이 폰에만 있어요.</Text>
         </>
       )}
 
@@ -297,6 +347,10 @@ const styles = StyleSheet.create({
   },
   statusClosed: {
     color: colors.textMuted,
+  },
+  deleteText: {
+    fontSize: fontSize.small,
+    color: colors.danger,
   },
   logout: {
     marginTop: spacing.lg,
