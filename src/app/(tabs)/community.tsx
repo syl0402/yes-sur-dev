@@ -1,8 +1,9 @@
-// ys-140 커뮤니티 · F-601 (오늘의 질문 카드 + 투표 3종: 밸런스 · 나만 그래? · 골라 줘)
+// ys-140 커뮤니티 · F-601 (오늘의 질문 · 계열 대항전 + 글: 밸런스 · 나만 그래? · 골라 줘 · 설문 홍보)
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import MajorRankingCard from "@/components/community/MajorRankingCard";
 import PostCard from "@/components/community/PostCard";
 import Chips from "@/components/create/Chips";
 import DailyCard from "@/components/DailyCard";
@@ -42,6 +43,7 @@ export default function Community() {
 
       {/* 오늘의 질문 (홈과 같은 카드, "전체"일 때만). 누르면 그룹별 결과·댓글 */}
       {kind === "all" && <DailyCard onOpen={() => router.push("/community/daily")} />}
+      {kind === "all" && <MajorRankingCard />}
 
       <Chips options={KIND_FILTERS} selected={kind} onSelect={setKind} />
       <Chips options={POST_SORT_OPTIONS} selected={sort} onSelect={setSort} />
@@ -49,7 +51,7 @@ export default function Community() {
       {posts === null ? (
         <ActivityIndicator color={colors.primary} style={styles.loading} />
       ) : posts.length === 0 ? (
-        <Text style={styles.empty}>아직 글이 없어요.{"\n"}첫 투표를 만들어 보세요!</Text>
+        <Text style={styles.empty}>아직 글이 없어요.{"\n"}첫 글을 만들어 보세요!</Text>
       ) : (
         posts.map((p) => (
           <PostCard

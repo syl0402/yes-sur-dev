@@ -115,7 +115,7 @@ export default function PostDetail() {
             ),
           )}
         </View>
-      ) : (
+      ) : post.kind === "promo" ? null : (
         <Text style={styles.muted}>투표하면 계열·학년·성별·나이대별 결과를 볼 수 있어요.</Text>
       )}
 

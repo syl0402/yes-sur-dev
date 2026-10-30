@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
+import LinkedText from "@/components/LinkedText";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { type Comment, COMMENT_MAX, type CommentTarget } from "@/lib/community";
 import { showActions, showConfirm } from "@/lib/confirm";
@@ -91,7 +92,9 @@ export default function Comments({ type, id, onChanged }: { type: CommentTarget;
           <Text style={styles.more}>⋯</Text>
         </Pressable>
       </View>
-      <Text style={styles.body}>{c.body}</Text>
+      <LinkedText style={styles.body} selectable>
+        {c.body}
+      </LinkedText>
       <Pressable onPress={() => like(c)} disabled={c.mine} hitSlop={8}>
         <Text style={[styles.like, c.liked && styles.liked]}>
           {c.liked ? "♥" : "♡"} {c.likes}

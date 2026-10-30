@@ -57,6 +57,8 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 커뮤니티 (2026-10-30 밸런스 탭 → 커뮤니티 탭): 피드 `src/app/(tabs)/community.tsx`, 글 `community/[id].tsx`, 만들기 `community/new.tsx`, 카드 `PostCard` (`src/components/community/`). 타입·라벨 `src/lib/community.ts`. `sortGroups`는 그룹 모양과 상관없이 씀 (`src/lib/hub.ts`)
 - 커뮤니티 댓글: `Comments` (`src/components/community/Comments.tsx`, `type` = post·daily). 글 ⋯ 메뉴는 `showActions` (`src/lib/confirm.ts`). 본문 수정 `community/edit.tsx`. 신고 화면은 `?type=post|comment&id=` 또는 예전 `?survey=`
 - 오늘의 질문 상세: 홈 `DailyCard`를 누르면 `community/daily.tsx` (같은 카드 + 그룹별 + 댓글 `type=daily`, 오늘 것만. 2026-10-30 지난 질문 목록은 없앰). 닉네임 바꾸기 `account/nickname.tsx` (내 정보 → 학생만)
+- 설문 홍보·계열 대항전: 홍보글은 `PostCard` 안 `PromoBox`(설문 요약 + 응답하러 가기), 만들기 화면 종류 "설문 홍보"(`create_promo`). 대항전은 피드 맨 위 `MajorRankingCard`
+- 사용자가 쓴 글의 링크: `LinkedText` (`src/components/LinkedText.tsx`) — http(s) 주소는 파란 링크, 누르면 "옛썰 밖의 링크" 확인 후 열기. 상세 화면 본문·댓글은 길게 눌러 복사(`selectable`)
 - 테스트할 때 응답자가 적으면 `dev_tools.sql` 10번(최소 응답 수 1)으로. 출시 전 5로 되돌리기
 
 ### `formatHost` (`src/lib/surveys.ts`, 2026-10-30)

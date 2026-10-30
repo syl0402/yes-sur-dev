@@ -1,11 +1,13 @@
+import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import LinkedText from "@/components/LinkedText";
 import { percent } from "@/components/results/QuestionResult";
 import { colors, fontSize, spacing } from "@/constants/theme";
-import { KIND_LABELS, type Post } from "@/lib/community";
+import { KIND_LABELS, type PromoSurvey, type Post } from "@/lib/community";
 import { errorMessage } from "@/lib/errors";
-import { formatPoints } from "@/lib/format";
+import { formatPoints, formatTimeLeft } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
 
@@ -46,18 +48,24 @@ export default function PostCard({ post, onVoted, onOpen, full }: Props) {
         <Text style={styles.kind}>{KIND_LABELS[post.kind]}</Text>
         <Text style={styles.meta}>
           {post.author}
-          {post.mine ? " (나)" : ""} · {post.votes}명 참여
+          {post.mine ? " (나)" : ""}
+          {post.kind === "promo" ? "" : ` · ${post.votes}명 참여`}
           {post.comment_count > 0 ? ` · 댓글 ${post.comment_count}` : ""}
         </Text>
       </View>
-      <Text style={styles.question}>{post.question}</Text>
+      <Text style={styles.question} selectable={full}>
+        {post.question}
+      </Text>
+      {/* 본문: 주소는 링크, 상세에서는 길게 눌러 복사 */}
       {post.body ? (
-        <Text style={styles.body} numberOfLines={full ? undefined : 3}>
+        <LinkedText style={styles.body} numberOfLines={full ? undefined : 3} selectable={full}>
           {post.body}
-        </Text>
+        </LinkedText>
       ) : null}
 
-      {showResult ? (
+      {post.kind === "promo" && post.survey ? (
+        <PromoBox survey={post.survey} mine={post.mine} />
+      ) : showResult ? (
         <View style={styles.results}>
           {post.options.map((label, i) => {
             const count = post.counts?.[i] ?? 0;
@@ -99,7 +107,56 @@ export default function PostCard({ post, onVoted, onOpen, full }: Props) {
   );
 }
 
+// 설문 홍보글: 설문 요약 + [응답하러 가기]
+function PromoBox({ survey, mine }: { survey: PromoSurvey; mine: boolean }) {
+  const open = () => router.push({ pathname: "/survey/[id]", params: { id: String(survey.id) } });
+  const label = mine ? "내 설문 보기" : survey.answered ? "이미 응답했어요" : survey.open ? "응답하러 가기" : "마감된 설문이에요";
+  return (
+    <View style={styles.promo}>
+      <Text style={styles.promoTitle} numberOfLines={2}>
+        📋 {survey.title}
+      </Text>
+      <Text style={styles.meta}>
+        {survey.questions}문항 · 약 {survey.minutes}분 · +{formatPoints(survey.reward)} · 남은 자리 {survey.remaining}명
+        {survey.closes_at ? ` · ${formatTimeLeft(survey.closes_at)}` : ""}
+      </Text>
+      <Pressable
+        style={[styles.promoButton, (survey.answered || !survey.open) && !mine && styles.promoButtonOff]}
+        onPress={open}
+        disabled={(survey.answered || !survey.open) && !mine}
+      >
+        <Text style={styles.promoButtonText}>{label}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  promo: {
+    padding: spacing.md,
+    borderRadius: 10,
+    backgroundColor: colors.border,
+    gap: spacing.sm,
+  },
+  promoTitle: {
+    fontSize: fontSize.body,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  promoButton: {
+    paddingVertical: spacing.sm,
+    borderRadius: 10,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+  },
+  promoButtonOff: {
+    backgroundColor: colors.textMuted,
+  },
+  promoButtonText: {
+    fontSize: fontSize.body,
+    fontWeight: "700",
+    color: colors.background,
+  },
   card: {
     padding: spacing.md,
     borderWidth: 1,

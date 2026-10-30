@@ -55,6 +55,7 @@ const MESSAGES: Record<string, string> = {
   post_limit: "오늘은 글을 충분히 만들었어요. 내일 다시 만들어 주세요.",
   post_not_found: "없거나 숨겨진 글이에요.",
   already_voted: "이미 투표했어요.",
+  promo_exists: "이 설문은 이미 홍보했어요. 설문 하나에 홍보글 하나예요.",
   banned_word: "쓸 수 없는 말이 들어 있어요. 고쳐서 다시 올려 주세요.",
   nickname_cooldown: "닉네임은 바꾼 뒤 한동안 다시 바꿀 수 없어요.",
   nickname_student_only: "단체 계정은 단체 이름을 써요. 바꾸려면 문의해 주세요.",

@@ -39,6 +39,8 @@
 | `20261030000020_community_comments.sql` | 커뮤니티 2-1: 글 본문(`body`)·작성자 삭제(`deleted`), `comments`·`comment_likes`, `update_post_body`·`delete_post`·`create_comment`·`delete_comment`·`like_comment`·`get_comments`, 글·댓글 신고 `report_content` | 2026-10-30 |
 | `20261030000021_community_safety.sql` | 커뮤니티 2-2: 금칙어 `banned_words`(글·댓글·닉네임 트리거), `change_nickname`(학생, `nickname_change_days`일에 한 번), 오늘의 질문 답에 그룹 저장, (지난 질문 함수는 000022에서 지움) | 2026-10-30 |
 | `20261030000022_daily_today_detail.sql` | 지난 질문 대신 오늘 질문 상세: `get_today_daily`에 `groups`(답한 뒤)·`comment_count`, 지난 질문 함수 삭제, 오늘의 질문 댓글은 오늘 것만 | 2026-10-30 |
+| `20261030000023_community_promo.sql` | 커뮤니티 3단계: 설문 홍보(`posts.kind = promo` + `survey_id`, 설문 하나에 하나, 마감되면 피드에서 빠짐) `create_promo`·`get_promotable_surveys`, 계열 대항전 `get_major_ranking`, 인기순 = 투표 + 댓글 | 2026-10-30 |
+| `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -211,6 +213,9 @@
 | `get_comments(p_type, p_id)` | `{ best: 좋아요 많은 3개, all: 오래된 순 }` | 로그인한 사람 |
 | `report_content(p_type, p_id, p_reason, p_detail)` | 설문·글·댓글 신고 (설문은 `report_survey`로). `report_hide_count`명이면 자동 숨김 | 로그인한 사람 |
 | `change_nickname(p_nickname)` | 닉네임 바꾸기 (학생만, 2~12자, 금칙어·중복 불가, `nickname_change_days`일에 한 번) | 학생 |
+| `create_promo(p_survey_id, p_question, p_body)` | 내 진행 중 설문 홍보글 (한 줄 소개 100자 + 본문 500자, 설문 하나에 하나 `promo_exists`, 하루 글 수에 포함) | 설문 등록자 |
+| `get_promotable_surveys()` | 홍보할 수 있는 내 설문 (진행 중, 아직 홍보 안 함) | 로그인한 사람 |
+| `get_major_ranking()` | 이번 주(한국 시간 월요일부터) 계열별 참여 수 순위 + 내 계열 순위. 투표·오늘의 질문·글·댓글, 미입력 제외 | 로그인한 사람 |
 | `is_email_registered(p_email)` | 그 메일로 **가입을 마친** 계정이 있으면 true (회원정보 없는 반쪽 계정은 false). 예/아니오만 돌려줌 | 누구나 (로그인 전 포함) |
 
 ### complete_signup 입력 규칙
@@ -314,6 +319,7 @@
 | `post_limit` | 커뮤니티 글을 하루 최대만큼 만듦 |
 | `post_not_found` | 없거나 숨겨진 글 |
 | `already_voted` | 이 글에 이미 투표함 |
+| `promo_exists` | 이 설문의 홍보글이 이미 있음 |
 | `invalid_comment` | 댓글이 비었거나 200자 넘음 |
 | `comment_limit` | 댓글을 하루 최대만큼 담 |
 | `comment_not_found` | 없거나 숨겨진 댓글 (남의 댓글 삭제 포함) |
