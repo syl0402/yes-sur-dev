@@ -41,6 +41,7 @@
 | `20261030000022_daily_today_detail.sql` | 지난 질문 대신 오늘 질문 상세: `get_today_daily`에 `groups`(답한 뒤)·`comment_count`, 지난 질문 함수 삭제, 오늘의 질문 댓글은 오늘 것만 | 2026-10-30 |
 | `20261030000023_community_promo.sql` | 커뮤니티 3단계: 설문 홍보(`posts.kind = promo` + `survey_id`, 설문 하나에 하나, 마감되면 피드에서 빠짐) `create_promo`·`get_promotable_surveys`, 계열 대항전 `get_major_ranking`, 인기순 = 투표 + 댓글 | 2026-10-30 |
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
+| `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -216,6 +217,8 @@
 | `create_promo(p_survey_id, p_question, p_body)` | 내 진행 중 설문 홍보글 (한 줄 소개 100자 + 본문 500자, 설문 하나에 하나 `promo_exists`, 하루 글 수에 포함) | 설문 등록자 |
 | `get_promotable_surveys()` | 홍보할 수 있는 내 설문 (진행 중, 아직 홍보 안 함) | 로그인한 사람 |
 | `get_major_ranking()` | 이번 주(한국 시간 월요일부터) 계열별 참여 수 순위 + 내 계열 순위. 투표·오늘의 질문·글·댓글, 미입력 제외 | 로그인한 사람 |
+| `get_my_invite()` | 내 초대 코드(처음 열 때 생성), 초대 인원, 코드 입력 가능 여부(가입 `invite_window_days`일 안·웰컴 받은 계정·아직 안 함) | 학생 |
+| `redeem_invite(p_code)` | 친구 코드 입력 → 나 `invite_reward_invitee`P, 초대한 사람 `invite_reward_inviter`P (30일 `invite_monthly_max`명까지) | 학생 |
 | `is_email_registered(p_email)` | 그 메일로 **가입을 마친** 계정이 있으면 true (회원정보 없는 반쪽 계정은 false). 예/아니오만 돌려줌 | 누구나 (로그인 전 포함) |
 
 ### complete_signup 입력 규칙
@@ -320,6 +323,10 @@
 | `post_not_found` | 없거나 숨겨진 글 |
 | `already_voted` | 이 글에 이미 투표함 |
 | `promo_exists` | 이 설문의 홍보글이 이미 있음 |
+| `invalid_invite` | 없는 코드 또는 내 코드 |
+| `invite_used` | 이미 초대 코드를 입력함 |
+| `invite_expired` | 입력 기간이 지났거나 웰컴을 받지 않은 계정(재가입) |
+| `invite_student_only` | 단체 계정 |
 | `invalid_comment` | 댓글이 비었거나 200자 넘음 |
 | `comment_limit` | 댓글을 하루 최대만큼 담 |
 | `comment_not_found` | 없거나 숨겨진 댓글 (남의 댓글 삭제 포함) |

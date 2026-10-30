@@ -28,6 +28,7 @@ const REASON_LABELS: Record<string, string> = {
   streak_bonus: "연속 출석 보너스",
   community: "커뮤니티 투표",
   creator_bonus: "내 투표 인기 보너스",
+  invite: "친구 초대",
 };
 
 type LedgerItem = {
@@ -202,6 +203,14 @@ export default function My() {
         <Text style={styles.feedbackText}>💬 의견 보내기</Text>
         <Text style={styles.ledgerDate}>불편한 점이나 바라는 기능을 알려 주세요 ›</Text>
       </Pressable>
+
+      {/* 친구 초대 (학생만: 포인트를 쓰는 계정) */}
+      {!data.isOrg && (
+        <Pressable style={styles.feedback} onPress={() => router.push("/invite")}>
+          <Text style={styles.feedbackText}>🎁 친구 초대</Text>
+          <Text style={styles.ledgerDate}>친구도 나도 포인트를 받아요 · 받은 코드 입력도 여기서 ›</Text>
+        </Pressable>
+      )}
 
       {data.isOrg ? (
         <View style={styles.pointBox}>
