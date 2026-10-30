@@ -20,10 +20,12 @@ type Props = {
   host: string;
   // 등록자 화면: 주관식 원문이 든 문항 (없으면 full.overall)
   questions?: QuestionStats[];
+  // 등록자의 열람 수익 표시 (단체는 포인트를 쓰지 않아 열람 수만)
+  showEarnings?: boolean;
 };
 
 // 전체 결과 (ys-131 열람 후 · ys-121 등록자): 신뢰 정보 → 핵심 요약 → 출처 복사 → 나눠 보기 → 문항별 결과
-export default function ResultsView({ full, title, host, questions = full.overall }: Props) {
+export default function ResultsView({ full, title, host, questions = full.overall, showEarnings = true }: Props) {
   const [dim, setDim] = useState<Dim>("all");
 
   if (full.total === 0) return <Text style={styles.muted}>결과에 반영된 응답이 없어요.</Text>;
@@ -56,7 +58,7 @@ export default function ResultsView({ full, title, host, questions = full.overal
         <Text style={styles.body}>조사 기간 {period}</Text>
         {full.share_earned !== null && (
           <Text style={styles.earned}>
-            열람 {full.view_count}회 · 열람 수익 +{formatPoints(full.share_earned)}
+            열람 {full.view_count}회{showEarnings ? ` · 열람 수익 +${formatPoints(full.share_earned)}` : ""}
           </Text>
         )}
       </View>

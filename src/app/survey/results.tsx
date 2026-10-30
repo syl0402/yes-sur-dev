@@ -23,6 +23,8 @@ type ResultQuestion = QuestionStats;
 type Results = {
   title: string;
   host: string;
+  // 단체 설문 (주최 표시가 인증 단체) → 열람 수익은 숨김
+  isOrg: boolean;
   responseCount: number;
   target: number;
   closesAt: string | null;
@@ -52,6 +54,7 @@ async function fetchResults(id: number): Promise<Results | string> {
   return {
     title: survey.title,
     host: formatHost(survey),
+    isOrg: survey.host_verified,
     full: full as FullResults,
     responseCount: survey.response_count,
     target: survey.target_responses,
@@ -172,7 +175,12 @@ export default function SurveyResults() {
       <View style={styles.summary}>
         <Text style={styles.summaryMain}>결과 공개</Text>
         <Chips
-          options={(["public", "campus", "private"] as const).map((v) => ({ value: v, label: VISIBILITY_LABELS[v] }))}
+          options={(["public", "campus", "private"] as const).map((v) => ({
+            value: v,
+            label: VISIBILITY_LABELS[v],
+            // TODO(임시): 단체는 테스트 기간 결과 공개 조건 (org_must_publish) · Q14 답이 오면 변경
+            disabled: results.isOrg && v === "private",
+          }))}
           selected={results.visibility}
           onSelect={changeVisibility}
         />
@@ -183,7 +191,13 @@ export default function SurveyResults() {
         </Text>
       </View>
 
-      <ResultsView full={results.full} title={results.title} host={results.host} questions={results.questions} />
+      <ResultsView
+        full={results.full}
+        title={results.title}
+        host={results.host}
+        questions={results.questions}
+        showEarnings={!results.isOrg}
+      />
 
     </ScrollView>
   );

@@ -63,9 +63,14 @@ export default function ConfirmStep({ draft, rules, categoryName, cost, balance,
         <Text style={styles.benefitTitle}>등록자만 받는 것</Text>
         <Text style={formStyles.hint}>
           · 원본 CSV (응답 한 명 = 한 줄)와 주관식 답 원문{"\n"}
-          {draft.resultVisibility === "private"
-            ? "· 결과를 '나만 보기'로 두면 다른 사람이 열람할 수 없어 열람 수익은 없어요."
-            : `· 다른 사람이 결과를 열람할 때마다 ${formatPoints(shareEach)}씩 받아요.`}
+          {isOrg
+            ? "· 결과가 데이터 허브에 ✓ 인증 단체로 올라가요. 열람 수는 결과 화면에서 볼 수 있어요."
+            : draft.resultVisibility === "private"
+              ? "· 결과를 '나만 보기'로 두면 다른 사람이 열람할 수 없어 열람 수익은 없어요."
+              : `· 다른 사람이 결과를 열람할 때마다 ${formatPoints(shareEach)}씩 받아요.` +
+                (cost > 0 && shareEach > 0
+                  ? `\n· 예: 등록비 ${formatPoints(cost)}는 ${Math.ceil(cost / shareEach)}명이 열람하면 돌려받아요.`
+                  : "")}
         </Text>
       </View>
     </>

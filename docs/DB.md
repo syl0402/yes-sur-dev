@@ -29,6 +29,7 @@
 | `20261030000010_closed_at.sql` | 일찍 마감하면 마감일(`closes_at`)을 그 순간으로 (트리거 `surveys_set_closed_at`) | 2026-10-30 |
 | `20261030000011_survey_raw.sql` | 등록자 원본 CSV용 `get_survey_raw` (응답 한 명 = 한 줄, 순서 섞음, 5명 미만 그룹 이름 가림) | 2026-10-30 |
 | `20261030000012_my_views.sql` | 마이 탭 "열람한 결과"용 `get_my_views` (내 열람 기록 + 제목·주최) | 2026-10-30 |
+| `20261030000013_org_public.sql` | 단체 설문은 결과 "나만 보기" 불가 (트리거 `surveys_org_visibility`, 테스트 기간 결과 공개 조건으로 무료) | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -274,6 +275,7 @@
 | `invalid_gender` | 성별 값이 잘못됨 |
 | `invalid_birth_year` | 출생연도가 비었거나 범위 밖 |
 | `demographics_locked` | 성별·출생연도를 이미 입력함 (고치려면 문의) |
+| `org_must_publish` | 단체 설문을 "나만 보기"로 등록·변경하려 함 (테스트 기간 결과 공개 조건) |
 | `not_listed` | 데이터 허브에서 볼 수 없는 결과 (공개 범위·마감·응답 수 조건) |
 | `not_respondent` | 내 답 비교는 그 설문에 응답한 사람만 |
 | `not_viewed` | 전체 결과는 열람한 뒤에 (view_survey 먼저) |

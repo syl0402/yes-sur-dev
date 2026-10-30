@@ -17,6 +17,7 @@ export default function Data() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState<HubSort>("popular");
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
 
   // 탭에 돌아올 때·필터를 바꿀 때마다 새로 불러온다 (열람함 표시가 바로 바뀌게)
   useFocusEffect(
@@ -35,6 +36,8 @@ export default function Data() {
   const open = (id: number) => router.push({ pathname: "/data/[id]", params: { id: String(id) } });
   // 내가 응답한 설문 결과 (내 답 비교는 무료)
   const answered = (items ?? []).filter((i) => i.answered);
+  // 인증 단체(학생회·연구실 등 운영자가 승인한 단체) 결과만
+  const shown = (items ?? []).filter((i) => !verifiedOnly || i.host_verified);
 
   return (
     <ScrollView style={styles.screen} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
@@ -60,13 +63,23 @@ export default function Data() {
         onSelect={setCategory}
       />
       <Chips options={HUB_SORT_OPTIONS} selected={sort} onSelect={setSort} />
+      <Pressable
+        style={[styles.toggle, verifiedOnly && styles.toggleOn]}
+        onPress={() => setVerifiedOnly(!verifiedOnly)}
+      >
+        <Text style={[styles.toggleText, verifiedOnly && styles.toggleTextOn]}>✓ 인증 단체만</Text>
+      </Pressable>
 
       {items === null ? (
         <ActivityIndicator color={colors.primary} style={styles.loading} />
-      ) : items.length === 0 ? (
-        <Text style={styles.empty}>아직 공개된 결과가 없어요.{"\n"}설문이 마감되고 응답이 모이면 여기에 올라와요.</Text>
+      ) : shown.length === 0 ? (
+        <Text style={styles.empty}>
+          {verifiedOnly
+            ? "아직 인증 단체가 공개한 결과가 없어요."
+            : "아직 공개된 결과가 없어요.\n설문이 마감되고 응답이 모이면 여기에 올라와요."}
+        </Text>
       ) : (
-        items.map((i) => (
+        shown.map((i) => (
           <Pressable key={i.id} style={styles.card} onPress={() => open(i.id)}>
             <View style={styles.badges}>
               <Text style={styles.meta}>
@@ -173,6 +186,26 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     fontWeight: "700",
     color: colors.primary,
+  },
+  toggle: {
+    alignSelf: "flex-start",
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+  },
+  toggleOn: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
+  },
+  toggleText: {
+    fontSize: fontSize.small,
+    color: colors.text,
+  },
+  toggleTextOn: {
+    color: colors.background,
+    fontWeight: "700",
   },
   viewed: {
     fontSize: fontSize.small,
