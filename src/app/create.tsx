@@ -10,7 +10,7 @@ import SettingsStep from "@/components/create/SettingsStep";
 import PrimaryButton from "@/components/PrimaryButton";
 import StepIndicator from "@/components/StepIndicator";
 import { colors, fontSize, spacing } from "@/constants/theme";
-import { showConfirm } from "@/lib/confirm";
+import { showChoice, showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
 import { formatPoints } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
@@ -86,6 +86,8 @@ export default function CreateSurvey() {
   const [sending, setSending] = useState(false);
   // 임시저장 번호 = 등록 요청 번호: [등록]을 연타·재시도하거나 임시저장에서 다시 등록해도 설문 1개, 비용 1번
   const [draftId] = useState(() => draftParam ?? makeRequestId());
+  // 마지막으로 불러오거나 임시저장한 내용. 지금 내용과 다르면 "바뀐 게 있음"
+  const [savedJson, setSavedJson] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSetup().then((s) => {
@@ -93,38 +95,48 @@ export default function CreateSurvey() {
       const saved = getDraft(s.userId, draftId);
       if (saved) {
         // 공개 범위가 생기기 전에 임시저장한 설문은 기본값(전체 공개)으로
-        setDraft({ ...saved.draft, resultVisibility: saved.draft.resultVisibility ?? "public" });
+        const loaded = { ...saved.draft, resultVisibility: saved.draft.resultVisibility ?? "public" };
+        setDraft(loaded);
+        setSavedJson(JSON.stringify(loaded));
         setStep(saved.step);
         return;
       }
-      setDraft((d) => ({
-        ...d,
+      const fresh = {
+        ...emptyDraft(),
         target: String(s.rules.survey_default_target),
         days: String(s.rules.survey_default_days),
-      }));
+      };
+      setDraft(fresh);
+      setSavedJson(JSON.stringify(fresh));
     });
   }, [draftId]);
 
-  // 쓰는 내용이 바뀔 때마다 이 폰 임시저장함에 자동 저장 (아직 아무것도 안 썼으면 저장하지 않는다)
-  useEffect(() => {
-    if (setup && !isBlankDraft(draft)) saveDraft(setup.userId, draftId, draft, step);
-  }, [setup, draftId, draft, step]);
-
+  // 임시저장은 직접 고를 때만 (오른쪽 위 [임시저장], 또는 나갈 때 창에서). 자동 저장은 하지 않는다
+  const changed = savedJson !== null && !isBlankDraft(draft) && JSON.stringify(draft) !== savedJson;
   const notEnough = setup !== null && setup.balance < setup.minCost;
 
-  // 뒤로 가기: 2단계 이상이면 이전 단계로, 1단계면 그만둘지 확인 (쓴 내용은 이 폰에 임시저장돼 있다)
+  // 뒤로 가기: 2단계 이상이면 이전 단계로. 1단계에서 바뀐 게 있으면 임시저장할지 고르기
   const allowLeave = usePreventRemove(setup !== null && !notEnough, ({ repeat }) => {
     if (step > 1) {
       setStep(step - 1);
       return;
     }
-    showConfirm({
-      title: "작성을 그만둘까요?",
-      message: "작성한 내용은 마이 탭 '임시저장한 설문'에 저장돼요.\n언제든 이어 쓸 수 있어요.",
-      okLabel: "나가기",
+    if (!changed || setup === null) {
+      repeat();
+      return;
+    }
+    showChoice({
+      title: "작성 중인 설문이 있어요",
+      message: "임시저장하면 마이 탭 '임시저장한 설문'에서 이어 쓸 수 있어요.",
+      primary: {
+        label: "임시저장하고 나가기",
+        onPress: () => {
+          saveDraft(setup.userId, draftId, draft, step);
+          repeat();
+        },
+      },
+      destructive: { label: "저장하지 않고 나가기", onPress: repeat },
       cancelLabel: "계속 작성",
-      destructive: true,
-      onOk: repeat,
     });
   });
 
@@ -216,10 +228,11 @@ export default function CreateSurvey() {
 
   const categoryName = setup.categories.find((c) => c.id === draft.categoryId)?.name ?? "";
 
-  // 오른쪽 위 [임시저장]: 자동 저장과 같지만, 눌러서 저장됐다는 걸 확인할 수 있게
+  // 오른쪽 위 [임시저장]: 지금 내용을 이 폰 임시저장함에 저장
   const canSave = !isBlankDraft(draft) && !sending;
   const saveNow = () => {
     saveDraft(setup.userId, draftId, draft, step);
+    setSavedJson(JSON.stringify(draft));
     showNotice("임시저장했어요", "마이 탭 '임시저장한 설문'에서 이어 쓸 수 있어요.");
   };
 

@@ -27,3 +27,29 @@ export function showConfirm({ title, message, okLabel, cancelLabel, onOk, onCanc
     { text: okLabel, style: destructive ? "destructive" : "default", onPress: onOk },
   ]);
 }
+
+type ChoiceOptions = {
+  title: string;
+  message: string;
+  // 가장 권하는 선택 (예: "임시저장하고 나가기")
+  primary: { label: string; onPress: () => void };
+  // 되돌릴 수 없는 선택, 빨간색 (예: "저장하지 않고 나가기")
+  destructive: { label: string; onPress: () => void };
+  // 창만 닫는 버튼 글자 (예: "계속 작성")
+  cancelLabel: string;
+};
+
+// 버튼 세 개짜리 선택 창 (권하는 것 · 되돌릴 수 없는 것 · 취소).
+// 웹 미리보기는 브라우저 확인 창을 두 번 띄워 대신한다
+export function showChoice({ title, message, primary, destructive, cancelLabel }: ChoiceOptions) {
+  if (Platform.OS === "web") {
+    if (window.confirm(`${title}\n${message}\n\n[확인] ${primary.label}`)) primary.onPress();
+    else if (window.confirm(`${destructive.label}?`)) destructive.onPress();
+    return;
+  }
+  Alert.alert(title, message, [
+    { text: primary.label, onPress: primary.onPress },
+    { text: destructive.label, style: "destructive", onPress: destructive.onPress },
+    { text: cancelLabel, style: "cancel" },
+  ]);
+}

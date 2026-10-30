@@ -127,7 +127,7 @@ rules.survey_max_questions; // 30
 - 작성 중인 설문 모양·검사·예상 계산: `src/lib/surveyDraft.ts` (`basicsValid`, `questionsValid`, `settingsValid`, `estimate`, `toRpcQuestions`)
 - 들어가기: `router.push("/create")` (홈·설문 탭의 [설문 등록])
 - 등록 후 내 설문 상세로 교체. 내 설문 목록은 마이 탭 "내가 올린 설문"
-- 임시저장함 (2026-10-30): `listDrafts` / `getDraft` / `saveDraft` / `deleteDraft` / `isBlankDraft` (`surveyDraft.ts`). 이 폰의 `localStorage`에 계정마다 여러 개(`survey_drafts:<userId>`). 작성 화면이 자동 저장, 마이 탭 "임시저장한 설문"에서 이어 쓰기(`router.push({ pathname: "/create", params: { draft: id } })`)·삭제. 임시저장 번호 = 등록 요청 번호라 같은 임시저장을 두 번 등록해도 설문 1개. 등록하면 지운다
+- 임시저장함 (2026-10-30): `listDrafts` / `getDraft` / `saveDraft` / `deleteDraft` / `isBlankDraft` (`surveyDraft.ts`). 이 폰의 `localStorage`에 계정마다 여러 개(`survey_drafts:<userId>`). 작성 화면은 자동 저장하지 않고 오른쪽 위 [임시저장]이나 나갈 때 창(`showChoice`: 임시저장하고 나가기·저장하지 않고 나가기·계속 작성, 바뀐 게 있을 때만)으로 저장 (2026-10-30 변경), 마이 탭 "임시저장한 설문"에서 이어 쓰기(`router.push({ pathname: "/create", params: { draft: id } })`)·삭제. 임시저장 번호 = 등록 요청 번호라 같은 임시저장을 두 번 등록해도 설문 1개. 등록하면 지운다
 - `showConfirm`의 `onCancel`: 취소 버튼을 눌렀을 때 할 일 (예: [새로 쓰기] → 저장본 지우기)
 
 ### `useResumeSignup` (`src/hooks/useResumeSignup.ts`, 2026-10-27)
