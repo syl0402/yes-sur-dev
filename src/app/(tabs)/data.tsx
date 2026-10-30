@@ -4,9 +4,11 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import Chips from "@/components/create/Chips";
+import PrimaryButton from "@/components/PrimaryButton";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatDate } from "@/lib/format";
 import { HUB_SORT_OPTIONS, type HubItem, type HubSort } from "@/lib/hub";
+import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
 import { formatHost } from "@/lib/surveys";
 
@@ -18,6 +20,8 @@ export default function Data() {
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState<HubSort>("popular");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  // 데이터 허브에 올라가는 최소 응답 수 (빈 화면 안내용, point_rules)
+  const [minCount, setMinCount] = useState<number | null>(null);
 
   // 탭에 돌아올 때·필터를 바꿀 때마다 새로 불러온다 (열람함 표시가 바로 바뀌게)
   useFocusEffect(
@@ -30,6 +34,7 @@ export default function Data() {
         .select("key, name")
         .order("sort_order")
         .then(({ data }) => setCategories(data ?? []));
+      fetchRules(["result_min_count"]).then((r) => setMinCount(r.result_min_count ?? null));
     }, [category, sort]),
   );
 
@@ -73,11 +78,18 @@ export default function Data() {
       {items === null ? (
         <ActivityIndicator color={colors.primary} style={styles.loading} />
       ) : shown.length === 0 ? (
-        <Text style={styles.empty}>
-          {verifiedOnly
-            ? "아직 인증 단체가 공개한 결과가 없어요."
-            : "아직 공개된 결과가 없어요.\n설문이 마감되고 응답이 모이면 여기에 올라와요."}
-        </Text>
+        verifiedOnly ? (
+          <Text style={styles.empty}>아직 인증 단체가 공개한 결과가 없어요.</Text>
+        ) : (
+          <View style={styles.emptyBox}>
+            <Text style={styles.emptyTitle}>아직 공개된 결과가 없어요</Text>
+            <Text style={styles.empty}>
+              설문이 마감되고 응답이 {minCount !== null ? `${minCount}개 이상 ` : ""}모이면 여기에 결과가 올라와요.{"\n"}
+              지금 열린 설문에 응답하면 내 답도 결과에 들어가요.
+            </Text>
+            <PrimaryButton title="응답하러 가기" onPress={() => router.navigate("/surveys")} />
+          </View>
+        )
       ) : (
         shown.map((i) => (
           <Pressable key={i.id} style={styles.card} onPress={() => open(i.id)}>
@@ -118,6 +130,17 @@ const styles = StyleSheet.create({
   },
   loading: {
     marginTop: spacing.lg,
+  },
+  emptyBox: {
+    marginTop: spacing.lg,
+    gap: spacing.md,
+    alignItems: "stretch",
+  },
+  emptyTitle: {
+    fontSize: fontSize.body,
+    fontWeight: "700",
+    color: colors.text,
+    textAlign: "center",
   },
   empty: {
     marginTop: spacing.lg,

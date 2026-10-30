@@ -32,6 +32,7 @@
 | `20261030000013_org_public.sql` | 단체 설문은 결과 "나만 보기" 불가 (트리거 `surveys_org_visibility`, 테스트 기간 결과 공개 조건으로 무료) | 2026-10-30 |
 | `20261030000014_reports.sql` | 신고: `reports` 표, 설문 `moderation`(보임·숨김·삭제), `report_survey`, n명 신고 시 자동 숨김, 숨긴 설문은 목록·허브·응답에서 막음 | 2026-10-30 |
 | `20261030000015_delete_account.sql` | 회원 탈퇴: 응답에 그룹 저장(응답 시점), 회원 삭제 시 응답·설문·열람 기록은 익명으로 남김, 등록자 빈 설문 대비(허브 목록·전체 결과·열람), 웰컴 한 번만(`welcomed_emails`), `delete_my_account` | 2026-10-30 |
+| `20261030000016_official.sql` | 운영자(`role = admin`) 설문의 주최를 "옛썰 공식"으로 (`survey_host_name`) | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다

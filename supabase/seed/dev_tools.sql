@@ -185,3 +185,17 @@ update public.point_rules set value = 1 where key = 'result_min_count';
 -- 되돌리기: update public.point_rules set value = 5 where key = 'result_min_count';
 
 select key, value from public.point_rules where key = 'result_min_count';
+
+
+-- ── 11. 운영자(공식) 계정 지정 (2026-10-30) ───────────────────
+-- 먼저 앱에서 팀 메일(yessur.team@gmail.com)로 "단체"로 가입한다 (단체 이름: 옛썰).
+-- 아래를 실행하면 승인 + 운영자 지정. 그 계정이 올린 설문은 "옛썰 공식 ✓", 결과는 무료 열람
+-- 20261030000016_official.sql 적용 후 실행
+update public.profiles
+   set role = 'admin', approval_status = 'approved'
+ where id = (select id from auth.users where email = 'yessur.team@gmail.com');
+
+select p.role, p.account_type, p.approval_status, o.name
+  from public.profiles p
+  left join public.organizations o on o.id = p.id
+ where p.id = (select id from auth.users where email = 'yessur.team@gmail.com');
