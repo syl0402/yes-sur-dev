@@ -10,7 +10,7 @@ export type IconName = ComponentProps<typeof Ionicons>["name"];
 export const tabIcons = {
   home: "home-outline",
   surveys: "list-outline",
-  balance: "scale-outline",
+  community: "chatbubbles-outline",
   data: "bar-chart-outline",
   my: "person-outline",
 } satisfies Record<string, IconName>;

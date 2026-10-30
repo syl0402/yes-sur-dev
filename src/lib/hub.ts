@@ -97,7 +97,7 @@ const GROUP_ORDER: Record<GroupDim, string[]> = {
   age: ["20세 이하", "21~23세", "24~26세", "27세 이상", "미입력"],
 };
 
-export function sortGroups(dim: GroupDim, groups: Group[]): Group[] {
+export function sortGroups<T extends { label: string }>(dim: GroupDim, groups: T[]): T[] {
   const order = GROUP_ORDER[dim];
   const rank = (label: string) => (order.indexOf(label) === -1 ? order.length : order.indexOf(label));
   return [...groups].sort((a, b) => rank(a.label) - rank(b.label));

@@ -224,7 +224,6 @@
 | 기본 색·글자 크기 | `src/constants/theme.ts` | 디자인 시안이 나오면 교체 | 2026-10-26 |
 | 약관 사업자등록번호 빈칸 | `docs/legal/` 문서의 `[사업자등록번호]` + 노션 페이지 2개 | 사업자등록증 나오면 번호 넣기 (md와 노션 둘 다) | 2026-10-30 |
 | 로그인 전 첫 화면 디자인 (로고·소개 문구) | `src/app/index.tsx` | 디자인 단계에서 교체 (로그인 후 화면은 2026-10-29 홈 탭으로 옮김) | 2026-10-26 (2026-10-29 수정) |
-| 밸런스 탭 준비 중 | `src/app/(tabs)/balance.tsx` | 3단계 밸런스 | 2026-10-29 |
 | 단체 설문 등록 무료 (`cost_survey_create_org` = 0) | `supabase/migrations/20261030000001_survey_create.sql` | Q14 기획팀 답이 오면 point_rules 값 변경 | 2026-10-30 |
 | 단체 설문은 "나만 보기" 불가 (결과 공개 조건으로 무료) | `supabase/migrations/20261030000013_org_public.sql` (트리거), `src/components/create/SettingsStep.tsx`, `src/app/survey/results.tsx` | Q14 기획팀 답이 오면 "나만 보기 = 유료"로 | 2026-10-30 |
 | 포인트 내역 최근 50개만 | `src/app/(tabs)/my.tsx` | 내역이 많아지면 아래로 내릴 때 더 불러오기 | 2026-10-29 |

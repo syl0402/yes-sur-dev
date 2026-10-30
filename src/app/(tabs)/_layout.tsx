@@ -4,7 +4,7 @@ import AppIcon from "@/components/AppIcon";
 import { tabIcons } from "@/constants/icons";
 import { colors } from "@/constants/theme";
 
-// 로그인 후 하단 탭 5개 (2026-10-29 결정: 홈·설문·밸런스·데이터·마이)
+// 로그인 후 하단 탭 5개 (홈·설문·커뮤니티·데이터·마이. 2026-10-30 밸런스 → 커뮤니티)
 export default function TabsLayout() {
   return (
     <Tabs
@@ -31,10 +31,10 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="balance"
+        name="community"
         options={{
-          title: "밸런스",
-          tabBarIcon: ({ color, size }) => <AppIcon name={tabIcons.balance} color={color} size={size} />,
+          title: "커뮤니티",
+          tabBarIcon: ({ color, size }) => <AppIcon name={tabIcons.community} color={color} size={size} />,
         }}
       />
       <Tabs.Screen

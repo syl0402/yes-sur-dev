@@ -26,6 +26,8 @@ const REASON_LABELS: Record<string, string> = {
   balance_vote: "밸런스 투표",
   daily_question: "오늘의 질문",
   streak_bonus: "연속 출석 보너스",
+  community: "커뮤니티 투표",
+  creator_bonus: "내 투표 인기 보너스",
 };
 
 type LedgerItem = {
