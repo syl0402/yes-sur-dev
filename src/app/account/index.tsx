@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { GENDER_OPTIONS } from "@/lib/demographics";
+import { openLegal } from "@/lib/legal";
 import { supabase } from "@/lib/supabase";
 
 type Account = {
@@ -119,6 +120,12 @@ export default function AccountHome() {
       <Text style={styles.sectionTitle}>계정</Text>
       <View style={styles.box}>
         <MenuRow label="비밀번호 변경" onPress={() => router.push("/account/password")} />
+      </View>
+
+      <Text style={styles.sectionTitle}>약관</Text>
+      <View style={styles.box}>
+        <MenuRow label="이용약관" onPress={() => openLegal("terms")} />
+        <MenuRow label="개인정보처리방침" onPress={() => openLegal("privacy")} />
       </View>
 
       <Pressable onPress={logout} style={styles.logout}>

@@ -6,21 +6,44 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import PrimaryButton from "@/components/PrimaryButton";
 import StepIndicator from "@/components/StepIndicator";
 import { colors, fontSize, spacing } from "@/constants/theme";
+import { type LegalDoc, openLegal } from "@/lib/legal";
 
-// TODO(임시): 약관 본문 · 기획팀 Q11 약관 초안이 오면 교체 · docs/QUESTIONS.md Q11
-const TERMS = [
+// 동의 항목. 요약은 화면에서 펼치고, 전문은 노션 페이지 (원본 docs/legal/, 2026-10-30 개발팀 초안)
+const TERMS: { key: string; title: string; body: string; doc?: LegalDoc }[] = [
+  {
+    key: "age",
+    title: "[필수] 만 14세 이상이에요",
+    body: "만 14세 미만은 가입할 수 없어요.",
+  },
   {
     key: "service",
     title: "[필수] 이용약관 동의",
-    body: "옛썰 이용약관 (임시 문구). 정식 약관은 준비 중입니다.",
+    body:
+      "· 포인트는 앱 안에서만 쓰며 현금·기프티콘으로 바꿀 수 없어요. 탈퇴하면 사라져요.\n" +
+      "· 광고, 욕설·혐오, 개인정보(이름·연락처·학번)나 민감한 정보를 묻는 설문은 올릴 수 없어요.\n" +
+      "· 신고가 쌓인 설문은 숨겨지고, 규칙을 어긴 설문은 등록비 없이 삭제될 수 있어요.\n" +
+      "· 대충 응답하거나 여러 계정을 쓰면 포인트를 회수하거나 이용을 제한할 수 있어요.",
+    doc: "terms",
   },
   {
     key: "privacy",
     title: "[필수] 개인정보 수집·이용 동의",
     body:
-      "수집 항목: 학교 이메일, 닉네임, 학과, 과정, 입학년도\n" +
-      "이용 목적: 회원 식별, 대학생 인증, 서비스 제공\n" +
-      "보관 기간: 회원 탈퇴 시까지 (임시 문구)",
+      "· 수집 항목: 학교 메일, 닉네임, 학교, 전공 계열, 과정, 입학년도, 성별, 출생연도 (단체: 단체 이름·종류·소속 학교·증빙 링크·소개)\n" +
+      "· 목적: 대학생 인증, 회원 식별, 응답 대상 구분, 계열·학년·성별·나이대별 통계\n" +
+      "· 보관 기간: 탈퇴할 때까지 (탈퇴하면 바로 삭제)\n" +
+      "· 동의하지 않을 수 있지만, 동의하지 않으면 가입할 수 없어요.",
+    doc: "privacy",
+  },
+  {
+    key: "results",
+    title: "[필수] 응답 결과의 통계 공개 동의",
+    body:
+      "· 내 응답은 누가 답했는지 알 수 없게 묶은 통계로 등록자에게 제공되고, 공개 설문이면 다른 회원에게도 보여요.\n" +
+      "· 5명 미만 묶음은 공개하지 않아요. 주관식 원문은 등록자만 봐요.\n" +
+      "· 탈퇴해도 응답은 개인을 알 수 없는 상태로 통계에 남아요.\n" +
+      "· 응답을 외부 기업에 팔거나 제공하지 않아요.",
+    doc: "privacy",
   },
 ];
 
@@ -90,7 +113,16 @@ export default function SignupTerms() {
               <Text style={styles.link}>{opened === t.key ? "닫기" : "보기"}</Text>
             </Pressable>
           </View>
-          {opened === t.key && <Text style={styles.body}>{t.body}</Text>}
+          {opened === t.key && (
+            <View style={styles.bodyBox}>
+              <Text style={styles.body}>{t.body}</Text>
+              {t.doc && (
+                <Pressable onPress={() => openLegal(t.doc as LegalDoc)} hitSlop={8}>
+                  <Text style={styles.link}>전문 보기 ›</Text>
+                </Pressable>
+              )}
+            </View>
+          )}
         </View>
       ))}
 
@@ -160,11 +192,15 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textDecorationLine: "underline",
   },
-  body: {
+  bodyBox: {
     marginTop: spacing.sm,
     marginLeft: 32,
+    gap: spacing.sm,
+  },
+  body: {
     fontSize: fontSize.small,
     color: colors.textMuted,
+    lineHeight: 20,
   },
   box: {
     width: 22,

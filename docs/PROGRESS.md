@@ -192,7 +192,7 @@
 | 허용 학교가 중앙대(cau.ac.kr)만 | `universities` 표 | 기획팀 Q2 답변 → 학교 추가 | 2026-10-26 |
 | 인증번호 메일을 Gmail SMTP로 발송 | Supabase 대시보드 SMTP 설정 | 출시 전 도메인 구매 → Resend 등 발송 서비스로 | 2026-10-26 |
 | 기본 색·글자 크기 | `src/constants/theme.ts` | 디자인 시안이 나오면 교체 | 2026-10-26 |
-| 약관 본문 임시 문구 | `src/app/signup/terms.tsx` | 기획팀 Q11 약관 초안이 오면 교체 | 2026-10-26 |
+| 약관 사업자등록번호 빈칸 | `docs/legal/` 문서의 `[사업자등록번호]` + 노션 페이지 2개 | 사업자등록증 나오면 번호 넣기 (md와 노션 둘 다) | 2026-10-30 |
 | 로그인 전 첫 화면 디자인 (로고·소개 문구) | `src/app/index.tsx` | 디자인 단계에서 교체 (로그인 후 화면은 2026-10-29 홈 탭으로 옮김) | 2026-10-26 (2026-10-29 수정) |
 | 밸런스 탭 준비 중 | `src/app/(tabs)/balance.tsx` | 3단계 밸런스 | 2026-10-29 |
 | 단체 설문 등록 무료 (`cost_survey_create_org` = 0) | `supabase/migrations/20261030000001_survey_create.sql` | Q14 기획팀 답이 오면 point_rules 값 변경 | 2026-10-30 |
@@ -289,5 +289,6 @@ update organizations set reject_reason = '사유' where id = (select id from aut
 - [ ] 위 "임시로 둔 것" 표가 비어 있는지 확인
 - [ ] Supabase Authentication → Users의 테스트 계정 정리
 - [ ] `result_min_count`가 5인지 확인 (dev_tools 10번 "테스트 모드"로 1로 바꿨다면 되돌리기, 2026-10-30)
-- [ ] Google Play "계정 삭제 URL": 앱 밖에서 탈퇴를 요청할 수 있는 웹 페이지(안내 + 문의 메일). Play Console 데이터 보안 양식에 입력 (2026-10-30)
+- [ ] Play Console에 주소 입력: 개인정보처리방침 = `LEGAL_URLS.privacy`, 계정 삭제 = `LEGAL_URLS.deletion` (`src/lib/legal.ts`, 2026-10-30 노션 게시)
 - [ ] 개인정보처리방침: 탈퇴 시 응답은 익명으로 통계에 남고, 공개 결과는 허브에 그대로 남는다는 내용(개인 설문은 "개인" 표시) + 웰컴 중복 방지를 위한 메일 해시 보관 (2026-10-30)
+- [ ] 약관·개인정보처리방침 법률 검토 (창업지원단·무료 법률 상담 등). 초안은 `docs/legal/` (2026-10-30)
