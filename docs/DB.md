@@ -30,6 +30,7 @@
 | `20261030000011_survey_raw.sql` | 등록자 원본 CSV용 `get_survey_raw` (응답 한 명 = 한 줄, 순서 섞음, 5명 미만 그룹 이름 가림) | 2026-10-30 |
 | `20261030000012_my_views.sql` | 마이 탭 "열람한 결과"용 `get_my_views` (내 열람 기록 + 제목·주최) | 2026-10-30 |
 | `20261030000013_org_public.sql` | 단체 설문은 결과 "나만 보기" 불가 (트리거 `surveys_org_visibility`, 테스트 기간 결과 공개 조건으로 무료) | 2026-10-30 |
+| `20261030000014_reports.sql` | 신고: `reports` 표, 설문 `moderation`(보임·숨김·삭제), `report_survey`, n명 신고 시 자동 숨김, 숨긴 설문은 목록·허브·응답에서 막음 | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -186,6 +187,7 @@
 | `get_full_results(p_survey_id)` | 전체 결과: 문항별 집계 + 계열·학년·성별·나이대 나눠 보기(5명 미만 그룹 숨김) + 신뢰 정보. 주관식 원문 없음 | 작성자, 열람한 사람 |
 | `get_survey_raw(p_survey_id)` | 원본 CSV: 응답 한 명 = 한 줄 (계열·학년·성별·나이대 + 문항별 답 글자). 이름·이메일·학교·출생연도·응답 시각·사용자 번호 없음, 줄 순서 섞음, 5명 미만 그룹 이름은 "5명 미만" | 작성자만 |
 | `get_my_views()` | 내가 열람한 설문 목록 (설문 번호·제목·주최·열람 날짜·낸 포인트), 최신순. 다른 학교 "우리 학교만" 설문도 열람했으면 제목이 보인다 | 본인 |
+| `report_survey(p_survey_id, p_reason, p_detail)` | 설문 신고 (사유 spam·abuse·privacy·sexual·other, 설명 200자). 본인 설문·중복 거절. 확인 전 신고가 `report_hide_count`(3)명 이상이면 `moderation = hidden` | 로그인한 사람 |
 | `is_email_registered(p_email)` | 그 메일로 **가입을 마친** 계정이 있으면 true (회원정보 없는 반쪽 계정은 false). 예/아니오만 돌려줌 | 누구나 (로그인 전 포함) |
 
 ### complete_signup 입력 규칙
@@ -276,6 +278,18 @@
 | `invalid_birth_year` | 출생연도가 비었거나 범위 밖 |
 | `demographics_locked` | 성별·출생연도를 이미 입력함 (고치려면 문의) |
 | `org_must_publish` | 단체 설문을 "나만 보기"로 등록·변경하려 함 (테스트 기간 결과 공개 조건) |
+| `report_own_survey` | 내 설문을 신고하려 함 |
+| `already_reported` | 같은 설문을 이미 신고함 |
+| `invalid_reason` | 신고 사유가 목록에 없음 |
+| `survey_hidden` | 신고로 숨긴(또는 삭제한) 설문에 응답하려 함 |
 | `not_listed` | 데이터 허브에서 볼 수 없는 결과 (공개 범위·마감·응답 수 조건) |
 | `not_respondent` | 내 답 비교는 그 설문에 응답한 사람만 |
 | `not_viewed` | 전체 결과는 열람한 뒤에 (view_survey 먼저) |
+
+## 신고 처리 (운영자, 2026-10-30)
+
+1. Table Editor → `reports`에서 `status = pending`인 신고를 본다 (`target_id` = 설문 번호)
+2. `surveys`에서 그 설문을 열어 내용을 확인한다 (`moderation`이 `hidden`이면 신고 3건으로 자동 숨김된 상태)
+3. 문제없음: 설문 `moderation` → `visible`, 그 설문의 신고 `status` → `kept`
+4. 문제있음: 설문 `moderation` → `removed`, 신고 `status` → `removed`
+5. 포인트는 건드리지 않는다 (이미 준 응답 보상 유지, 등록비 환불 없음)

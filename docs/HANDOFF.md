@@ -48,6 +48,7 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 요약 문장 규칙은 `src/lib/resultSummary.ts` (`questionLine`, `biggestGap`, `formatSeconds`)
 - CSV는 `src/lib/csv.ts`: `aggregateCsv`(집계, 열람자·등록자), `rawCsv`(원본, 등록자), `csvFileName`, `shareCsv`(폰 = 공유 창, 웹 = 바로 다운로드). 엑셀 한글 깨짐 방지(BOM), 수식으로 실행될 글자 막기
 - 마이 탭 "열람한 결과"는 `get_my_views` → 누르면 `/data/[id]` (이미 열람해서 전체 결과가 바로 보임)
+- 신고: 화면 `src/app/report.tsx`(ys-160, `?survey=id`), 링크 `ReportLink` (`src/components/ReportLink.tsx`)를 설문 상세·데이터 결과 맨 아래에 (본인 설문 제외). 서버 `report_survey`. 숨긴 설문은 마이 탭 "내가 올린 설문"에 "검토 중"
 - 테스트할 때 응답자가 적으면 `dev_tools.sql` 10번(최소 응답 수 1)으로. 출시 전 5로 되돌리기
 
 ### `formatHost` (`src/lib/surveys.ts`, 2026-10-30)

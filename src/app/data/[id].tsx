@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import ReportLink from "@/components/ReportLink";
 import ResultsView from "@/components/results/ResultsView";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
@@ -171,6 +172,8 @@ export default function HubResult() {
 
       {/* ── 열람 (전체 결과) ── */}
       {full && <ResultsView full={full} title={p.title} host={formatHost(p)} />}
+
+      {!p.mine && <ReportLink surveyId={surveyId} />}
     </ScrollView>
   );
 }

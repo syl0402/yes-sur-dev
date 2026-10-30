@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import ReportLink from "@/components/ReportLink";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints, formatTimeLeft } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
@@ -172,6 +173,8 @@ export default function SurveyDetail() {
           <PrimaryButton title={detail.rejected ? "다시 응답하기" : "참여하기"} onPress={join} />
         )}
       </View>
+
+      {!detail.isOwner && <ReportLink surveyId={Number(id)} />}
     </ScrollView>
   );
 }

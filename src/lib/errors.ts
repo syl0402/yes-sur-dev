@@ -50,6 +50,10 @@ const MESSAGES: Record<string, string> = {
   invalid_gender: "성별을 선택해 주세요.",
   invalid_birth_year: "출생연도를 선택해 주세요.",
   demographics_locked: "이미 입력한 정보예요. 고치려면 문의해 주세요.",
+  report_own_survey: "내 설문은 신고할 수 없어요.",
+  already_reported: "이미 신고한 설문이에요. 운영자가 확인하고 있어요.",
+  invalid_reason: "신고 사유를 골라 주세요.",
+  survey_hidden: "신고가 접수되어 잠시 숨겨진 설문이에요.",
   org_must_publish: "단체 설문은 테스트 기간 동안 결과를 공개하는 조건으로 무료예요.",
 
   // Supabase 인증

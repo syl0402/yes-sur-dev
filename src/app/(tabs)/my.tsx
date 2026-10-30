@@ -39,6 +39,8 @@ type MySurvey = {
   responseCount: number;
   target: number;
   closed: boolean;
+  // 신고로 숨겨짐(운영자 확인 중) 또는 운영자가 삭제
+  moderated: boolean;
 };
 
 // get_my_views 한 줄 (내가 열람한 결과)
@@ -68,7 +70,7 @@ async function fetchMySurveys(userId: string): Promise<MySurvey[]> {
   if (!userId) return [];
   const { data } = await supabase
     .from("surveys")
-    .select("id, title, response_count, target_responses, status, closes_at")
+    .select("id, title, response_count, target_responses, status, closes_at, moderation")
     .eq("owner_id", userId)
     .order("created_at", { ascending: false });
   const now = Date.now();
@@ -78,6 +80,7 @@ async function fetchMySurveys(userId: string): Promise<MySurvey[]> {
     responseCount: s.response_count,
     target: s.target_responses,
     closed: s.status !== "open" || (s.closes_at !== null && new Date(s.closes_at).getTime() <= now),
+    moderated: s.moderation !== "visible",
   }));
 }
 
@@ -265,7 +268,11 @@ export default function My() {
                 응답 {s.responseCount} / {s.target}명
               </Text>
             </View>
-            <Text style={[styles.status, s.closed && styles.statusClosed]}>{s.closed ? "마감" : "진행 중"}</Text>
+            {s.moderated ? (
+              <Text style={[styles.status, styles.statusModerated]}>검토 중</Text>
+            ) : (
+              <Text style={[styles.status, s.closed && styles.statusClosed]}>{s.closed ? "마감" : "진행 중"}</Text>
+            )}
           </Pressable>
         ))
       )}
@@ -385,6 +392,9 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     fontWeight: "600",
     color: colors.primary,
+  },
+  statusModerated: {
+    color: colors.danger,
   },
   statusClosed: {
     color: colors.textMuted,
