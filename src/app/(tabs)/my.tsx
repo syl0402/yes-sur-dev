@@ -41,6 +41,14 @@ type MySurvey = {
   closed: boolean;
 };
 
+// get_my_views 한 줄 (내가 열람한 결과)
+type MyView = {
+  survey_id: number;
+  title: string;
+  viewed_at: string;
+  paid: number;
+};
+
 type MyData = {
   userId: string;
   isOrg: boolean;
@@ -50,6 +58,7 @@ type MyData = {
   balance: number;
   ledger: LedgerItem[];
   surveys: MySurvey[];
+  views: MyView[];
   // 이 폰에 임시저장한 설문 (서버에는 없음)
   drafts: SavedDraft[];
 };
@@ -77,7 +86,7 @@ async function fetchMy(): Promise<MyData> {
   const { data: auth } = await supabase.auth.getUser();
   const userId = auth.user?.id ?? "";
 
-  const [{ data: profile }, { data: org }, { data: balance }, { data: rows }, surveys] = await Promise.all([
+  const [{ data: profile }, { data: org }, { data: balance }, { data: rows }, surveys, { data: views }] = await Promise.all([
     supabase.from("profiles").select("nickname, account_type, gender, birth_year").maybeSingle(),
     supabase.from("organizations").select("name").maybeSingle(),
     supabase.rpc("get_my_balance"),
@@ -88,6 +97,7 @@ async function fetchMy(): Promise<MyData> {
       .order("created_at", { ascending: false })
       .limit(LEDGER_LIMIT),
     fetchMySurveys(userId),
+    supabase.rpc("get_my_views"),
   ]);
 
   // 설문 관련 기록에 설문 이름을 붙인다 (ref_id = 설문 번호, 열람 수익은 "설문번호:열람번호")
@@ -121,6 +131,7 @@ async function fetchMy(): Promise<MyData> {
       };
     }),
     surveys,
+    views: (views as MyView[] | null) ?? [],
     drafts: userId ? listDrafts(userId) : [],
   };
 }
@@ -259,6 +270,29 @@ export default function My() {
         ))
       )}
 
+      {/* 열람한 결과: 포인트를 내고(또는 무료로) 본 결과를 다시 찾기. 있을 때만 */}
+      {data.views.length > 0 && (
+        <>
+          <Text style={styles.sectionTitle}>열람한 결과</Text>
+          {data.views.map((v) => (
+            <Pressable
+              key={v.survey_id}
+              style={styles.ledgerRow}
+              onPress={() => router.push({ pathname: "/data/[id]", params: { id: String(v.survey_id) } })}
+            >
+              <View style={styles.ledgerMain}>
+                <Text style={styles.ledgerLabel} numberOfLines={1}>
+                  {v.title}
+                </Text>
+                <Text style={styles.ledgerDate}>
+                  {formatDate(v.viewed_at)} 열람 · {v.paid > 0 ? formatPoints(v.paid) : "무료"}
+                </Text>
+              </View>
+              <Text style={styles.status}>›</Text>
+            </Pressable>
+          ))}
+        </>
+      )}
     </ScrollView>
   );
 }
