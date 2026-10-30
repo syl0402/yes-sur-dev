@@ -37,6 +37,8 @@
 | `20261030000018_daily.sql` | 오늘의 질문 + 출석: `daily_questions`(오늘까지만 읽기), `daily_answers`(본인만), `get_today_daily`, `answer_daily`(출석 `daily_reward`, `streak_days`일마다 `streak_bonus`), 포인트 이유 `daily_question`·`streak_bonus` | 2026-10-30 |
 | `20261030000019_community.sql` | 커뮤니티 1단계: `posts`(종류 balance·relate·pick), `post_votes`(투표 시점 그룹 저장), `create_post`·`vote_post`·`get_feed`·`get_post`, 포인트 이유 `community`·`creator_bonus`. 앱은 표를 직접 읽지 않음 | 2026-10-30 |
 | `20261030000020_community_comments.sql` | 커뮤니티 2-1: 글 본문(`body`)·작성자 삭제(`deleted`), `comments`·`comment_likes`, `update_post_body`·`delete_post`·`create_comment`·`delete_comment`·`like_comment`·`get_comments`, 글·댓글 신고 `report_content` | 2026-10-30 |
+| `20261030000021_community_safety.sql` | 커뮤니티 2-2: 금칙어 `banned_words`(글·댓글·닉네임 트리거), `change_nickname`(학생, `nickname_change_days`일에 한 번), 오늘의 질문 답에 그룹 저장, (지난 질문 함수는 000022에서 지움) | 2026-10-30 |
+| `20261030000022_daily_today_detail.sql` | 지난 질문 대신 오늘 질문 상세: `get_today_daily`에 `groups`(답한 뒤)·`comment_count`, 지난 질문 함수 삭제, 오늘의 질문 댓글은 오늘 것만 | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -196,7 +198,7 @@
 | `report_survey(p_survey_id, p_reason, p_detail)` | 설문 신고 (사유 spam·abuse·privacy·sexual·other, 설명 200자). 본인 설문·중복 거절. 확인 전 신고가 `report_hide_count`(3)명 이상이면 `moderation = hidden` | 로그인한 사람 |
 | `delete_my_account()` | 회원 탈퇴. 진행 중인 내 설문 마감, "나만 보기" 설문 삭제, 계정 삭제 → 회원정보·포인트·신고·단체 정보 삭제, 응답·설문·열람 기록은 사람 연결만 비워 남김 | 본인 |
 | `send_feedback(p_category, p_body, p_screen, p_device)` | 의견 보내기 (종류 bug·inconvenience·idea·other, 내용 1~1000자, 화면·기기 정보). 하루 `feedback_daily_max`(10)건 | 로그인한 사람 |
-| `get_today_daily()` | 오늘(한국 시간)의 질문, 내 선택, A·B 수(답한 뒤에만), 연속 일수, 포인트 설정값. 질문이 없으면 null | 로그인한 사람 |
+| `get_today_daily()` | 오늘(한국 시간)의 질문, 내 선택, A·B 수·그룹별 결과(답한 뒤에만), 연속 일수, 댓글 수, 포인트 설정값. 질문이 없으면 null | 로그인한 사람 |
 | `answer_daily(p_choice)` | 오늘의 질문에 a/b로 답하기. 학생은 출석 포인트 + 연속 보너스. 한 질문 한 번 (`already_answered`) | 로그인한 사람 |
 | `create_post(p_kind, p_question, p_options)` | 투표 글 만들기 (질문 100자, 보기 30자·2~4개·중복 불가, 나만 그래?는 보기 고정). 하루 `post_daily_max`개 | 로그인한 사람 |
 | `vote_post(p_post_id, p_choice)` | 투표 (한 글 한 표). 학생·남의 글이면 `community_vote`P, 커뮤니티 하루 합산 `community_daily_cap`. 투표 `creator_bonus_every`개마다 학생 작성자 `creator_bonus`P | 로그인한 사람 |
@@ -208,6 +210,7 @@
 | `like_comment(p_comment_id)` | 좋아요 누르기·취소 (내 댓글 불가) | 로그인한 사람 |
 | `get_comments(p_type, p_id)` | `{ best: 좋아요 많은 3개, all: 오래된 순 }` | 로그인한 사람 |
 | `report_content(p_type, p_id, p_reason, p_detail)` | 설문·글·댓글 신고 (설문은 `report_survey`로). `report_hide_count`명이면 자동 숨김 | 로그인한 사람 |
+| `change_nickname(p_nickname)` | 닉네임 바꾸기 (학생만, 2~12자, 금칙어·중복 불가, `nickname_change_days`일에 한 번) | 학생 |
 | `is_email_registered(p_email)` | 그 메일로 **가입을 마친** 계정이 있으면 true (회원정보 없는 반쪽 계정은 false). 예/아니오만 돌려줌 | 누구나 (로그인 전 포함) |
 
 ### complete_signup 입력 규칙
@@ -315,6 +318,9 @@
 | `comment_limit` | 댓글을 하루 최대만큼 담 |
 | `comment_not_found` | 없거나 숨겨진 댓글 (남의 댓글 삭제 포함) |
 | `own_comment` | 내 댓글에 좋아요 |
+| `banned_word` | 글·댓글·닉네임에 금칙어 |
+| `nickname_cooldown` | 닉네임을 바꾼 지 얼마 안 됨 |
+| `nickname_student_only` | 단체 계정이 닉네임을 바꾸려 함 |
 | `not_listed` | 데이터 허브에서 볼 수 없는 결과 (공개 범위·마감·응답 수 조건) |
 | `not_respondent` | 내 답 비교는 그 설문에 응답한 사람만 |
 | `not_viewed` | 전체 결과는 열람한 뒤에 (view_survey 먼저) |
@@ -332,3 +338,7 @@
 1. Table Editor → `feedback`에서 `status = pending`인 의견을 본다 (`screen` = 보낸 화면, `device` = 기기·앱 버전)
 2. `reply`에 답변을 쓰고, `status`를 `answered`(답변함) 또는 `done`(반영함)으로, `replied_at`에 지금 시각
 3. 보낸 사람은 앱의 "의견 보내기 → 내가 보낸 의견"에서 답변을 본다
+
+## 금칙어 추가 (운영자, 2026-10-30)
+
+Table Editor → `banned_words`에 한 줄 추가: `word`(띄어쓰기 없이), `scope` = `all`(글·댓글·닉네임) 또는 `nickname`(닉네임만, 사칭 방지). 바로 적용된다. 이미 올라간 글은 바뀌지 않으니 신고 처리로

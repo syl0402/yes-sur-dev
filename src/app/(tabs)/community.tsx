@@ -1,10 +1,11 @@
-// ys-140 커뮤니티 · F-601 (투표 3종: 밸런스 · 나만 그래? · 골라 줘)
+// ys-140 커뮤니티 · F-601 (오늘의 질문 카드 + 투표 3종: 밸런스 · 나만 그래? · 골라 줘)
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import PostCard from "@/components/community/PostCard";
 import Chips from "@/components/create/Chips";
+import DailyCard from "@/components/DailyCard";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { KIND_LABELS, POST_SORT_OPTIONS, type Post, type PostKind, type PostSort } from "@/lib/community";
 import { supabase } from "@/lib/supabase";
@@ -38,6 +39,9 @@ export default function Community() {
           <Text style={styles.newText}>+ 만들기</Text>
         </Pressable>
       </View>
+
+      {/* 오늘의 질문 (홈과 같은 카드, "전체"일 때만). 누르면 그룹별 결과·댓글 */}
+      {kind === "all" && <DailyCard onOpen={() => router.push("/community/daily")} />}
 
       <Chips options={KIND_FILTERS} selected={kind} onSelect={setKind} />
       <Chips options={POST_SORT_OPTIONS} selected={sort} onSelect={setSort} />

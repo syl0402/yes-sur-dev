@@ -63,7 +63,7 @@ export default function Home() {
       contentContainerStyle={styles.container}
     >
       {/* 오늘의 질문 (예약된 날만). 답하면 포인트가 바뀌니 홈을 다시 불러온다 */}
-      <DailyCard onAnswered={() => fetchHome().then(setData)} />
+      <DailyCard onAnswered={() => fetchHome().then(setData)} onOpen={() => router.push("/community/daily")} />
 
       {/* 내 포인트 (단체는 응답·적립이 없어서 안내로 대신). 누르면 마이 탭의 포인트 내역으로 */}
       <Pressable style={styles.pointBox} onPress={() => router.navigate("/my")} disabled={data.isOrg}>

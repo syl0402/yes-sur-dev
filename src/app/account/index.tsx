@@ -119,6 +119,7 @@ export default function AccountHome() {
 
       <Text style={styles.sectionTitle}>계정</Text>
       <View style={styles.box}>
+        {!account.isOrg && <MenuRow label="닉네임 바꾸기" onPress={() => router.push("/account/nickname")} />}
         <MenuRow label="비밀번호 변경" onPress={() => router.push("/account/password")} />
         <MenuRow
           label="의견 보내기"
