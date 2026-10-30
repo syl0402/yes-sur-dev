@@ -27,6 +27,7 @@
 | `20261030000008_demographics_lock.sql` | 성별·출생연도는 한 번 정하면 고정 (비어 있는 칸만 채움) | 2026-10-30 |
 | `20261030000009_data_hub.sql` | 데이터 허브: 열람 기록 표, 목록·미리보기·내 답 비교·열람(차감·분배)·전체 결과(나눠 보기) 함수 | 2026-10-30 |
 | `20261030000010_closed_at.sql` | 일찍 마감하면 마감일(`closes_at`)을 그 순간으로 (트리거 `surveys_set_closed_at`) | 2026-10-30 |
+| `20261030000011_survey_raw.sql` | 등록자 원본 CSV용 `get_survey_raw` (응답 한 명 = 한 줄, 순서 섞음, 5명 미만 그룹 이름 가림) | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -181,6 +182,7 @@
 | `get_my_comparison(p_survey_id)` | 내 답 비교 (문항별 내 답과 같은 답 비율, 주관식 제외) | 그 설문 응답자 |
 | `view_survey(p_survey_id)` | 전체 열람: 무료 이유가 없으면 `cost_data_view` 차감 → 등록자에게 `data_share_rate` 분배 → `survey_views` 기록. 한 번만. 회원정보 행 잠금 | 볼 수 있는 사람 |
 | `get_full_results(p_survey_id)` | 전체 결과: 문항별 집계 + 계열·학년·성별·나이대 나눠 보기(5명 미만 그룹 숨김) + 신뢰 정보. 주관식 원문 없음 | 작성자, 열람한 사람 |
+| `get_survey_raw(p_survey_id)` | 원본 CSV: 응답 한 명 = 한 줄 (계열·학년·성별·나이대 + 문항별 답 글자). 이름·이메일·학교·출생연도·응답 시각·사용자 번호 없음, 줄 순서 섞음, 5명 미만 그룹 이름은 "5명 미만" | 작성자만 |
 | `is_email_registered(p_email)` | 그 메일로 **가입을 마친** 계정이 있으면 true (회원정보 없는 반쪽 계정은 false). 예/아니오만 돌려줌 | 누구나 (로그인 전 포함) |
 
 ### complete_signup 입력 규칙

@@ -23,6 +23,8 @@ export default function ConfirmStep({ draft, rules, categoryName, cost, balance,
   const { minutes, reward, price } = estimate(draft, rules);
   const hostLabel = formatHost({ host_name: orgName, host_verified: orgName !== null });
   const hasAttention = draft.questions.length >= rules.attention_min_questions;
+  // 다른 사람이 결과를 열람할 때 등록자가 받는 몫 (서버와 같은 계산: 열람료 × 비율, 내림)
+  const shareEach = Math.floor(rules.cost_data_view * rules.data_share_rate);
 
   return (
     <>
@@ -55,6 +57,17 @@ export default function ConfirmStep({ draft, rules, categoryName, cost, balance,
         {isOrg ? "" : "· 개인 설문은 작성자가 '개인'으로만 보여요. 소속을 알리고 싶으면 설명에 적어 주세요.\n"}
         · 등록한 뒤에는 내용을 고칠 수 없어요.
       </Text>
+
+      {/* 등록자 혜택 */}
+      <View style={styles.box}>
+        <Text style={styles.benefitTitle}>등록자만 받는 것</Text>
+        <Text style={formStyles.hint}>
+          · 원본 CSV (응답 한 명 = 한 줄)와 주관식 답 원문{"\n"}
+          {draft.resultVisibility === "private"
+            ? "· 결과를 '나만 보기'로 두면 다른 사람이 열람할 수 없어 열람 수익은 없어요."
+            : `· 다른 사람이 결과를 열람할 때마다 ${formatPoints(shareEach)}씩 받아요.`}
+        </Text>
+      </View>
     </>
   );
 }
@@ -92,6 +105,11 @@ const styles = StyleSheet.create({
   rowValue: {
     fontSize: fontSize.body,
     fontWeight: "600",
+    color: colors.text,
+  },
+  benefitTitle: {
+    fontSize: fontSize.body,
+    fontWeight: "700",
     color: colors.text,
   },
   rowHighlight: {

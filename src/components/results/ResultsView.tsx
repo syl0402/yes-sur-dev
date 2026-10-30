@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import Chips from "@/components/create/Chips";
 import QuestionResult, { Bar, percent, type QuestionStats } from "@/components/results/QuestionResult";
 import { colors, fontSize, spacing } from "@/constants/theme";
+import { aggregateCsv, csvFileName, shareCsv } from "@/lib/csv";
 import { formatDate, formatPoints } from "@/lib/format";
 import { type FullResults, GROUP_DIMS, type GroupDim, sortGroups } from "@/lib/hub";
 import { showNotice } from "@/lib/notice";
@@ -35,6 +36,12 @@ export default function ResultsView({ full, title, host, questions = full.overal
     await Clipboard.setStringAsync(text);
     showNotice("출처를 복사했어요", text);
   };
+
+  // 집계 CSV (화면에 보이는 것과 같은 내용, 5명 미만 그룹은 숨김)
+  const downloadCsv = () =>
+    shareCsv(csvFileName(title, "집계"), aggregateCsv(full)).catch(() =>
+      showNotice("파일을 만들지 못했어요", "잠시 후 다시 시도해 주세요."),
+    );
 
   return (
     <>
@@ -74,9 +81,14 @@ export default function ResultsView({ full, title, host, questions = full.overal
         )}
       </View>
 
-      <Pressable style={styles.copyButton} onPress={copyCitation}>
-        <Text style={styles.copyText}>출처 복사</Text>
-      </Pressable>
+      <View style={styles.actions}>
+        <Pressable style={styles.copyButton} onPress={copyCitation}>
+          <Text style={styles.copyText}>출처 복사</Text>
+        </Pressable>
+        <Pressable style={styles.copyButton} onPress={downloadCsv}>
+          <Text style={styles.copyText}>집계 CSV 받기</Text>
+        </Pressable>
+      </View>
 
       {/* 나눠 보기 */}
       <Chips
@@ -172,7 +184,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.primary,
   },
+  actions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
   copyButton: {
+    flex: 1,
     paddingVertical: spacing.sm,
     borderWidth: 1,
     borderColor: colors.primary,

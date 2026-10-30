@@ -46,6 +46,7 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 나눠 보기 그룹 순서는 `sortGroups` (`src/lib/hub.ts`)
 - 전체 결과 묶음은 `ResultsView` (`src/components/results/ResultsView.tsx`): 응답 정보 · 핵심 요약 · 출처 복사(expo-clipboard) · 나눠 보기 칩 · 문항별 결과. 데이터 결과 화면과 내 결과 화면이 같이 씀
 - 요약 문장 규칙은 `src/lib/resultSummary.ts` (`questionLine`, `biggestGap`, `formatSeconds`)
+- CSV는 `src/lib/csv.ts`: `aggregateCsv`(집계, 열람자·등록자), `rawCsv`(원본, 등록자), `csvFileName`, `shareCsv`(폰 = 공유 창, 웹 = 바로 다운로드). 엑셀 한글 깨짐 방지(BOM), 수식으로 실행될 글자 막기
 - 테스트할 때 응답자가 적으면 `dev_tools.sql` 10번(최소 응답 수 1)으로. 출시 전 5로 되돌리기
 
 ### `formatHost` (`src/lib/surveys.ts`, 2026-10-30)

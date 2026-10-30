@@ -12,6 +12,7 @@ import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
 import { type QuestionStats } from "@/components/results/QuestionResult";
 import ResultsView from "@/components/results/ResultsView";
+import { type RawResults, csvFileName, rawCsv, shareCsv } from "@/lib/csv";
 import { type FullResults } from "@/lib/hub";
 import { type ResultVisibility, VISIBILITY_LABELS } from "@/lib/surveyDraft";
 import { formatHost } from "@/lib/surveys";
@@ -116,6 +117,18 @@ export default function SurveyResults() {
       },
     });
 
+  // 원본 CSV (등록자만): 응답 한 사람 = 한 줄. 서버가 개인 정보는 빼고 순서를 섞어서 보낸다
+  const downloadRaw = async () => {
+    const { data, error } = await supabase.rpc("get_survey_raw", { p_survey_id: surveyId });
+    if (error) {
+      showNotice("파일을 만들지 못했어요", errorMessage(error));
+      return;
+    }
+    await shareCsv(csvFileName(results.title, "원본"), rawCsv(data as RawResults)).catch(() =>
+      showNotice("파일을 만들지 못했어요", "잠시 후 다시 시도해 주세요."),
+    );
+  };
+
   // 결과 공개 범위 바꾸기 (작성자만). 좁혀도 이미 열람한 사람은 계속 볼 수 있다
   const changeVisibility = async (next: ResultVisibility) => {
     if (next === results.visibility) return;
@@ -143,6 +156,12 @@ export default function SurveyResults() {
         <Text style={styles.muted}>
           {results.closed ? "마감됨" : formatTimeLeft(results.closesAt) || "진행 중"}
         </Text>
+        {results.total > 0 && (
+          <Pressable style={styles.rawButton} onPress={downloadRaw}>
+            <Text style={styles.rawText}>원본 CSV 받기 (응답 한 명 = 한 줄)</Text>
+          </Pressable>
+        )}
+        {results.total > 0 && <Text style={styles.hint}>원본과 주관식 답은 등록자만 받을 수 있어요.</Text>}
         {!results.closed && (
           <Pressable style={styles.closeButton} onPress={closeNow} disabled={closing}>
             <Text style={styles.closeText}>{closing ? "마감하는 중…" : "응답 마감하기"}</Text>
@@ -202,6 +221,19 @@ const styles = StyleSheet.create({
     fontSize: fontSize.body,
     fontWeight: "700",
     color: colors.text,
+  },
+  rawButton: {
+    marginTop: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  rawText: {
+    fontSize: fontSize.body,
+    color: colors.primary,
+    fontWeight: "600",
   },
   closeButton: {
     marginTop: spacing.sm,

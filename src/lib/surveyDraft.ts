@@ -50,6 +50,8 @@ export const CREATE_RULE_KEYS = [
   "survey_default_days",
   "attention_min_questions",
   "answer_text_max",
+  "cost_data_view",
+  "data_share_rate",
   "sec_per_choice",
   "sec_per_text",
   "reward_1q",
