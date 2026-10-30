@@ -34,6 +34,7 @@
 | `20261030000015_delete_account.sql` | 회원 탈퇴: 응답에 그룹 저장(응답 시점), 회원 삭제 시 응답·설문·열람 기록은 익명으로 남김, 등록자 빈 설문 대비(허브 목록·전체 결과·열람), 웰컴 한 번만(`welcomed_emails`), `delete_my_account` | 2026-10-30 |
 | `20261030000016_official.sql` | 운영자(`role = admin`) 설문의 주최를 "옛썰 공식"으로 (`survey_host_name`) | 2026-10-30 |
 | `20261030000017_feedback.sql` | 의견 보내기: `feedback` 표(본인만 읽기), `send_feedback`(하루 `feedback_daily_max`건) | 2026-10-30 |
+| `20261030000018_daily.sql` | 오늘의 질문 + 출석: `daily_questions`(오늘까지만 읽기), `daily_answers`(본인만), `get_today_daily`, `answer_daily`(출석 `daily_reward`, `streak_days`일마다 `streak_bonus`), 포인트 이유 `daily_question`·`streak_bonus` | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -193,6 +194,8 @@
 | `report_survey(p_survey_id, p_reason, p_detail)` | 설문 신고 (사유 spam·abuse·privacy·sexual·other, 설명 200자). 본인 설문·중복 거절. 확인 전 신고가 `report_hide_count`(3)명 이상이면 `moderation = hidden` | 로그인한 사람 |
 | `delete_my_account()` | 회원 탈퇴. 진행 중인 내 설문 마감, "나만 보기" 설문 삭제, 계정 삭제 → 회원정보·포인트·신고·단체 정보 삭제, 응답·설문·열람 기록은 사람 연결만 비워 남김 | 본인 |
 | `send_feedback(p_category, p_body, p_screen, p_device)` | 의견 보내기 (종류 bug·inconvenience·idea·other, 내용 1~1000자, 화면·기기 정보). 하루 `feedback_daily_max`(10)건 | 로그인한 사람 |
+| `get_today_daily()` | 오늘(한국 시간)의 질문, 내 선택, A·B 수(답한 뒤에만), 연속 일수, 포인트 설정값. 질문이 없으면 null | 로그인한 사람 |
+| `answer_daily(p_choice)` | 오늘의 질문에 a/b로 답하기. 학생은 출석 포인트 + 연속 보너스. 한 질문 한 번 (`already_answered`) | 로그인한 사람 |
 | `is_email_registered(p_email)` | 그 메일로 **가입을 마친** 계정이 있으면 true (회원정보 없는 반쪽 계정은 false). 예/아니오만 돌려줌 | 누구나 (로그인 전 포함) |
 
 ### complete_signup 입력 규칙
@@ -289,6 +292,9 @@
 | `survey_hidden` | 신고로 숨긴(또는 삭제한) 설문에 응답하려 함 |
 | `invalid_feedback` | 의견 종류나 내용이 비었거나 너무 김 |
 | `feedback_limit` | 의견을 하루 최대 건수만큼 보냄 |
+| `invalid_choice` | 오늘의 질문 보기가 a·b가 아님 |
+| `no_daily` | 오늘 예약된 질문이 없음 |
+| `already_answered` | 오늘의 질문에 이미 답함 |
 | `not_listed` | 데이터 허브에서 볼 수 없는 결과 (공개 범위·마감·응답 수 조건) |
 | `not_respondent` | 내 답 비교는 그 설문에 응답한 사람만 |
 | `not_viewed` | 전체 결과는 열람한 뒤에 (view_survey 먼저) |

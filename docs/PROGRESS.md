@@ -320,6 +320,7 @@ update organizations set reject_reason = '사유' where id = (select id from aut
 - [ ] Supabase Authentication → Users의 테스트 계정 정리
 - [ ] `result_min_count`가 5인지 확인 (dev_tools 10번 "테스트 모드"로 1로 바꿨다면 되돌리기, 2026-10-30)
 - [ ] 11/13: 운영자 계정 준비(팀 메일로 단체 가입 → `dev_tools.sql` 11번) 후 `supabase/seed/official_surveys.sql` **한 번만** 실행 (공식 설문 10개, 기획팀 검토본 `docs/content/공식설문-초안.md` 반영) (2026-10-30)
+- [ ] 11/13: 개발용 오늘의 질문 지우기 `delete from public.daily_questions where day < date '2026-11-14';` (기획팀 검토본 `docs/content/오늘의질문-초안.md` 반영 후 `daily_questions.sql` 다시 확인) (2026-10-30)
 - [ ] Play Console에 주소 입력: 개인정보처리방침 = `LEGAL_URLS.privacy`, 계정 삭제 = `LEGAL_URLS.deletion` (`src/lib/legal.ts`, 2026-10-30 노션 게시)
 - [ ] 개인정보처리방침: 탈퇴 시 응답은 익명으로 통계에 남고, 공개 결과는 허브에 그대로 남는다는 내용(개인 설문은 "개인" 표시) + 웰컴 중복 방지를 위한 메일 해시 보관 (2026-10-30)
 - [ ] 약관·개인정보처리방침 법률 검토 (창업지원단·무료 법률 상담 등). 초안은 `docs/legal/` (2026-10-30)

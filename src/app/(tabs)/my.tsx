@@ -24,6 +24,8 @@ const REASON_LABELS: Record<string, string> = {
   data_view: "데이터 열람",
   data_share: "열람 수익",
   balance_vote: "밸런스 투표",
+  daily_question: "오늘의 질문",
+  streak_bonus: "연속 출석 보너스",
 };
 
 type LedgerItem = {
