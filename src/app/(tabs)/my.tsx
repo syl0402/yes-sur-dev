@@ -190,6 +190,15 @@ export default function My() {
         {data.needsDemographics && <Text style={styles.infoLink}>⚠️ 성별·출생연도를 입력해 주세요</Text>}
       </Pressable>
 
+      {/* 의견 보내기 (테스트 기간 피드백) */}
+      <Pressable
+        style={styles.feedback}
+        onPress={() => router.push({ pathname: "/feedback", params: { from: "마이 탭" } })}
+      >
+        <Text style={styles.feedbackText}>💬 의견 보내기</Text>
+        <Text style={styles.ledgerDate}>불편한 점이나 바라는 기능을 알려 주세요 ›</Text>
+      </Pressable>
+
       {data.isOrg ? (
         <View style={styles.pointBox}>
           <Text style={styles.orgNotice}>단체 계정은 포인트를 쓰지 않아요.</Text>
@@ -329,6 +338,17 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     color: colors.primary,
     fontWeight: "600",
+  },
+  feedback: {
+    padding: spacing.md,
+    borderRadius: 12,
+    backgroundColor: colors.border,
+    gap: 2,
+  },
+  feedbackText: {
+    fontSize: fontSize.body,
+    fontWeight: "700",
+    color: colors.text,
   },
   pointBox: {
     padding: spacing.lg,

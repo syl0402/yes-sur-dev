@@ -120,6 +120,10 @@ export default function AccountHome() {
       <Text style={styles.sectionTitle}>계정</Text>
       <View style={styles.box}>
         <MenuRow label="비밀번호 변경" onPress={() => router.push("/account/password")} />
+        <MenuRow
+          label="의견 보내기"
+          onPress={() => router.push({ pathname: "/feedback", params: { from: "내 정보" } })}
+        />
       </View>
 
       <Text style={styles.sectionTitle}>약관</Text>

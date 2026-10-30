@@ -52,6 +52,7 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 회원 탈퇴: 내 정보 맨 아래 → `src/app/account/delete.tsx`(ys-154). 현재 비밀번호 확인 → `delete_my_account` → `signOut({ scope: "local" })` → 첫 화면. 응답은 `grp_*` 칸에 응답 시점 그룹이 저장되어 탈퇴 후에도 나눠 보기 유지
 - 약관: 원본 글은 `docs/legal/` (노션에 붙여 게시). 앱은 가입 약관 4개 동의(만 14세·이용약관·개인정보·결과 통계 공개) + 요약, 전문은 `openLegal` (`src/lib/legal.ts`, 노션 주소). 내 정보에 이용약관·개인정보처리방침 메뉴
 - 공식 설문: 운영자 = `profiles.role = admin` (`dev_tools.sql` 11번으로 지정). 주최 "옛썰 공식 ✓", 결과 무료 열람. 시작용 10개는 `supabase/seed/official_surveys.sql` (11/13 실행)
+- 의견 보내기: `src/app/feedback.tsx`(ys-170, `?from=화면 이름`). 마이 탭 이름 아래 한 줄 + 내 정보 메뉴. 기기 정보는 `Platform` · `expo-device` · `expo-constants`. 답변은 운영자가 Table Editor에서
 - 테스트할 때 응답자가 적으면 `dev_tools.sql` 10번(최소 응답 수 1)으로. 출시 전 5로 되돌리기
 
 ### `formatHost` (`src/lib/surveys.ts`, 2026-10-30)

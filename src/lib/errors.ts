@@ -50,6 +50,8 @@ const MESSAGES: Record<string, string> = {
   invalid_gender: "성별을 선택해 주세요.",
   invalid_birth_year: "출생연도를 선택해 주세요.",
   demographics_locked: "이미 입력한 정보예요. 고치려면 문의해 주세요.",
+  invalid_feedback: "종류를 고르고 내용을 적어 주세요.",
+  feedback_limit: "오늘은 의견을 충분히 보내 주셨어요. 내일 다시 보내 주세요.",
   report_own_survey: "내 설문은 신고할 수 없어요.",
   already_reported: "이미 신고한 설문이에요. 운영자가 확인하고 있어요.",
   invalid_reason: "신고 사유를 골라 주세요.",

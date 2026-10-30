@@ -33,6 +33,7 @@
 | `20261030000014_reports.sql` | 신고: `reports` 표, 설문 `moderation`(보임·숨김·삭제), `report_survey`, n명 신고 시 자동 숨김, 숨긴 설문은 목록·허브·응답에서 막음 | 2026-10-30 |
 | `20261030000015_delete_account.sql` | 회원 탈퇴: 응답에 그룹 저장(응답 시점), 회원 삭제 시 응답·설문·열람 기록은 익명으로 남김, 등록자 빈 설문 대비(허브 목록·전체 결과·열람), 웰컴 한 번만(`welcomed_emails`), `delete_my_account` | 2026-10-30 |
 | `20261030000016_official.sql` | 운영자(`role = admin`) 설문의 주최를 "옛썰 공식"으로 (`survey_host_name`) | 2026-10-30 |
+| `20261030000017_feedback.sql` | 의견 보내기: `feedback` 표(본인만 읽기), `send_feedback`(하루 `feedback_daily_max`건) | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -191,6 +192,7 @@
 | `get_my_views()` | 내가 열람한 설문 목록 (설문 번호·제목·주최·열람 날짜·낸 포인트), 최신순. 다른 학교 "우리 학교만" 설문도 열람했으면 제목이 보인다 | 본인 |
 | `report_survey(p_survey_id, p_reason, p_detail)` | 설문 신고 (사유 spam·abuse·privacy·sexual·other, 설명 200자). 본인 설문·중복 거절. 확인 전 신고가 `report_hide_count`(3)명 이상이면 `moderation = hidden` | 로그인한 사람 |
 | `delete_my_account()` | 회원 탈퇴. 진행 중인 내 설문 마감, "나만 보기" 설문 삭제, 계정 삭제 → 회원정보·포인트·신고·단체 정보 삭제, 응답·설문·열람 기록은 사람 연결만 비워 남김 | 본인 |
+| `send_feedback(p_category, p_body, p_screen, p_device)` | 의견 보내기 (종류 bug·inconvenience·idea·other, 내용 1~1000자, 화면·기기 정보). 하루 `feedback_daily_max`(10)건 | 로그인한 사람 |
 | `is_email_registered(p_email)` | 그 메일로 **가입을 마친** 계정이 있으면 true (회원정보 없는 반쪽 계정은 false). 예/아니오만 돌려줌 | 누구나 (로그인 전 포함) |
 
 ### complete_signup 입력 규칙
@@ -285,6 +287,8 @@
 | `already_reported` | 같은 설문을 이미 신고함 |
 | `invalid_reason` | 신고 사유가 목록에 없음 |
 | `survey_hidden` | 신고로 숨긴(또는 삭제한) 설문에 응답하려 함 |
+| `invalid_feedback` | 의견 종류나 내용이 비었거나 너무 김 |
+| `feedback_limit` | 의견을 하루 최대 건수만큼 보냄 |
 | `not_listed` | 데이터 허브에서 볼 수 없는 결과 (공개 범위·마감·응답 수 조건) |
 | `not_respondent` | 내 답 비교는 그 설문에 응답한 사람만 |
 | `not_viewed` | 전체 결과는 열람한 뒤에 (view_survey 먼저) |
@@ -296,3 +300,9 @@
 3. 문제없음: 설문 `moderation` → `visible`, 그 설문의 신고 `status` → `kept`
 4. 문제있음: 설문 `moderation` → `removed`, 신고 `status` → `removed`
 5. 포인트는 건드리지 않는다 (이미 준 응답 보상 유지, 등록비 환불 없음)
+
+## 의견 답변 (운영자, 2026-10-30)
+
+1. Table Editor → `feedback`에서 `status = pending`인 의견을 본다 (`screen` = 보낸 화면, `device` = 기기·앱 버전)
+2. `reply`에 답변을 쓰고, `status`를 `answered`(답변함) 또는 `done`(반영함)으로, `replied_at`에 지금 시각
+3. 보낸 사람은 앱의 "의견 보내기 → 내가 보낸 의견"에서 답변을 본다
