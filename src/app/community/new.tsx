@@ -7,7 +7,7 @@ import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
 import PrimaryButton from "@/components/PrimaryButton";
 import { colors, fontSize, spacing } from "@/constants/theme";
-import { KIND_HINTS, KIND_LABELS, type PostKind } from "@/lib/community";
+import { KIND_HINTS, KIND_LABELS, POST_BODY_MAX, type PostKind } from "@/lib/community";
 import { errorMessage } from "@/lib/errors";
 import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
@@ -22,6 +22,7 @@ const KINDS = (Object.keys(KIND_LABELS) as PostKind[]).map((k) => ({ value: k, l
 export default function NewPost() {
   const [kind, setKind] = useState<PostKind>("balance");
   const [question, setQuestion] = useState("");
+  const [body, setBody] = useState("");
   const [options, setOptions] = useState<string[]>(["", ""]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
@@ -53,6 +54,7 @@ export default function NewPost() {
       p_kind: kind,
       p_question: question.trim(),
       p_options: needsOptions ? filled : undefined,
+      p_body: body.trim() || undefined,
     });
     setSending(false);
     if (sendError) {
@@ -83,6 +85,16 @@ export default function NewPost() {
         onChangeText={setQuestion}
         placeholder={kind === "relate" ? "나만 그런지 궁금한 상황을 적어 주세요" : "무엇을 물어볼까요?"}
         maxLength={QUESTION_MAX}
+      />
+
+      <Text style={formStyles.label}>내용 (선택)</Text>
+      <TextInput
+        style={[formStyles.input, formStyles.multiline]}
+        value={body}
+        onChangeText={setBody}
+        placeholder="상황이나 이유를 덧붙여 주세요"
+        maxLength={POST_BODY_MAX}
+        multiline
       />
 
       {needsOptions ? (

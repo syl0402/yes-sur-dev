@@ -15,10 +15,12 @@ type Props = {
   onVoted: () => void;
   // 카드 전체를 눌렀을 때 (목록에서는 상세로). 없으면 누를 수 없음
   onOpen?: () => void;
+  // 상세 화면: 본문을 줄이지 않고 다 보여 준다
+  full?: boolean;
 };
 
 // 투표 글 카드: 투표 전엔 보기 버튼, 투표 후(또는 내 글)엔 비율 막대
-export default function PostCard({ post, onVoted, onOpen }: Props) {
+export default function PostCard({ post, onVoted, onOpen, full }: Props) {
   const [sending, setSending] = useState(false);
   const [earned, setEarned] = useState<number | null>(null);
   const showResult = post.counts !== null;
@@ -45,9 +47,15 @@ export default function PostCard({ post, onVoted, onOpen }: Props) {
         <Text style={styles.meta}>
           {post.author}
           {post.mine ? " (나)" : ""} · {post.votes}명 참여
+          {post.comment_count > 0 ? ` · 댓글 ${post.comment_count}` : ""}
         </Text>
       </View>
       <Text style={styles.question}>{post.question}</Text>
+      {post.body ? (
+        <Text style={styles.body} numberOfLines={full ? undefined : 3}>
+          {post.body}
+        </Text>
+      ) : null}
 
       {showResult ? (
         <View style={styles.results}>
@@ -117,6 +125,10 @@ const styles = StyleSheet.create({
   question: {
     fontSize: fontSize.body,
     fontWeight: "700",
+    color: colors.text,
+  },
+  body: {
+    fontSize: fontSize.body,
     color: colors.text,
   },
   buttonsRow: {

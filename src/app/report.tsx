@@ -1,4 +1,4 @@
-// ys-160 신고 · F-801 (지금은 설문만. 서로 다른 n명이 신고하면 자동 숨김 → 운영자 확인)
+// ys-160 신고 · F-801 (설문 · 커뮤니티 글 · 댓글. 서로 다른 n명이 신고하면 자동 숨김 → 운영자 확인)
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput } from "react-native";
@@ -23,8 +23,18 @@ const REASONS: { value: Reason; label: string }[] = [
 
 const DETAIL_MAX = 200;
 
+// 신고 대상 종류 → 화면 제목
+const TITLES: Record<string, string> = {
+  survey: "설문 신고",
+  post: "글 신고",
+  comment: "댓글 신고",
+};
+
 export default function Report() {
-  const { survey } = useLocalSearchParams<{ survey: string }>();
+  // ?survey=번호 (설문, 예전 방식) 또는 ?type=post|comment&id=번호
+  const params = useLocalSearchParams<{ survey?: string; type?: string; id?: string }>();
+  const type = params.survey ? "survey" : (params.type ?? "survey");
+  const targetId = Number(params.survey ?? params.id);
   const [reason, setReason] = useState<Reason | null>(null);
   const [detail, setDetail] = useState("");
   const [sending, setSending] = useState(false);
@@ -34,8 +44,9 @@ export default function Report() {
     if (!reason || sending) return;
     setSending(true);
     setError("");
-    const { error: reportError } = await supabase.rpc("report_survey", {
-      p_survey_id: Number(survey),
+    const { error: reportError } = await supabase.rpc("report_content", {
+      p_type: type,
+      p_id: targetId,
       p_reason: reason,
       p_detail: detail.trim() || undefined,
     });
@@ -54,7 +65,7 @@ export default function Report() {
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
     >
-      <Stack.Screen options={{ title: "설문 신고" }} />
+      <Stack.Screen options={{ title: TITLES[type] ?? "신고" }} />
 
       <Text style={formStyles.label}>신고 사유</Text>
       <Chips options={REASONS} selected={reason} onSelect={setReason} />

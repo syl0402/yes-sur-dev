@@ -31,12 +31,33 @@ export type Post = {
   id: number;
   kind: PostKind;
   question: string;
+  // 본문 (선택)
+  body: string | null;
   options: string[];
   author: string;
   mine: boolean;
   created_at: string;
   votes: number;
+  comment_count: number;
   my_choice: number | null;
   counts: number[] | null;
   groups?: Record<GroupDim, PostGroup[]> | null;
 };
+
+// 댓글 대상: 커뮤니티 글 / 지난 오늘의 질문
+export type CommentTarget = "post" | "daily";
+
+// get_comments 한 줄
+export type Comment = {
+  id: number;
+  body: string;
+  author: string;
+  mine: boolean;
+  likes: number;
+  liked: boolean;
+  created_at: string;
+};
+
+// 본문·댓글 글자 수 (서버와 같은 규칙)
+export const POST_BODY_MAX = 500;
+export const COMMENT_MAX = 200;

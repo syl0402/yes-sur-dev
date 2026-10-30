@@ -55,6 +55,7 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 의견 보내기: `src/app/feedback.tsx`(ys-170, `?from=화면 이름`). 마이 탭 이름 아래 한 줄 + 내 정보 메뉴. 기기 정보는 `Platform` · `expo-device` · `expo-constants`. 답변은 운영자가 Table Editor에서
 - 오늘의 질문: 홈 맨 위 `DailyCard` (`src/components/DailyCard.tsx`) → `get_today_daily` / `answer_daily`. 질문 예약은 `supabase/seed/daily_questions.sql` 또는 Table Editor → `daily_questions` (날짜 하나에 질문 하나)
 - 커뮤니티 (2026-10-30 밸런스 탭 → 커뮤니티 탭): 피드 `src/app/(tabs)/community.tsx`, 글 `community/[id].tsx`, 만들기 `community/new.tsx`, 카드 `PostCard` (`src/components/community/`). 타입·라벨 `src/lib/community.ts`. `sortGroups`는 그룹 모양과 상관없이 씀 (`src/lib/hub.ts`)
+- 커뮤니티 댓글: `Comments` (`src/components/community/Comments.tsx`, `type` = post·daily). 글 ⋯ 메뉴는 `showActions` (`src/lib/confirm.ts`). 본문 수정 `community/edit.tsx`. 신고 화면은 `?type=post|comment&id=` 또는 예전 `?survey=`
 - 테스트할 때 응답자가 적으면 `dev_tools.sql` 10번(최소 응답 수 1)으로. 출시 전 5로 되돌리기
 
 ### `formatHost` (`src/lib/surveys.ts`, 2026-10-30)

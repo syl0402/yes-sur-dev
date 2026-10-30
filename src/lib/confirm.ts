@@ -39,6 +39,21 @@ type ChoiceOptions = {
   cancelLabel: string;
 };
 
+type Action = { label: string; onPress: () => void; destructive?: boolean };
+
+// 더보기(⋯) 메뉴: 할 일 여러 개 + 닫기. 웹 미리보기는 하나씩 브라우저 확인 창으로 묻는다
+export function showActions(title: string, actions: Action[]) {
+  if (Platform.OS === "web") {
+    const picked = actions.find((a) => window.confirm(`${title}\n\n${a.label}?`));
+    picked?.onPress();
+    return;
+  }
+  Alert.alert(title, undefined, [
+    ...actions.map((a) => ({ text: a.label, style: a.destructive ? ("destructive" as const) : ("default" as const), onPress: a.onPress })),
+    { text: "닫기", style: "cancel" as const },
+  ]);
+}
+
 // 버튼 세 개짜리 선택 창 (권하는 것 · 되돌릴 수 없는 것 · 취소).
 // 웹 미리보기는 브라우저 확인 창을 두 번 띄워 대신한다
 export function showChoice({ title, message, primary, destructive, cancelLabel }: ChoiceOptions) {
