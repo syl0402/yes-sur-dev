@@ -196,7 +196,6 @@
 | 로그인 전 첫 화면 디자인 (로고·소개 문구) | `src/app/index.tsx` | 디자인 단계에서 교체 (로그인 후 화면은 2026-10-29 홈 탭으로 옮김) | 2026-10-26 (2026-10-29 수정) |
 | 밸런스 탭 준비 중 | `src/app/(tabs)/balance.tsx` | 3단계 밸런스 | 2026-10-29 |
 | 단체 설문 등록 무료 (`cost_survey_create_org` = 0) | `supabase/migrations/20261030000001_survey_create.sql` | Q14 기획팀 답이 오면 point_rules 값 변경 | 2026-10-30 |
-| 내 정보에 회원 탈퇴 없음 | `src/app/account/index.tsx` | "탈퇴·신고·약관" 단계(11/12 전)에서 추가 (Google Play 계정 삭제 정책) | 2026-10-30 |
 | 단체 설문은 "나만 보기" 불가 (결과 공개 조건으로 무료) | `supabase/migrations/20261030000013_org_public.sql` (트리거), `src/components/create/SettingsStep.tsx`, `src/app/survey/results.tsx` | Q14 기획팀 답이 오면 "나만 보기 = 유료"로 | 2026-10-30 |
 | 포인트 내역 최근 50개만 | `src/app/(tabs)/my.tsx` | 내역이 많아지면 아래로 내릴 때 더 불러오기 | 2026-10-29 |
 | 탭 아이콘 (Ionicons 기본) | `src/constants/icons.ts` | 디자인팀 아이콘 확정 시 이름만 교체 (직접 그린 아이콘은 `AppIcon.tsx`) | 2026-10-29 |
@@ -290,3 +289,5 @@ update organizations set reject_reason = '사유' where id = (select id from aut
 - [ ] 위 "임시로 둔 것" 표가 비어 있는지 확인
 - [ ] Supabase Authentication → Users의 테스트 계정 정리
 - [ ] `result_min_count`가 5인지 확인 (dev_tools 10번 "테스트 모드"로 1로 바꿨다면 되돌리기, 2026-10-30)
+- [ ] Google Play "계정 삭제 URL": 앱 밖에서 탈퇴를 요청할 수 있는 웹 페이지(안내 + 문의 메일). Play Console 데이터 보안 양식에 입력 (2026-10-30)
+- [ ] 개인정보처리방침: 탈퇴 시 응답은 익명으로 통계에 남고, 공개 결과는 허브에 그대로 남는다는 내용(개인 설문은 "개인" 표시) + 웰컴 중복 방지를 위한 메일 해시 보관 (2026-10-30)

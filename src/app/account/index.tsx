@@ -1,4 +1,4 @@
-// ys-151 내 정보 · 회원정보 보기·비밀번호 변경·로그아웃 (2026-10-30)
+// ys-151 내 정보 · 회원정보 보기·비밀번호 변경·로그아웃·회원 탈퇴 (2026-10-30)
 import { Stack, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -119,11 +119,15 @@ export default function AccountHome() {
       <Text style={styles.sectionTitle}>계정</Text>
       <View style={styles.box}>
         <MenuRow label="비밀번호 변경" onPress={() => router.push("/account/password")} />
-        {/* TODO(임시): 회원 탈퇴 · "탈퇴·신고·약관" 단계(11/12 전)에서 이 자리에 추가 · Google Play 계정 삭제 정책 */}
       </View>
 
       <Pressable onPress={logout} style={styles.logout}>
         <Text style={styles.logoutText}>로그아웃</Text>
+      </Pressable>
+
+      {/* 회원 탈퇴 (Google Play 계정 삭제 정책: 앱 안에서 할 수 있어야 함) */}
+      <Pressable onPress={() => router.push("/account/delete")} hitSlop={8} style={styles.deleteLink}>
+        <Text style={styles.deleteText}>회원 탈퇴</Text>
       </Pressable>
     </ScrollView>
   );
@@ -220,5 +224,14 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: fontSize.body,
     color: colors.textMuted,
+  },
+  deleteLink: {
+    alignSelf: "center",
+    paddingVertical: spacing.sm,
+  },
+  deleteText: {
+    fontSize: fontSize.small,
+    color: colors.textMuted,
+    textDecorationLine: "underline",
   },
 });

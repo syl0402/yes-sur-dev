@@ -31,6 +31,7 @@
 | `20261030000012_my_views.sql` | 마이 탭 "열람한 결과"용 `get_my_views` (내 열람 기록 + 제목·주최) | 2026-10-30 |
 | `20261030000013_org_public.sql` | 단체 설문은 결과 "나만 보기" 불가 (트리거 `surveys_org_visibility`, 테스트 기간 결과 공개 조건으로 무료) | 2026-10-30 |
 | `20261030000014_reports.sql` | 신고: `reports` 표, 설문 `moderation`(보임·숨김·삭제), `report_survey`, n명 신고 시 자동 숨김, 숨긴 설문은 목록·허브·응답에서 막음 | 2026-10-30 |
+| `20261030000015_delete_account.sql` | 회원 탈퇴: 응답에 그룹 저장(응답 시점), 회원 삭제 시 응답·설문·열람 기록은 익명으로 남김, 등록자 빈 설문 대비(허브 목록·전체 결과·열람), 웰컴 한 번만(`welcomed_emails`), `delete_my_account` | 2026-10-30 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -188,6 +189,7 @@
 | `get_survey_raw(p_survey_id)` | 원본 CSV: 응답 한 명 = 한 줄 (계열·학년·성별·나이대 + 문항별 답 글자). 이름·이메일·학교·출생연도·응답 시각·사용자 번호 없음, 줄 순서 섞음, 5명 미만 그룹 이름은 "5명 미만" | 작성자만 |
 | `get_my_views()` | 내가 열람한 설문 목록 (설문 번호·제목·주최·열람 날짜·낸 포인트), 최신순. 다른 학교 "우리 학교만" 설문도 열람했으면 제목이 보인다 | 본인 |
 | `report_survey(p_survey_id, p_reason, p_detail)` | 설문 신고 (사유 spam·abuse·privacy·sexual·other, 설명 200자). 본인 설문·중복 거절. 확인 전 신고가 `report_hide_count`(3)명 이상이면 `moderation = hidden` | 로그인한 사람 |
+| `delete_my_account()` | 회원 탈퇴. 진행 중인 내 설문 마감, "나만 보기" 설문 삭제, 계정 삭제 → 회원정보·포인트·신고·단체 정보 삭제, 응답·설문·열람 기록은 사람 연결만 비워 남김 | 본인 |
 | `is_email_registered(p_email)` | 그 메일로 **가입을 마친** 계정이 있으면 true (회원정보 없는 반쪽 계정은 false). 예/아니오만 돌려줌 | 누구나 (로그인 전 포함) |
 
 ### complete_signup 입력 규칙
