@@ -1,10 +1,11 @@
 // ys-155 닉네임 바꾸기 · F-104 (학생만, n일에 한 번. 커뮤니티 글·댓글에 보이는 이름)
 import { Stack, router } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet } from "react-native";
 
 import { formStyles } from "@/components/create/formStyles";
 import PrimaryButton from "@/components/PrimaryButton";
+import { Text, TextInput } from "@/components/ui/Text";
 import { colors, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { formatDate } from "@/lib/format";

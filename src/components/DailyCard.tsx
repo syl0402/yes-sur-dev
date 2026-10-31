@@ -1,10 +1,11 @@
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { percent } from "@/components/results/QuestionResult";
+import { Text } from "@/components/ui/Text";
 import type { PostGroup } from "@/lib/community";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { formatPoints } from "@/lib/format";
 import type { GroupDim } from "@/lib/hub";
@@ -144,18 +145,26 @@ export default function DailyCard({ onAnswered, onOpen, onLoaded }: Props) {
 const styles = StyleSheet.create({
   card: {
     padding: spacing.md,
-    borderRadius: 12,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     gap: spacing.sm,
+    ...shadow.card,
   },
   eyebrow: {
-    fontSize: fontSize.small,
+    alignSelf: "flex-start",
+    paddingVertical: 3,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.pill,
+    backgroundColor: colors.accentSoft,
+    fontSize: fontSize.caption,
     fontWeight: "700",
-    color: colors.primary,
+    color: colors.onAccentSoft,
+    overflow: "hidden",
   },
   question: {
-    fontSize: fontSize.body,
+    fontSize: fontSize.subtitle,
     fontWeight: "700",
     color: colors.text,
   },
@@ -166,18 +175,19 @@ const styles = StyleSheet.create({
   choice: {
     flex: 1,
     paddingVertical: spacing.md,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.primarySoft,
     alignItems: "center",
   },
   choicePressed: {
-    borderColor: colors.primary,
+    opacity: 0.7,
   },
   choiceText: {
     fontSize: fontSize.body,
-    fontWeight: "600",
-    color: colors.text,
+    fontWeight: "700",
+    color: colors.primary,
+    textAlign: "center",
   },
   results: {
     gap: spacing.sm,
@@ -203,13 +213,14 @@ const styles = StyleSheet.create({
   },
   track: {
     height: 10,
-    borderRadius: 5,
+    borderRadius: radius.pill,
     backgroundColor: colors.border,
     overflow: "hidden",
   },
   fill: {
     height: "100%",
-    backgroundColor: colors.textMuted,
+    borderRadius: radius.pill,
+    backgroundColor: colors.textSubtle,
   },
   fillMine: {
     backgroundColor: colors.primary,

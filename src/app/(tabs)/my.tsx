@@ -1,8 +1,9 @@
 // ys-150 마일리지 지갑 · F-701
 import { type Href, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { formatDate, formatPoints } from "@/lib/format";

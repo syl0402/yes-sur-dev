@@ -14,3 +14,12 @@ export const tabIcons = {
   data: "bar-chart-outline",
   my: "person-outline",
 } satisfies Record<string, IconName>;
+
+// 홈 바로가기·설문 카드 (2026-10-31 디자인)
+export const homeIcons = {
+  surveys: "clipboard-outline",
+  create: "add",
+  data: "bar-chart-outline",
+  time: "time-outline",
+  sparkle: "sparkles",
+} satisfies Record<string, IconName>;

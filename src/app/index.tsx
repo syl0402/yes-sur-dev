@@ -1,7 +1,8 @@
 import { Redirect, router, Stack } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { useSession } from "@/hooks/useSession";
 

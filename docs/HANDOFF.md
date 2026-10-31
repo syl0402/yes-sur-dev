@@ -80,6 +80,30 @@ formatHost(survey); // "경영학과 학생회 ✓" 또는 "개인"
 ### 포인트 내역 (마이 탭 `src/app/(tabs)/my.tsx`, 2026-10-29)
 `point_ledger`(본인 것만 읽힘)의 confirmed 기록을 최신순으로. 설문 응답 기록은 `ref_id`(설문 번호)로 설문 이름을 붙인다.
 
+### `Text`, `TextInput` (`src/components/ui/Text.tsx`, 2026-10-31)
+앱 글꼴(Pretendard)을 입힌 글자·입력칸. **react-native의 Text·TextInput 대신 항상 이것**을 쓴다 (lint가 막음). 굵기는 `fontWeight` "400"·"600"·"700"·"800". 글꼴은 `src/app/_layout.tsx`에서 불러온다. 색·둥글기·그림자는 `src/constants/theme.ts`(`colors`, `radius`, `shadow`).
+```tsx
+import { Text, TextInput } from "@/components/ui/Text";
+```
+
+### 디자인 공통 부품 (`src/components/ui/`, 2026-10-31)
+화면을 새로 만들거나 고칠 때 먼저 이걸 쓴다.
+| 부품 | 쓰임 |
+|---|---|
+| `Card` | 흰 카드 (`onPress` 주면 누를 수 있음) |
+| `Button` | `variant` primary(파랑)·soft(연파랑)·outline(테두리), `small`, `loading` |
+| `Chip` | 알약 선택 칩 (`selected`). 여러 개 묶음은 `create/Chips` |
+| `Segmented` | 탭 전환 (진행 중·완료 등) |
+| `Badge` | 상태 표시 `tone` primary·accent·muted·danger |
+| `ProgressBar` | 진행 막대 `value` 0~1 |
+| `OptionRow` | 선택지 카드 (동그라미, `multiple`이면 네모 체크) |
+| `StatTile` | 숫자 카드 (이름 + 큰 숫자) |
+| `SectionHeader` | 묶음 제목 + 설명 + "전체 보기 ›" |
+| `EmptyState` | 빈 목록 안내 (그림 + 제목 + 설명) |
+| `Logo` | 제목줄 로고 |
+
+설문 한 개 카드는 `src/components/SurveyListCard.tsx` (홈·설문 목록 공용).
+
 ### `PrimaryButton` (`src/components/PrimaryButton.tsx`)
 큰 파란 버튼. `disabled`면 회색, `loading`이면 돌아가는 표시 + 누르기 막힘(연타 방지).
 ```tsx

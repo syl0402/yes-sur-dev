@@ -1,11 +1,12 @@
 // ys-142 글 만들기 · F-603 (밸런스 · 나만 그래? · 골라 줘 · 설문 홍보)
 import { Stack, router } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
 import PrimaryButton from "@/components/PrimaryButton";
+import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { KIND_HINTS, KIND_LABELS, POST_BODY_MAX, type PostKind } from "@/lib/community";
 import { errorMessage } from "@/lib/errors";

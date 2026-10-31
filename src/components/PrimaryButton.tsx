@@ -1,6 +1,4 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
-
-import { colors, fontSize, spacing } from "@/constants/theme";
+import Button from "@/components/ui/Button";
 
 type Props = {
   title: string;
@@ -10,37 +8,7 @@ type Props = {
   loading?: boolean;
 };
 
-export default function PrimaryButton({ title, onPress, disabled, loading }: Props) {
-  const inactive = disabled || loading;
-
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={inactive}
-      style={[styles.button, inactive && styles.inactive]}
-    >
-      {loading ? (
-        <ActivityIndicator color={colors.onPrimary} />
-      ) : (
-        <Text style={styles.title}>{title}</Text>
-      )}
-    </Pressable>
-  );
+// 큰 파란 버튼 (예전 이름 그대로. 새 화면은 @/components/ui/Button을 써도 된다)
+export default function PrimaryButton(props: Props) {
+  return <Button {...props} />;
 }
-
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: spacing.md,
-    alignItems: "center",
-  },
-  inactive: {
-    backgroundColor: colors.disabled,
-  },
-  title: {
-    color: colors.onPrimary,
-    fontSize: fontSize.body,
-    fontWeight: "600",
-  },
-});

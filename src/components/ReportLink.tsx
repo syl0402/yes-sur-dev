@@ -1,6 +1,7 @@
 import { router } from "expo-router";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 
 // 화면 맨 아래 작은 "이 설문 신고하기" (설문 상세·데이터 결과). 본인 설문에는 쓰지 않는다

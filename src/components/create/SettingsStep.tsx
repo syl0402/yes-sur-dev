@@ -1,7 +1,8 @@
-import { Text, TextInput, View } from "react-native";
+import { View } from "react-native";
 
 import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
+import { Text, TextInput } from "@/components/ui/Text";
 import { formatPoints } from "@/lib/format";
 import { type SurveyDraft, VISIBILITY_LABELS, estimate } from "@/lib/surveyDraft";
 

@@ -221,12 +221,13 @@
 | --- | --- | --- | --- |
 | 학교 목록 중 메일 주소 추정 4곳 (명지대·가톨릭대·동덕여대·서울여대) | `supabase/seed/universities.sql` | 그 학교 학생에게 실제 주소 확인 | 2026-10-31 |
 | 인증번호 메일을 Gmail SMTP로 발송 | Supabase 대시보드 SMTP 설정 | 출시 전 도메인 구매 → Resend 등 발송 서비스로 | 2026-10-26 |
-| 기본 색·글자 크기 | `src/constants/theme.ts` | 디자인 시안이 나오면 교체 | 2026-10-26 |
 | 약관 사업자등록번호 빈칸 | `docs/legal/` 문서의 `[사업자등록번호]` + 노션 페이지 2개 | 사업자등록증 나오면 번호 넣기 (md와 노션 둘 다) | 2026-10-30 |
 | 로그인 전 첫 화면 디자인 (로고·소개 문구) | `src/app/index.tsx` | 디자인 단계에서 교체 (로그인 후 화면은 2026-10-29 홈 탭으로 옮김) | 2026-10-26 (2026-10-29 수정) |
 | 단체 설문 등록 무료 (`cost_survey_create_org` = 0) | `supabase/migrations/20261030000001_survey_create.sql` | Q14 기획팀 답이 오면 point_rules 값 변경 | 2026-10-30 |
 | 단체 설문은 "나만 보기" 불가 (결과 공개 조건으로 무료) | `supabase/migrations/20261030000013_org_public.sql` (트리거), `src/components/create/SettingsStep.tsx`, `src/app/survey/results.tsx` | Q14 기획팀 답이 오면 "나만 보기 = 유료"로 | 2026-10-30 |
 | 첫 사용 안내 그림 (이모지 + 글자) | `src/app/onboarding.tsx` | 디자인 시안(11/7)이 오면 그림으로 | 2026-10-31 |
+| 홈 제목줄 로고 (글자로 만든 로고) | `src/components/ui/Logo.tsx` | 디자인팀 로고 PNG(배경 없음)를 받으면 그림으로 | 2026-10-31 |
+| 빈 화면 그림 (이모지) | `src/components/ui/EmptyState.tsx` | 디자인팀 마스코트(옛썰이) PNG를 받으면 그림으로 | 2026-10-31 |
 | 포인트 내역 최근 50개만 | `src/app/(tabs)/my.tsx` | 내역이 많아지면 아래로 내릴 때 더 불러오기 | 2026-10-29 |
 | 탭 아이콘 (Ionicons 기본) | `src/constants/icons.ts` | 디자인팀 아이콘 확정 시 이름만 교체 (직접 그린 아이콘은 `AppIcon.tsx`) | 2026-10-29 |
 | 다크 모드 꺼 둠 (`userInterfaceStyle: "light"`) | `app.json` (JSON이라 주석 불가) | 다크 모드 디자인이 생기면 `"automatic"`으로 | 2026-10-27 |

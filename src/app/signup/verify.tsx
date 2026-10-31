@@ -1,10 +1,11 @@
 // ys-001 회원가입 · F-102 인증번호 확인
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import StepIndicator from "@/components/StepIndicator";
+import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { showNotice } from "@/lib/notice";

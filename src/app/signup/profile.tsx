@@ -1,11 +1,12 @@
 // ys-001 회원가입 · F-103 회원정보 입력
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import StepIndicator from "@/components/StepIndicator";
 import YearPicker from "@/components/YearPicker";
+import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { GENDER_OPTIONS, type Gender, birthYearOptions } from "@/lib/demographics";
 import { errorMessage } from "@/lib/errors";

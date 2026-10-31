@@ -1,8 +1,9 @@
 // ys-157 포인트 안내 · F-702 (모으는 법·쓰는 법·규칙. 숫자는 모두 point_rules에서)
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
 import { fetchRules } from "@/lib/rules";

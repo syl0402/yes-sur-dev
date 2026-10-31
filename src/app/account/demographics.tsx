@@ -1,10 +1,11 @@
 // ys-152 성별·출생연도 입력 (기존 회원 한 번만) · 데이터 허브 나눠 보기용 (2026-10-30)
 import { Stack, router } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import YearPicker from "@/components/YearPicker";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { GENDER_OPTIONS, type Gender, birthYearOptions } from "@/lib/demographics";
 import { errorMessage } from "@/lib/errors";

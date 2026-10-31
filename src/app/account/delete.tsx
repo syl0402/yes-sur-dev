@@ -1,9 +1,10 @@
 // ys-154 회원 탈퇴 · F-106 (Google Play 계정 삭제 정책) · 현재 비밀번호 확인 후 서버가 처리 (2026-10-30)
 import { Stack, router } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";

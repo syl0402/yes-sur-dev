@@ -1,11 +1,12 @@
 // ys-160 신고 · F-801 (설문 · 커뮤니티 글 · 댓글. 서로 다른 n명이 신고하면 자동 숨김 → 운영자 확인)
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 
 import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
 import PrimaryButton from "@/components/PrimaryButton";
+import { Text, TextInput } from "@/components/ui/Text";
 import { colors, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { showNotice } from "@/lib/notice";

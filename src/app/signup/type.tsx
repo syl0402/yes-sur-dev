@@ -1,8 +1,9 @@
 // ys-001 회원가입 · F-101 가입 유형 선택 (학생 / 단체)
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { Pressable, ScrollView, StyleSheet } from "react-native";
 
 import StepIndicator from "@/components/StepIndicator";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 
 type SignupType = "student" | "org";

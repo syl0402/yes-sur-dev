@@ -1,7 +1,8 @@
-import { Text, TextInput, View } from "react-native";
+import { View } from "react-native";
 
 import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
+import { Text, TextInput } from "@/components/ui/Text";
 import { DESCRIPTION_MAX, type SurveyDraft, TITLE_MAX, TITLE_MIN } from "@/lib/surveyDraft";
 
 type Props = {

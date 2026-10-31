@@ -1,5 +1,6 @@
-import { Linking, type StyleProp, StyleSheet, Text, type TextStyle } from "react-native";
+import { Linking, type StyleProp, StyleSheet, type TextStyle } from "react-native";
 
+import { Text } from "@/components/ui/Text";
 import { colors } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 

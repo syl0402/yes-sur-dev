@@ -1,8 +1,9 @@
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import LinkedText from "@/components/LinkedText";
+import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { type Comment, COMMENT_MAX, type CommentTarget } from "@/lib/community";
 import { showActions, showConfirm } from "@/lib/confirm";

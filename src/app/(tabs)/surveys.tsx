@@ -1,8 +1,9 @@
 // ys-110 설문 목록 · F-202~204
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints, formatTimeLeft } from "@/lib/format";
 import { supabase } from "@/lib/supabase";

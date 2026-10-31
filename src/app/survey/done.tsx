@@ -1,9 +1,10 @@
 // ys-113 응답 완료 · F-304 (간단판: 결과 미리보기는 2단계)
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
 import { supabase } from "@/lib/supabase";

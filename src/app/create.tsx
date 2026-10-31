@@ -1,7 +1,7 @@
 // ys-120 설문 작성 · F-401~405
 import { Stack, router, useLocalSearchParams, usePreventRemove } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import BasicsStep from "@/components/create/BasicsStep";
 import ConfirmStep from "@/components/create/ConfirmStep";
@@ -9,6 +9,7 @@ import QuestionsStep from "@/components/create/QuestionsStep";
 import SettingsStep from "@/components/create/SettingsStep";
 import PrimaryButton from "@/components/PrimaryButton";
 import StepIndicator from "@/components/StepIndicator";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { showChoice, showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";

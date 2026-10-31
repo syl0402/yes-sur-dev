@@ -1,6 +1,7 @@
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
 
 import { formStyles } from "@/components/create/formStyles";
+import Chip from "@/components/ui/Chip";
 
 type Option<T> = { value: T; label: string; disabled?: boolean };
 
@@ -16,19 +17,15 @@ export default function Chips<T extends string | number>({
 }) {
   return (
     <View style={formStyles.chips}>
-      {options.map((o) => {
-        const on = selected === o.value;
-        return (
-          <Pressable
-            key={String(o.value)}
-            style={[formStyles.chip, on && formStyles.chipSelected, o.disabled && formStyles.chipDisabled]}
-            onPress={() => onSelect(o.value)}
-            disabled={o.disabled}
-          >
-            <Text style={[formStyles.chipText, on && formStyles.chipTextSelected]}>{o.label}</Text>
-          </Pressable>
-        );
-      })}
+      {options.map((o) => (
+        <Chip
+          key={String(o.value)}
+          label={o.label}
+          selected={selected === o.value}
+          onPress={() => onSelect(o.value)}
+          disabled={o.disabled}
+        />
+      ))}
     </View>
   );
 }

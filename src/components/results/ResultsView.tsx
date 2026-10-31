@@ -1,9 +1,10 @@
 import * as Clipboard from "expo-clipboard";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import Chips from "@/components/create/Chips";
 import QuestionResult, { Bar, percent, type QuestionStats } from "@/components/results/QuestionResult";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { aggregateCsv, csvFileName, shareCsv } from "@/lib/csv";
 import { formatDate, formatPoints } from "@/lib/format";

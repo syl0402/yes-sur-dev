@@ -1,9 +1,10 @@
 // ys-011 계정 찾기 · F-107 비밀번호 찾기: 이메일 입력
 import { router, Stack } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";

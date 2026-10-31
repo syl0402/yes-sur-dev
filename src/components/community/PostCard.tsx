@@ -1,9 +1,10 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import LinkedText from "@/components/LinkedText";
 import { percent } from "@/components/results/QuestionResult";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { KIND_LABELS, type PromoSurvey, type Post } from "@/lib/community";
 import { errorMessage } from "@/lib/errors";
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
   promoButtonText: {
     fontSize: fontSize.body,
     fontWeight: "700",
-    color: colors.background,
+    color: colors.onPrimary,
   },
   card: {
     padding: spacing.md,

@@ -1,12 +1,13 @@
 // ys-140 커뮤니티 · F-601 (오늘의 질문 · 계열 대항전 + 글: 밸런스 · 나만 그래? · 골라 줘 · 설문 홍보)
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import MajorRankingCard from "@/components/community/MajorRankingCard";
 import PostCard from "@/components/community/PostCard";
 import Chips from "@/components/create/Chips";
 import DailyCard from "@/components/DailyCard";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { KIND_LABELS, POST_SORT_OPTIONS, type Post, type PostKind, type PostSort } from "@/lib/community";
 import { supabase } from "@/lib/supabase";
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
   newText: {
     fontSize: fontSize.small,
     fontWeight: "700",
-    color: colors.background,
+    color: colors.onPrimary,
   },
   loading: {
     marginTop: spacing.lg,

@@ -1,10 +1,11 @@
 // ys-001 회원가입 · F-102 학교 선택·이메일 입력 (단체는 아무 메일)
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import StepIndicator from "@/components/StepIndicator";
+import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
@@ -345,7 +346,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   domainChipTextOn: {
-    color: colors.background,
+    color: colors.onPrimary,
     fontWeight: "700",
   },
   emailRow: {

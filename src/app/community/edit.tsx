@@ -1,10 +1,11 @@
 // ys-143 글 내용 수정 · F-603 (본문만. 질문·보기는 투표가 있어서 못 바꿈)
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import { formStyles } from "@/components/create/formStyles";
 import PrimaryButton from "@/components/PrimaryButton";
+import { Text, TextInput } from "@/components/ui/Text";
 import { colors, spacing } from "@/constants/theme";
 import { POST_BODY_MAX, type Post } from "@/lib/community";
 import { errorMessage } from "@/lib/errors";

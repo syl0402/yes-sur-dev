@@ -1,9 +1,10 @@
 // ys-002 가입 완료 · F-105 웰컴 포인트 안내
 import { router, Stack } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
 import { supabase } from "@/lib/supabase";

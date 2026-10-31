@@ -1,6 +1,7 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { formStyles } from "@/components/create/formStyles";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
 import { type SurveyDraft, VISIBILITY_LABELS, estimate } from "@/lib/surveyDraft";

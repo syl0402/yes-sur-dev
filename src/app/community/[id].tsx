@@ -1,12 +1,13 @@
 // ys-141 커뮤니티 글 · F-602 (투표 + 결과 + 계열·학년·성별·나이대 비교 + 댓글, ⋯ 메뉴: 수정·삭제·신고)
 import { Stack, router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import Comments from "@/components/community/Comments";
 import PostCard from "@/components/community/PostCard";
 import Chips from "@/components/create/Chips";
 import { Bar, percent } from "@/components/results/QuestionResult";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import type { Post } from "@/lib/community";
 import { showActions, showConfirm } from "@/lib/confirm";

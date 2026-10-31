@@ -1,12 +1,13 @@
 // ys-144 오늘의 질문 상세 · F-604 (홈 카드에서. 답하기 + 계열·학년·성별·나이대 비교 + 댓글. 오늘 것만)
 import { Stack } from "expo-router";
 import { useCallback, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 import Comments from "@/components/community/Comments";
 import Chips from "@/components/create/Chips";
 import DailyCard, { type Daily } from "@/components/DailyCard";
 import { Bar, percent } from "@/components/results/QuestionResult";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { GROUP_DIMS, type GroupDim, sortGroups } from "@/lib/hub";
 

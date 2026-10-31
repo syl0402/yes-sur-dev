@@ -1,10 +1,11 @@
 // ys-130 데이터 목록 · F-501
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import Chips from "@/components/create/Chips";
 import PrimaryButton from "@/components/PrimaryButton";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatDate } from "@/lib/format";
 import { HUB_SORT_OPTIONS, type HubItem, type HubSort } from "@/lib/hub";
@@ -227,7 +228,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   toggleTextOn: {
-    color: colors.background,
+    color: colors.onPrimary,
     fontWeight: "700",
   },
   viewed: {

@@ -1,9 +1,10 @@
 // ys-002 가입 완료 · F-105 단체 승인 대기 (대기 / 거절 / 승인)
 import { router, Stack } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 

@@ -1,9 +1,10 @@
 // ys-153 비밀번호 변경 (로그인 상태) · 현재 비밀번호 확인 후 새 비밀번호 (2026-10-30)
 import { Stack, router } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { showNotice } from "@/lib/notice";
