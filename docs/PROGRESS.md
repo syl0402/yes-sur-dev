@@ -229,7 +229,6 @@
 | 홈 제목줄 로고 (글자로 만든 로고) | `src/components/ui/Logo.tsx` | 디자인팀 로고 PNG(배경 없음)를 받으면 그림으로 | 2026-10-31 |
 | 빈 화면 그림 (이모지) | `src/components/ui/EmptyState.tsx` | 디자인팀 마스코트(옛썰이) PNG를 받으면 그림으로 | 2026-10-31 |
 | 응답 완료 화면 그림 (🎉·🤔 이모지) | `src/app/survey/done.tsx` | 디자인팀 마스코트 PNG를 받으면 그림으로 | 2026-10-31 |
-| 운영자 화면의 의견·단체 탭 ("다음 단계에서 만들어요") | `src/app/admin/index.tsx` | 운영자 화면 2·3단계에서 만들고 지움 | 2026-10-31 |
 | 포인트 내역 최근 50개만 | `src/app/(tabs)/my.tsx` | 내역이 많아지면 아래로 내릴 때 더 불러오기 | 2026-10-29 |
 | 탭 아이콘 (Ionicons 기본) | `src/constants/icons.ts` | 디자인팀 아이콘 확정 시 이름만 교체 (직접 그린 아이콘은 `AppIcon.tsx`) | 2026-10-29 |
 | 다크 모드 꺼 둠 (`userInterfaceStyle: "light"`) | `app.json` (JSON이라 주석 불가) | 다크 모드 디자인이 생기면 `"automatic"`으로 | 2026-10-27 |
@@ -302,7 +301,7 @@ update organizations set reject_reason = '사유' where id = (select id from aut
 
 출시 후로 미룸: 사진 증빙(사업자등록증), 기업 앱 결제, 승인 알림, 교직원 구분
 
-**운영자 승인 방법 (2026-10-27):** Supabase → Table Editor → `profiles`에서 단체 계정의 `approval_status`를 `approved`(승인) 또는 `rejected`(거절)로 바꾼다. 거절이면 `organizations` 표의 `reject_reason`에 사유를 적는다. 대기 중인 단체 찾기: `profiles`에서 `account_type = org`, `approval_status = pending`으로 필터
+**운영자 승인 방법 (2026-10-27):** 2026-10-31부터 팀 운영자 계정 → 마이 탭 🛠 운영 → 단체 탭에서 [승인]/[거절]. 아래는 Supabase에서 직접 할 때. Supabase → Table Editor → `profiles`에서 단체 계정의 `approval_status`를 `approved`(승인) 또는 `rejected`(거절)로 바꾼다. 거절이면 `organizations` 표의 `reject_reason`에 사유를 적는다. 대기 중인 단체 찾기: `profiles`에서 `account_type = org`, `approval_status = pending`으로 필터
 
 ## 디자인 단계에서 할 일 (2026-10-27 메모)
 

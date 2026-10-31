@@ -1,8 +1,9 @@
 // ys-180 운영자 화면 · F-704 (팀 운영자 계정만. [신고 | 의견 | 단체] 처리, 2026-10-31)
-import { Stack, useFocusEffect } from "expo-router";
+import { Stack, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
+import LinkedText from "@/components/LinkedText";
 import Badge, { type BadgeTone } from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -12,6 +13,9 @@ import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import {
   type AdminCounts,
+  FEEDBACK_CATEGORY_LABELS,
+  type PendingFeedback,
+  type PendingOrg,
   REPORT_REASON_LABELS,
   REPORT_TYPE_LABELS,
   type ReportGroup,
@@ -36,6 +40,8 @@ export default function Admin() {
   // undefined = 불러오는 중, null = 운영자 아님
   const [counts, setCounts] = useState<AdminCounts | null | undefined>(undefined);
   const [reports, setReports] = useState<ReportGroup[]>([]);
+  const [feedback, setFeedback] = useState<PendingFeedback[]>([]);
+  const [orgs, setOrgs] = useState<PendingOrg[]>([]);
   const [tab, setTab] = useState<Tab>("reports");
   // 처리 중인 대상 (연타 방지)
   const [busy, setBusy] = useState("");
@@ -47,8 +53,14 @@ export default function Admin() {
       return;
     }
     setCounts(c as AdminCounts);
-    const { data: r } = await supabase.rpc("admin_get_reports");
+    const [{ data: r }, { data: f }, { data: o }] = await Promise.all([
+      supabase.rpc("admin_get_reports"),
+      supabase.rpc("admin_get_feedback"),
+      supabase.rpc("admin_get_pending_orgs"),
+    ]);
+    setOrgs((o as PendingOrg[] | null) ?? []);
     setReports((r as ReportGroup[] | null) ?? []);
+    setFeedback((f as PendingFeedback[] | null) ?? []);
   }, []);
 
   // 화면에 돌아올 때마다 새로 (답변·거절 사유 화면에서 돌아왔을 때)
@@ -88,6 +100,23 @@ export default function Admin() {
           },
     );
   };
+
+  const approve = (o: PendingOrg) =>
+    showConfirm({
+      title: `${o.name}을(를) 승인할까요?`,
+      message: "승인하면 단체 이름으로 설문을 올릴 수 있어요.",
+      okLabel: "승인",
+      cancelLabel: "취소",
+      onOk: async () => {
+        setBusy(o.id);
+        const { error } = await supabase.rpc("admin_decide_org", { p_user_id: o.id, p_approve: true });
+        setBusy("");
+        if (error) {
+          showNotice("처리하지 못했어요", errorMessage(error));
+        }
+        load();
+      },
+    });
 
   if (counts === undefined) {
     return (
@@ -187,8 +216,75 @@ export default function Admin() {
           })
         ))}
 
-      {/* TODO(임시): 의견·단체 탭은 운영자 화면 2·3단계에서 만든다 (2026-10-31) */}
-      {tab !== "reports" && <EmptyState title="다음 단계에서 만들어요" emoji="🛠" />}
+      {/* 의견: 오래된 것부터. 보낸 사람은 보이지 않는다 */}
+      {tab === "feedback" &&
+        (feedback.length === 0 ? (
+          <EmptyState title="답변할 의견이 없어요" emoji="✅" />
+        ) : (
+          feedback.map((f) => (
+            <Card key={f.id}>
+              <View style={styles.top}>
+                <Badge label={FEEDBACK_CATEGORY_LABELS[f.category] ?? "기타"} />
+                <Text style={styles.muted}>{formatDate(f.created_at)}</Text>
+              </View>
+              <Text style={styles.feedbackBody}>{f.body}</Text>
+              <Text style={styles.muted}>
+                {[
+                  f.screen && `보낸 화면: ${f.screen}`,
+                  [f.device.model, f.device.os && `${f.device.os} ${f.device.osVersion ?? ""}`.trim()]
+                    .filter(Boolean)
+                    .join(" · "),
+                  f.device.appVersion && `앱 ${f.device.appVersion}`,
+                ]
+                  .filter(Boolean)
+                  .join("\n")}
+              </Text>
+              <Button
+                title="답변 쓰기"
+                variant="soft"
+                small
+                onPress={() => router.push({ pathname: "/admin/reply", params: { id: String(f.id), body: f.body } })}
+              />
+            </Card>
+          ))
+        ))}
+
+      {/* 단체: 먼저 신청한 순. 증빙 링크·가입 메일로 공식 단체인지 확인 */}
+      {tab === "orgs" &&
+        (orgs.length === 0 ? (
+          <EmptyState title="승인 대기 단체가 없어요" emoji="✅" />
+        ) : (
+          orgs.map((o) => (
+            <Card key={o.id}>
+              <View style={styles.top}>
+                <Badge label={o.kind === "campus" ? "교내 단체" : "외부 단체"} tone={o.kind === "campus" ? "primary" : "accent"} />
+                <Text style={styles.muted}>{formatDate(o.created_at)} 신청</Text>
+              </View>
+              <Text style={styles.title}>{o.name}</Text>
+              {o.school ? <Text style={styles.muted}>{o.school}</Text> : null}
+              {o.description ? <Text style={styles.feedbackBody}>{o.description}</Text> : null}
+              <View style={styles.reasonBox}>
+                <Text style={styles.reasonText}>증빙 링크</Text>
+                <LinkedText style={styles.detail}>{o.evidence_url}</LinkedText>
+                <Text style={styles.reasonText}>가입 메일</Text>
+                <Text style={styles.detail} selectable>
+                  {o.email ?? "-"}
+                </Text>
+              </View>
+              <View style={styles.actions}>
+                <Button
+                  title="거절"
+                  variant="outline"
+                  small
+                  onPress={() => router.push({ pathname: "/admin/reject", params: { id: o.id, name: o.name } })}
+                  disabled={busy === o.id}
+                  style={styles.action}
+                />
+                <Button title="승인" small onPress={() => approve(o)} loading={busy === o.id} style={styles.action} />
+              </View>
+            </Card>
+          ))
+        ))}
     </ScrollView>
   );
 }
@@ -236,6 +332,11 @@ const styles = StyleSheet.create({
   muted: {
     fontSize: fontSize.small,
     color: colors.textMuted,
+  },
+  feedbackBody: {
+    fontSize: fontSize.body,
+    color: colors.text,
+    lineHeight: 24,
   },
   reasonBox: {
     gap: spacing.xs,

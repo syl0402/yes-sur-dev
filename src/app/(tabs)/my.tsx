@@ -20,6 +20,8 @@ import { type ResultVisibility, type SavedDraft, VISIBILITY_LABELS, deleteDraft,
 
 // 내 정보 화면 (account/index.tsx). 개발 서버가 경로 목록을 늦게 갱신해 타입 오류가 나는 일이 있어 Href로 고정
 const ACCOUNT_HREF = "/account" as Href;
+// 운영자 화면 (admin/index.tsx). 같은 이유로 Href로 고정
+const ADMIN_HREF = "/admin" as Href;
 
 // TODO(임시): 포인트 내역은 최근 50개만 · 내역이 많아지면 아래로 내릴 때 더 불러오기 · docs/PROGRESS.md
 const LEDGER_LIMIT = 50;
@@ -223,7 +225,7 @@ export default function My() {
     >
       {/* 운영자 계정에만: 처리 대기 건수 → 운영자 화면 */}
       {data.admin && (
-        <Card onPress={() => router.push("/admin")} style={styles.adminCard}>
+        <Card onPress={() => router.push(ADMIN_HREF)} style={styles.adminCard}>
           <Text style={styles.adminTitle}>🛠 운영 · 처리 대기 {totalPending(data.admin)}건</Text>
           <Text style={styles.muted}>
             신고 {data.admin.reports} · 의견 {data.admin.feedback} · 단체 승인 {data.admin.orgs}

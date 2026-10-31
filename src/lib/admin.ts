@@ -36,6 +36,36 @@ export const REPORT_REASON_LABELS: Record<string, string> = {
   other: "기타",
 };
 
+// 답변 전 의견 (보낸 사람은 없음)
+export type PendingFeedback = {
+  id: number;
+  category: string;
+  body: string;
+  screen: string | null;
+  device: { os?: string; osVersion?: string; model?: string | null; appVersion?: string | null };
+  created_at: string;
+};
+
+// 의견 종류 (feedback.tsx 선택지와 같은 이름)
+export const FEEDBACK_CATEGORY_LABELS: Record<string, string> = {
+  bug: "버그·오류",
+  inconvenience: "불편해요",
+  idea: "제안",
+  other: "기타",
+};
+
+// 승인 대기 단체 (공식 메일인지 확인하려고 가입 메일만 함께 온다)
+export type PendingOrg = {
+  id: string;
+  name: string;
+  kind: "campus" | "external";
+  school: string | null;
+  evidence_url: string;
+  description: string | null;
+  email: string | null;
+  created_at: string;
+};
+
 // 운영자면 대기 건수, 아니면 null (마이 탭 운영 카드용)
 export async function fetchAdminCounts(): Promise<AdminCounts | null> {
   const { data: isAdmin } = await supabase.rpc("is_admin");

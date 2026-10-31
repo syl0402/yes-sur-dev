@@ -104,6 +104,9 @@ import { Text, TextInput } from "@/components/ui/Text";
 
 설문 한 개 카드는 `src/components/SurveyListCard.tsx` (홈·설문 목록 공용).
 
+### 운영자 화면 (`src/app/admin/`, `src/lib/admin.ts`, 2026-10-31)
+팀 운영자 계정(`profiles.role = 'admin'`)만. 마이 탭 맨 위 🛠 운영 카드(`fetchAdminCounts`가 운영자가 아니면 null) → `admin/index.tsx` [신고 | 의견 | 단체]. 답변은 `admin/reply.tsx`, 단체 거절 사유는 `admin/reject.tsx`. 서버 함수는 모두 함수 안에서 운영자인지 다시 확인한다 (docs/DB.md `admin_*`).
+
 ### `PrimaryButton` (`src/components/PrimaryButton.tsx`)
 큰 파란 버튼. `disabled`면 회색, `loading`이면 돌아가는 표시 + 누르기 막힘(연타 방지).
 ```tsx
