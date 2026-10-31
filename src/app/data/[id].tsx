@@ -7,7 +7,7 @@ import PrimaryButton from "@/components/PrimaryButton";
 import ReportLink from "@/components/ReportLink";
 import ResultsView from "@/components/results/ResultsView";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
 import { formatDate, formatPoints } from "@/lib/format";
@@ -230,8 +230,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
     gap: spacing.sm,
+    ...shadow.card,
   },
   boxTitle: {
     fontSize: fontSize.body,

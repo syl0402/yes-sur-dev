@@ -9,7 +9,7 @@ import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
 import PrimaryButton from "@/components/PrimaryButton";
 import { Text, TextInput } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { formatDate } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
@@ -176,8 +176,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
     gap: spacing.sm,
+    ...shadow.card,
   },
   itemHead: {
     flexDirection: "row",
@@ -202,8 +204,8 @@ const styles = StyleSheet.create({
   },
   reply: {
     padding: spacing.sm,
-    borderRadius: 8,
-    backgroundColor: colors.border,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceMuted,
     gap: 2,
   },
   replyLabel: {

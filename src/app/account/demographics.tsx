@@ -6,7 +6,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 import PrimaryButton from "@/components/PrimaryButton";
 import YearPicker from "@/components/YearPicker";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { GENDER_OPTIONS, type Gender, birthYearOptions } from "@/lib/demographics";
 import { errorMessage } from "@/lib/errors";
 import { showConfirm } from "@/lib/confirm";
@@ -146,7 +146,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
     alignItems: "center",
   },
   choiceSelected: {
@@ -164,7 +165,8 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
     padding: spacing.md,
   },
   inputText: {

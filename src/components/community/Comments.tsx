@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import LinkedText from "@/components/LinkedText";
 import { Text, TextInput } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { type Comment, COMMENT_MAX, type CommentTarget } from "@/lib/community";
 import { showActions, showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
@@ -148,7 +148,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
@@ -177,9 +178,9 @@ const styles = StyleSheet.create({
   },
   best: {
     paddingHorizontal: spacing.sm,
-    borderRadius: 8,
+    borderRadius: radius.sm,
     borderBottomWidth: 0,
-    backgroundColor: colors.border,
+    backgroundColor: colors.surfaceMuted,
   },
   head: {
     flexDirection: "row",

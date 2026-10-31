@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import Chips from "@/components/create/Chips";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
@@ -229,8 +229,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
     gap: spacing.sm,
+    ...shadow.card,
   },
   summaryMain: {
     fontSize: fontSize.body,
@@ -242,7 +244,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderWidth: 1,
     borderColor: colors.primary,
-    borderRadius: 10,
+    borderRadius: radius.md,
     alignItems: "center",
   },
   rawText: {
@@ -255,7 +257,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderWidth: 1,
     borderColor: colors.danger,
-    borderRadius: 10,
+    borderRadius: radius.md,
     alignItems: "center",
   },
   closeText: {

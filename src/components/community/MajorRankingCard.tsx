@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import type { MajorRanking } from "@/lib/community";
 import { supabase } from "@/lib/supabase";
 
@@ -47,8 +47,11 @@ export default function MajorRankingCard() {
 const styles = StyleSheet.create({
   card: {
     padding: spacing.md,
-    borderRadius: 12,
-    backgroundColor: colors.border,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.primarySoft,
+    ...shadow.card,
     gap: spacing.sm,
   },
   title: {

@@ -6,7 +6,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 import Chips from "@/components/create/Chips";
 import PrimaryButton from "@/components/PrimaryButton";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { formatDate } from "@/lib/format";
 import { HUB_SORT_OPTIONS, type HubItem, type HubSort } from "@/lib/hub";
 import { fetchRules } from "@/lib/rules";
@@ -127,7 +127,8 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: spacing.md,
-    gap: spacing.sm,
+    gap: spacing.md,
+    paddingBottom: spacing.xl,
   },
   loading: {
     marginTop: spacing.lg,
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.primary,
-    borderRadius: 12,
+    borderRadius: radius.lg,
     gap: spacing.sm,
   },
   stripTitle: {
@@ -179,8 +180,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
     gap: 6,
+    ...shadow.card,
   },
   badges: {
     flexDirection: "row",
@@ -217,7 +220,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 16,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
   },
   toggleOn: {
     borderColor: colors.primary,

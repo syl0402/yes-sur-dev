@@ -8,7 +8,7 @@ import Chips from "@/components/create/Chips";
 import DailyCard, { type Daily } from "@/components/DailyCard";
 import { Bar, percent } from "@/components/results/QuestionResult";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { GROUP_DIMS, type GroupDim, sortGroups } from "@/lib/hub";
 
 export default function TodayDaily() {
@@ -84,7 +84,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
     gap: spacing.sm,
   },
   boxTitle: {

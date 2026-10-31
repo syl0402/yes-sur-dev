@@ -7,8 +7,9 @@ import MajorRankingCard from "@/components/community/MajorRankingCard";
 import PostCard from "@/components/community/PostCard";
 import Chips from "@/components/create/Chips";
 import DailyCard from "@/components/DailyCard";
+import EmptyState from "@/components/ui/EmptyState";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { KIND_LABELS, POST_SORT_OPTIONS, type Post, type PostKind, type PostSort } from "@/lib/community";
 import { supabase } from "@/lib/supabase";
 
@@ -52,7 +53,7 @@ export default function Community() {
       {posts === null ? (
         <ActivityIndicator color={colors.primary} style={styles.loading} />
       ) : posts.length === 0 ? (
-        <Text style={styles.empty}>아직 글이 없어요.{"\n"}첫 글을 만들어 보세요!</Text>
+        <EmptyState title="아직 글이 없어요" message="첫 글을 만들어 보세요!" emoji="🗳️" />
       ) : (
         posts.map((p) => (
           <PostCard
@@ -74,7 +75,8 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: spacing.md,
-    gap: spacing.sm,
+    gap: spacing.md,
+    paddingBottom: spacing.xl,
   },
   top: {
     flexDirection: "row",
@@ -90,7 +92,7 @@ const styles = StyleSheet.create({
   newButton: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    borderRadius: 999,
+    borderRadius: radius.pill,
     backgroundColor: colors.primary,
   },
   newText: {
@@ -100,11 +102,5 @@ const styles = StyleSheet.create({
   },
   loading: {
     marginTop: spacing.lg,
-  },
-  empty: {
-    marginTop: spacing.lg,
-    fontSize: fontSize.body,
-    color: colors.textMuted,
-    textAlign: "center",
   },
 });

@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import LinkedText from "@/components/LinkedText";
 import { percent } from "@/components/results/QuestionResult";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { KIND_LABELS, type PromoSurvey, type Post } from "@/lib/community";
 import { errorMessage } from "@/lib/errors";
 import { formatPoints, formatTimeLeft } from "@/lib/format";
@@ -135,8 +135,8 @@ function PromoBox({ survey, mine }: { survey: PromoSurvey; mine: boolean }) {
 const styles = StyleSheet.create({
   promo: {
     padding: spacing.md,
-    borderRadius: 10,
-    backgroundColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceMuted,
     gap: spacing.sm,
   },
   promoTitle: {
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   },
   promoButton: {
     paddingVertical: spacing.sm,
-    borderRadius: 10,
+    borderRadius: radius.md,
     backgroundColor: colors.primary,
     alignItems: "center",
   },
@@ -162,8 +162,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
     gap: spacing.sm,
+    ...shadow.card,
   },
   head: {
     flexDirection: "row",
@@ -199,7 +201,8 @@ const styles = StyleSheet.create({
   choice: {
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
-    borderRadius: 10,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: "center",
@@ -242,7 +245,7 @@ const styles = StyleSheet.create({
   },
   track: {
     height: 10,
-    borderRadius: 5,
+    borderRadius: radius.sm,
     backgroundColor: colors.border,
     overflow: "hidden",
   },

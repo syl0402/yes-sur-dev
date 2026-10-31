@@ -1,7 +1,7 @@
 import { StyleSheet, View } from "react-native";
 
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { type QuestionType, SCALE_LABELS } from "@/lib/surveyDraft";
 
 // 서버 집계 함수(get_survey_results·get_full_results)가 돌려주는 문항 하나의 모양
@@ -81,8 +81,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
     gap: spacing.sm,
+    ...shadow.card,
   },
   questionText: {
     fontSize: fontSize.body,
@@ -117,7 +119,7 @@ const styles = StyleSheet.create({
   },
   barTrack: {
     height: 10,
-    borderRadius: 5,
+    borderRadius: radius.sm,
     backgroundColor: colors.border,
     overflow: "hidden",
   },

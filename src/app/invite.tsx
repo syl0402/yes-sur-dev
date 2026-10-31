@@ -7,7 +7,7 @@ import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, View } fro
 import { formStyles } from "@/components/create/formStyles";
 import PrimaryButton from "@/components/PrimaryButton";
 import { Text, TextInput } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { formatDate, formatPoints } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   codeBox: {
     padding: spacing.lg,
-    borderRadius: 12,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.primary,
     alignItems: "center",
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   secondary: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
-    borderRadius: 10,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.primary,
   },

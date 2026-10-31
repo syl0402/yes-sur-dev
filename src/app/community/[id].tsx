@@ -8,7 +8,7 @@ import PostCard from "@/components/community/PostCard";
 import Chips from "@/components/create/Chips";
 import { Bar, percent } from "@/components/results/QuestionResult";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import type { Post } from "@/lib/community";
 import { showActions, showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
@@ -155,8 +155,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
     gap: spacing.sm,
+    ...shadow.card,
   },
   boxTitle: {
     fontSize: fontSize.body,
