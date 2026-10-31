@@ -10,7 +10,8 @@ import { supabase } from "@/lib/supabase";
 
 export default function SurveyDone() {
   // 받은 포인트·확인 문항 통과 여부는 제출 결과(서버가 정한 값)를 넘겨받는다
-  const { id, reward, passed } = useLocalSearchParams<{ id: string; reward: string; passed: string }>();
+  // reason: attention(확인 문항 오답) / too_fast(너무 빨리 응답)
+  const { id, reward, passed, reason } = useLocalSearchParams<{ id: string; reward: string; passed: string; reason?: string }>();
   const [balance, setBalance] = useState<number | null>(null);
 
   useEffect(() => {
@@ -23,7 +24,7 @@ export default function SurveyDone() {
     router.navigate(tab);
   };
 
-  // 확인 문항을 틀린 경우: 포인트 없음, 다시 응답 가능 (2026-10-30 결정)
+  // 확인 문항을 틀렸거나 너무 빨리 응답한 경우: 포인트 없음, 다시 응답 가능 (2026-10-30·31 결정)
   if (passed === "0") {
     return (
       <View style={styles.screen}>
@@ -31,7 +32,11 @@ export default function SurveyDone() {
 
         <View style={styles.body}>
           <Text style={styles.failTitle}>포인트가 지급되지 않았어요</Text>
-          <Text style={styles.thanks}>성실한 응답 확인 문항의 답이 달랐어요.</Text>
+          <Text style={styles.thanks}>
+            {reason === "too_fast"
+              ? "문항을 읽기 어려울 만큼 너무 빨리 응답했어요. 천천히 읽고 답해 주세요."
+              : "성실한 응답 확인 문항의 답이 달랐어요."}
+          </Text>
           <Text style={styles.thanks}>다시 응답하면 포인트를 받을 수 있어요.</Text>
         </View>
 

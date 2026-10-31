@@ -42,6 +42,7 @@
 | `20261030000023_community_promo.sql` | 커뮤니티 3단계: 설문 홍보(`posts.kind = promo` + `survey_id`, 설문 하나에 하나, 마감되면 피드에서 빠짐) `create_promo`·`get_promotable_surveys`, 계열 대항전 `get_major_ranking`, 인기순 = 투표 + 댓글 | 2026-10-30 |
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 | `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
+| `20261031000001_too_fast.sql` | 너무 빠른 응답(문항 수 × `min_seconds_per_question`초 미만)은 확인 문항 오답과 같게 반려, `submit_response`에 `reason`(attention·too_fast) | 2026-10-31 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
 테스트(마이그레이션 아님): `supabase/seed/test_survey_create.sql` — 설문 등록·4종 응답 확인. 결과를 오류 창에 보여주고 데이터는 남기지 않는다
@@ -184,7 +185,7 @@
 | `complete_signup(p_nickname, p_major_field_id, p_admission_year, p_degree_type, p_terms_agreed, p_gender, p_birth_year)` | 학교 도메인 검사 → 학생 회원정보 저장 → 웰컴 포인트 지급. 이미 가입했으면 아무것도 안 함 | 로그인한 사람 (이메일 인증 완료) |
 | `request_org_signup(...)` | 단체 신청·재신청 → 승인 대기. 포인트 없음 | 로그인한 사람 (이메일 인증 완료) |
 | `calc_survey_reward(문항 수, 소요분)` | `point_rules`로 응답 1건 보상 계산 (1문항 / 5분 미만 / 5~15분 / 15분 이상) | 로그인한 사람 (설문 등록 때 서버가 사용) |
-| `submit_response(p_survey_id, p_answers, p_duration_seconds)` | 응답 제출 + 보상 지급 + 응답 수 +1 + 목표 도달 시 마감. **`{ reward, passed }`를 돌려줌** (2026-10-30). 확인 문항을 틀리면 응답은 `rejected`, 보상 0, 응답 수 그대로 → 다시 응답하면 이전 반려 응답을 지우고 새로 받음. `p_duration_seconds`(걸린 초)는 참고용 저장 | 학생 |
+| `submit_response(p_survey_id, p_answers, p_duration_seconds)` | (2026-10-31) 너무 빠르면 반려, 결과에 `reason` 추가 · 이전 설명: 응답 제출 + 보상 지급 + 응답 수 +1 + 목표 도달 시 마감. **`{ reward, passed }`를 돌려줌** (2026-10-30). 확인 문항을 틀리면 응답은 `rejected`, 보상 0, 응답 수 그대로 → 다시 응답하면 이전 반려 응답을 지우고 새로 받음. `p_duration_seconds`(걸린 초)는 참고용 저장 | 학생 |
 | `set_result_visibility(p_survey_id, p_visibility)` | 결과 공개 범위 바꾸기 (`invalid_visibility`: 값이 틀렸거나 학교 없는 계정이 campus) (2026-10-30) | 작성자 본인 |
 | `calc_survey_price(문항 수, 소요분)` | 응답 1명 받는 값 (`calc_survey_reward`와 같은 구간) | 서버 함수 안에서 사용 |
 | `create_survey(...)` | 설문 등록: 검사 → 소요시간·보상 계산 → 설문·문항·주의 문항 저장 → 등록 비용 차감을 한 번에. 설문 번호를 돌려줌 (2026-10-30) | 학생, 승인된 단체 |

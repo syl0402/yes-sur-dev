@@ -152,14 +152,19 @@ export default function SurveyRespond() {
       return;
     }
 
-    // 결과: { reward, passed } — 확인 문항을 틀리면 passed=false, 포인트 0 (다시 응답 가능)
-    const result = data as { reward: number; passed: boolean };
+    // 결과: { reward, passed, reason } — 확인 문항을 틀리거나 너무 빠르면 passed=false, 포인트 0 (다시 응답 가능)
+    const result = data as { reward: number; passed: boolean; reason?: "attention" | "too_fast" };
 
     // 완료 화면으로 교체 (뒤로 가기로 문항 화면에 돌아오지 않게)
     leaveWithoutAsking(() =>
       router.replace({
         pathname: "/survey/done",
-        params: { id: String(surveyId), reward: String(result.reward), passed: result.passed ? "1" : "0" },
+        params: {
+          id: String(surveyId),
+          reward: String(result.reward),
+          passed: result.passed ? "1" : "0",
+          reason: result.reason ?? "",
+        },
       }),
     );
   };
