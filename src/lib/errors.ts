@@ -77,6 +77,16 @@ const MESSAGES: Record<string, string> = {
   survey_hidden: "신고가 접수되어 잠시 숨겨진 설문이에요.",
   org_must_publish: "단체 설문은 테스트 기간 동안 결과를 공개하는 조건으로 무료예요.",
 
+  // 운영자 화면 (20261031000003_admin)
+  not_admin: "운영자만 볼 수 있어요.",
+  invalid_request: "잘못된 요청이에요. 다시 시도해 주세요.",
+  reply_empty: "답변을 입력해 주세요.",
+  reply_too_long: "답변은 1,000자까지 쓸 수 있어요.",
+  feedback_not_found: "의견을 찾을 수 없어요.",
+  reject_reason_required: "거절 사유를 입력해 주세요.",
+  reject_reason_too_long: "거절 사유는 200자까지 쓸 수 있어요.",
+  org_not_pending: "이미 처리된 단체예요.",
+
   // Supabase 인증
   over_email_send_rate_limit: "잠시 후 다시 보내 주세요.",
   otp_expired: "인증번호가 틀렸거나 만료됐어요.",

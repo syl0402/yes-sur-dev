@@ -12,6 +12,7 @@ import Segmented from "@/components/ui/Segmented";
 import StatTile from "@/components/ui/StatTile";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
+import { type AdminCounts, fetchAdminCounts, totalPending } from "@/lib/admin";
 import { showConfirm } from "@/lib/confirm";
 import { formatDate, formatPoints } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
@@ -80,6 +81,8 @@ type MyData = {
   views: MyView[];
   // 이 폰에 임시저장한 설문 (서버에는 없음)
   drafts: SavedDraft[];
+  // 운영자 계정이면 처리 대기 건수, 아니면 null
+  admin: AdminCounts | null;
 };
 
 // 내가 올린 설문 (최신순)
@@ -108,7 +111,7 @@ async function fetchMy(): Promise<MyData> {
   const { data: auth } = await supabase.auth.getUser();
   const userId = auth.user?.id ?? "";
 
-  const [{ data: profile }, { data: org }, { data: balance }, { data: rows }, surveys, { data: views }] = await Promise.all([
+  const [{ data: profile }, { data: org }, { data: balance }, { data: rows }, surveys, { data: views }, admin] = await Promise.all([
     supabase.from("profiles").select("nickname, account_type, gender, birth_year").maybeSingle(),
     supabase.from("organizations").select("name").maybeSingle(),
     supabase.rpc("get_my_balance"),
@@ -120,6 +123,7 @@ async function fetchMy(): Promise<MyData> {
       .limit(LEDGER_LIMIT),
     fetchMySurveys(userId),
     supabase.rpc("get_my_views"),
+    fetchAdminCounts(),
   ]);
 
   // 설문 관련 기록에 설문 이름을 붙인다 (ref_id = 설문 번호, 열람 수익은 "설문번호:열람번호")
@@ -155,6 +159,7 @@ async function fetchMy(): Promise<MyData> {
     surveys,
     views: (views as MyView[] | null) ?? [],
     drafts: userId ? listDrafts(userId) : [],
+    admin,
   };
 }
 
@@ -216,6 +221,16 @@ export default function My() {
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={styles.container}
     >
+      {/* 운영자 계정에만: 처리 대기 건수 → 운영자 화면 */}
+      {data.admin && (
+        <Card onPress={() => router.push("/admin")} style={styles.adminCard}>
+          <Text style={styles.adminTitle}>🛠 운영 · 처리 대기 {totalPending(data.admin)}건</Text>
+          <Text style={styles.muted}>
+            신고 {data.admin.reports} · 의견 {data.admin.feedback} · 단체 승인 {data.admin.orgs}
+          </Text>
+        </Card>
+      )}
+
       {/* 이름을 누르면 내 정보 (회원정보·비밀번호 변경·로그아웃) */}
       <Card onPress={() => router.push(ACCOUNT_HREF)} style={styles.profile}>
         <View style={styles.avatar}>
@@ -419,6 +434,15 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.md,
     paddingBottom: spacing.xl,
+  },
+  adminCard: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySoft,
+  },
+  adminTitle: {
+    fontSize: fontSize.body,
+    fontWeight: "700",
+    color: colors.primary,
   },
   profile: {
     flexDirection: "row",

@@ -43,6 +43,7 @@
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 | `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
 | `20261031000001_too_fast.sql` | 너무 빠른 응답(문항 수 × `min_seconds_per_question`초 미만)은 확인 문항 오답과 같게 반려, `submit_response`에 `reason`(attention·too_fast) | 2026-10-31 |
+| `20261031000003_admin.sql` | 앱 안 운영자 화면: `is_admin`, 대기 건수·신고 처리·의견 답변·단체 승인 함수 (운영자만, 신고자·의견 보낸 사람은 안 보임) | 2026-10-31 |
 | `20261031000002_university_domains.sql` | 학교 하나에 메일 주소 여러 개: `university_domains`(로그인 전에도 읽기), 가입 완료 함수가 이 표로 학교를 찾음. 학교 추가는 `supabase/seed/universities.sql` | 2026-10-31 |
 
 테스트 데이터(마이그레이션 아님): `supabase/seed/test_surveys.sql` — 개발용 설문 3개. 정리 SQL은 파일 맨 아래
@@ -221,6 +222,14 @@
 | `get_major_ranking()` | 이번 주(한국 시간 월요일부터) 계열별 참여 수 순위 + 내 계열 순위. 투표·오늘의 질문·글·댓글, 미입력 제외 | 로그인한 사람 |
 | `get_my_invite()` | 내 초대 코드(처음 열 때 생성), 초대 인원, 코드 입력 가능 여부(가입 `invite_window_days`일 안·웰컴 받은 계정·아직 안 함) | 학생 |
 | `redeem_invite(p_code)` | 친구 코드 입력 → 나 `invite_reward_invitee`P, 초대한 사람 `invite_reward_inviter`P (30일 `invite_monthly_max`명까지) | 학생 |
+| `is_admin()` | 지금 로그인한 사람이 운영자(`profiles.role = 'admin'`)인지 | 로그인한 사람 |
+| `admin_get_counts()` | 처리 대기 건수 `{reports(대상 수), feedback, orgs}` | 운영자 |
+| `admin_get_reports()` | 확인 전 신고를 대상별로 묶어서: 종류·번호·신고 수·사유·상세(최근 3개)·대상 내용·지금 상태. 신고한 사람은 없음 | 운영자 |
+| `admin_resolve_report(p_type, p_id, p_action)` | `keep` 문제없음(숨김이면 다시 보이게, 신고 kept) / `remove` 삭제(moderation removed, 신고 removed). 닫은 신고 수를 돌려줌 (이미 처리했으면 0) | 운영자 |
+| `admin_get_feedback()` | 답변 전 의견 (보낸 사람 없음) | 운영자 |
+| `admin_reply_feedback(p_id, p_reply, p_status)` | 답변 쓰기 (`answered` 답변함 / `done` 반영함, 1~1000자) | 운영자 |
+| `admin_get_pending_orgs()` | 승인 대기 단체 (이름·종류·학교·증빙 링크·소개·가입 메일) | 운영자 |
+| `admin_decide_org(p_user_id, p_approve, p_reason)` | 승인 / 거절(사유 필수 200자) | 운영자 |
 | `is_email_registered(p_email)` | 그 메일로 **가입을 마친** 계정이 있으면 true (회원정보 없는 반쪽 계정은 false). 예/아니오만 돌려줌 | 누구나 (로그인 전 포함) |
 
 ### complete_signup 입력 규칙
@@ -339,8 +348,16 @@
 | `not_listed` | 데이터 허브에서 볼 수 없는 결과 (공개 범위·마감·응답 수 조건) |
 | `not_respondent` | 내 답 비교는 그 설문에 응답한 사람만 |
 | `not_viewed` | 전체 결과는 열람한 뒤에 (view_survey 먼저) |
+| `not_admin` | 운영자 함수를 운영자가 아닌 계정이 부름 |
+| `invalid_request` | 운영자 함수에 틀린 종류·처리 값 |
+| `reply_empty` / `reply_too_long` | 의견 답변이 비었거나 1000자 넘음 |
+| `feedback_not_found` | 없는 의견 |
+| `reject_reason_required` / `reject_reason_too_long` | 단체 거절 사유가 비었거나 200자 넘음 |
+| `org_not_pending` | 이미 승인·거절한 단체 |
 
 ## 신고 처리 (운영자, 2026-10-30)
+
+> 2026-10-31부터: 팀 운영자 계정으로 앱 → 마이 탭 맨 위 **🛠 운영** 카드에서 처리할 수 있다. 아래는 Supabase에서 직접 할 때
 
 1. Table Editor → `reports`에서 `status = pending`인 신고를 본다 (`target_id` = 설문 번호)
 2. `surveys`에서 그 설문을 열어 내용을 확인한다 (`moderation`이 `hidden`이면 신고 3건으로 자동 숨김된 상태)
