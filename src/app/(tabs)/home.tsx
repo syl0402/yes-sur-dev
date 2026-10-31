@@ -7,6 +7,7 @@ import DailyCard from "@/components/DailyCard";
 import PrimaryButton from "@/components/PrimaryButton";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints, formatTimeLeft } from "@/lib/format";
+import { hasSeenOnboarding, markOnboardingSeen } from "@/lib/onboarding";
 import { supabase } from "@/lib/supabase";
 import { type SurveyCard, fetchOpenSurveys, formatHost, sortSurveys } from "@/lib/surveys";
 
@@ -41,6 +42,19 @@ export default function Home() {
   useFocusEffect(
     useCallback(() => {
       fetchHome().then(setData);
+      // 학생이 이 폰에서 처음 들어왔으면 첫 사용 안내 (업데이트 후 기존 회원 포함, 한 번만)
+      supabase.auth.getUser().then(({ data: auth }) => {
+        const uid = auth.user?.id;
+        if (!uid || hasSeenOnboarding(uid)) return;
+        supabase
+          .from("profiles")
+          .select("account_type")
+          .maybeSingle()
+          .then(({ data: p }) => {
+            if (p?.account_type === "student") router.push("/onboarding");
+            else markOnboardingSeen(uid);
+          });
+      });
     }, []),
   );
 

@@ -221,6 +221,9 @@ export default function My() {
           <View style={styles.pointBox}>
             <Text style={styles.pointLabel}>내 포인트</Text>
             <Text style={styles.pointValue}>{formatPoints(data.balance)}</Text>
+            <Pressable onPress={() => router.push("/points")} hitSlop={8}>
+              <Text style={styles.infoLink}>포인트는 어떻게 모으고 쓰나요? ›</Text>
+            </Pressable>
           </View>
 
           <Text style={styles.sectionTitle}>포인트 내역</Text>

@@ -37,7 +37,8 @@ export default function SignupDone() {
         )}
       </View>
 
-      <PrimaryButton title="시작하기" onPress={() => router.replace("/")} />
+      {/* 첫 사용 안내 → 홈 */}
+      <PrimaryButton title="시작하기" onPress={() => router.replace("/onboarding")} />
     </View>
   );
 }

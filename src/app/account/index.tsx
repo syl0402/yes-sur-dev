@@ -127,8 +127,12 @@ export default function AccountHome() {
         />
       </View>
 
-      <Text style={styles.sectionTitle}>약관</Text>
+      <Text style={styles.sectionTitle}>안내 · 약관</Text>
       <View style={styles.box}>
+        {!account.isOrg && (
+          <MenuRow label="사용 안내 다시 보기" onPress={() => router.push({ pathname: "/onboarding", params: { again: "1" } })} />
+        )}
+        {!account.isOrg && <MenuRow label="포인트 안내" onPress={() => router.push("/points")} />}
         <MenuRow label="이용약관" onPress={() => openLegal("terms")} />
         <MenuRow label="개인정보처리방침" onPress={() => openLegal("privacy")} />
       </View>
