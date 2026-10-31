@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
 import { Text, TextInput } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import {
   type DraftQuestion,
   OPTION_TEXT_MAX,
@@ -155,8 +155,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
     gap: spacing.sm,
+    ...shadow.card,
   },
   cardHeader: {
     flexDirection: "row",
@@ -177,7 +179,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
   },
   smallDisabled: {
     opacity: 0.3,
@@ -205,9 +208,9 @@ const styles = StyleSheet.create({
   addQuestion: {
     paddingVertical: spacing.md,
     borderWidth: 1,
-    borderColor: colors.primary,
-    borderStyle: "dashed",
-    borderRadius: 12,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
     alignItems: "center",
   },
 });

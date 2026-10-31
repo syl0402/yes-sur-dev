@@ -1,7 +1,7 @@
 import { StyleSheet, View } from "react-native";
 
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 
 type Props = {
   // 지금 단계 (1부터)
@@ -39,8 +39,8 @@ const styles = StyleSheet.create({
   },
   bar: {
     flex: 1,
-    height: 4,
-    borderRadius: 2,
+    height: 6,
+    borderRadius: radius.pill,
     backgroundColor: colors.border,
   },
   barDone: {
@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: fontSize.small,
+    fontWeight: "700",
     color: colors.textMuted,
   },
 });

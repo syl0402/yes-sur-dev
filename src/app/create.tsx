@@ -9,6 +9,8 @@ import QuestionsStep from "@/components/create/QuestionsStep";
 import SettingsStep from "@/components/create/SettingsStep";
 import PrimaryButton from "@/components/PrimaryButton";
 import StepIndicator from "@/components/StepIndicator";
+import BottomBar from "@/components/ui/BottomBar";
+import Button from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { showChoice, showConfirm } from "@/lib/confirm";
@@ -289,21 +291,22 @@ export default function CreateSurvey() {
         )}
       </ScrollView>
 
-      <View style={styles.footer}>
-        {step > 1 && (
-          <Pressable style={styles.prevButton} onPress={() => setStep(step - 1)} disabled={sending}>
-            <Text style={styles.prevText}>이전</Text>
-          </Pressable>
-        )}
-        <View style={styles.nextButton}>
-          <PrimaryButton
-            title={step === STEP_COUNT ? "등록" : "다음"}
-            onPress={goNext}
-            disabled={!stepOk}
-            loading={sending}
-          />
-        </View>
-      </View>
+      <BottomBar>
+        <Button
+          title="이전"
+          variant="outline"
+          onPress={() => setStep(step - 1)}
+          disabled={step === 1 || sending}
+          style={styles.prevButton}
+        />
+        <Button
+          title={step === STEP_COUNT ? "등록하기" : "다음"}
+          onPress={goNext}
+          disabled={!stepOk}
+          loading={sending}
+          style={styles.nextButton}
+        />
+      </BottomBar>
     </View>
   );
 }
@@ -337,25 +340,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    padding: spacing.lg,
-    gap: spacing.lg,
+    padding: spacing.md,
+    gap: spacing.md,
+    paddingBottom: spacing.xl,
   },
   stepTitle: {
     fontSize: fontSize.title,
     fontWeight: "700",
     color: colors.text,
   },
-  footer: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    padding: spacing.lg,
-  },
   prevButton: {
-    paddingHorizontal: spacing.lg,
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
+    flex: 1,
   },
   headerButton: {
     fontSize: fontSize.body,
@@ -364,12 +359,7 @@ const styles = StyleSheet.create({
   headerButtonDisabled: {
     color: colors.disabled,
   },
-  prevText: {
-    fontSize: fontSize.body,
-    color: colors.text,
-    fontWeight: "600",
-  },
   nextButton: {
-    flex: 1,
+    flex: 2,
   },
 });

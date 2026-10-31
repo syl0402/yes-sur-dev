@@ -30,7 +30,7 @@ export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, bal
 
   return (
     <>
-      <View style={formStyles.section}>
+      <View style={formStyles.card}>
         <Text style={formStyles.label}>응답 대상</Text>
         <Chips
           options={[
@@ -45,7 +45,7 @@ export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, bal
         </Text>
       </View>
 
-      <View style={formStyles.section}>
+      <View style={formStyles.card}>
         <Text style={formStyles.label}>결과 공개</Text>
         <Chips
           options={[
@@ -66,7 +66,7 @@ export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, bal
         </Text>
       </View>
 
-      <View style={formStyles.section}>
+      <View style={formStyles.card}>
         <Text style={formStyles.label}>목표 인원</Text>
         <TextInput
           style={formStyles.input}
@@ -92,7 +92,7 @@ export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, bal
         )}
       </View>
 
-      <View style={formStyles.section}>
+      <View style={formStyles.card}>
         <Text style={formStyles.label}>마감까지 (일)</Text>
         <TextInput
           style={formStyles.input}

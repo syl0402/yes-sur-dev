@@ -17,7 +17,7 @@ export default function BasicsStep({ draft, categories, onChange }: Props) {
 
   return (
     <>
-      <View style={formStyles.section}>
+      <View style={formStyles.card}>
         <Text style={formStyles.label}>제목</Text>
         <TextInput
           style={formStyles.input}
@@ -35,7 +35,7 @@ export default function BasicsStep({ draft, categories, onChange }: Props) {
         )}
       </View>
 
-      <View style={formStyles.section}>
+      <View style={formStyles.card}>
         <Text style={formStyles.label}>설명 (선택)</Text>
         <TextInput
           style={[formStyles.input, formStyles.multiline]}
@@ -50,7 +50,7 @@ export default function BasicsStep({ draft, categories, onChange }: Props) {
         </Text>
       </View>
 
-      <View style={formStyles.section}>
+      <View style={formStyles.card}>
         <Text style={formStyles.label}>카테고리</Text>
         <Chips
           options={categories.map((c) => ({ value: c.id, label: c.name }))}

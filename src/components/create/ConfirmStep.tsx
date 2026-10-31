@@ -2,7 +2,7 @@ import { StyleSheet, View } from "react-native";
 
 import { formStyles } from "@/components/create/formStyles";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
 import { type SurveyDraft, VISIBILITY_LABELS, estimate } from "@/lib/surveyDraft";
 import { formatHost } from "@/lib/surveys";
@@ -97,8 +97,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
     gap: spacing.sm,
+    ...shadow.card,
   },
   row: {
     flexDirection: "row",
