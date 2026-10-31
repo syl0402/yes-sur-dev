@@ -6,7 +6,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import PrimaryButton from "@/components/PrimaryButton";
 import StepIndicator from "@/components/StepIndicator";
 import { Text, TextInput } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
 
@@ -292,7 +292,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
   },
   schoolSelected: {
     borderColor: colors.primary,
@@ -335,7 +336,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 16,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
   },
   domainChipOn: {
     borderColor: colors.primary,
@@ -358,7 +360,8 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
     padding: spacing.md,
     fontSize: fontSize.body,
     color: colors.text,

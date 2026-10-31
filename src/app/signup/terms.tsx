@@ -6,7 +6,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import PrimaryButton from "@/components/PrimaryButton";
 import StepIndicator from "@/components/StepIndicator";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { type LegalDoc, openLegal } from "@/lib/legal";
 
 // 동의 항목. 요약은 화면에서 펼치고, 전문은 노션 페이지 (원본 docs/legal/, 2026-10-30 개발팀 초안)
@@ -206,7 +206,8 @@ const styles = StyleSheet.create({
   box: {
     width: 22,
     height: 22,
-    borderRadius: 4,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
     borderWidth: 1.5,
     borderColor: colors.border,
     alignItems: "center",

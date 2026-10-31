@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import { Text, TextInput } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
 
@@ -126,7 +126,8 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
     padding: spacing.md,
     fontSize: fontSize.body,
     color: colors.text,

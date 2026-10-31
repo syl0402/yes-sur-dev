@@ -5,7 +5,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 
 type Status = "pending" | "approved" | "rejected";
@@ -147,7 +147,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
     gap: 4,
   },
   reasonLabel: {

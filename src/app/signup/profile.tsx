@@ -7,7 +7,7 @@ import PrimaryButton from "@/components/PrimaryButton";
 import StepIndicator from "@/components/StepIndicator";
 import YearPicker from "@/components/YearPicker";
 import { Text, TextInput } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { GENDER_OPTIONS, type Gender, birthYearOptions } from "@/lib/demographics";
 import { errorMessage } from "@/lib/errors";
 import { confirmLeaveSignup } from "@/lib/leaveSignup";
@@ -334,7 +334,8 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
     padding: spacing.md,
     fontSize: fontSize.body,
     color: colors.text,
@@ -362,7 +363,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 20,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
   },
   chipSelected: {
     borderColor: colors.primary,
@@ -385,7 +387,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
     alignItems: "center",
   },
   choiceSelected: {

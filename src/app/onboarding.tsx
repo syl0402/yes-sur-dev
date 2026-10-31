@@ -99,7 +99,9 @@ export default function Onboarding() {
       >
         {slides.map((s) => (
           <View key={s.title} style={[styles.center, { width }]}>
-            <Text style={styles.emoji}>{s.emoji}</Text>
+            <View style={styles.emojiCircle}>
+              <Text style={styles.emoji}>{s.emoji}</Text>
+            </View>
             <Text style={styles.title}>{s.title}</Text>
             <Text style={styles.body}>{s.body}</Text>
           </View>
@@ -149,8 +151,17 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingHorizontal: spacing.lg,
   },
+  emojiCircle: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primarySoft,
+    marginBottom: spacing.md,
+  },
   emoji: {
-    fontSize: 64,
+    fontSize: 72,
   },
   title: {
     fontSize: fontSize.title,

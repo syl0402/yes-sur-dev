@@ -19,16 +19,17 @@ export default function Logo() {
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
-    alignItems: "baseline",
+    alignItems: "center",
     gap: 6,
   },
   ko: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "800",
     color: colors.primary,
   },
   en: {
-    fontSize: 13,
+    marginTop: 4,
+    fontSize: 12,
     fontWeight: "700",
     color: colors.primary,
   },

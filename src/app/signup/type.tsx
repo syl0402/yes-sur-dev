@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet } from "react-native";
 
 import StepIndicator from "@/components/StepIndicator";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 
 type SignupType = "student" | "org";
 
@@ -76,7 +76,8 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
     gap: spacing.sm,
   },
   cardTitle: {

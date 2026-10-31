@@ -1,24 +1,26 @@
 import { Redirect, router, Stack } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import PrimaryButton from "@/components/PrimaryButton";
+import Button from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { useSession } from "@/hooks/useSession";
 
-// 로그인 전 첫 화면. 로그인돼 있으면 홈 탭으로 보낸다
+// 로그인 전 첫 화면 (2026-10-31: 글자 로고 · 한 줄 소개만 두는 미니멀 화면). 로그인돼 있으면 홈 탭으로 보낸다
 // (가입을 마치지 않았거나 승인 전 단체면 useResumeSignup이 알맞은 화면으로 다시 보낸다)
-// TODO(임시): 첫 화면 디자인(로고·소개 문구) · 디자인 단계에서 교체 · docs/PROGRESS.md
+// TODO(임시): 첫 화면은 디자인팀 시안으로 교체 · docs/PROGRESS.md
 export default function Index() {
   const session = useSession();
+  const insets = useSafeAreaInsets();
 
   // 로그인 상태 확인 중
   if (session === undefined) return null;
   if (session) return <Redirect href="/home" />;
 
   return (
-    <View style={styles.container}>
-      <Stack.Screen options={{ title: "옛썰" }} />
+    <View style={[styles.screen, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
+      <Stack.Screen options={{ headerShown: false }} />
 
       <View style={styles.center}>
         <Text style={styles.title}>옛썰</Text>
@@ -26,8 +28,8 @@ export default function Index() {
       </View>
 
       <View style={styles.footer}>
-        <PrimaryButton title="로그인" onPress={() => router.push("/login")} />
-        <Pressable onPress={() => router.push("/signup/type")} style={styles.textButton}>
+        <Button title="로그인" onPress={() => router.push("/login")} />
+        <Pressable onPress={() => router.push("/signup/type")} style={styles.textButton} hitSlop={8}>
           <Text style={styles.textButtonLabel}>
             처음이신가요? <Text style={styles.textButtonStrong}>회원가입</Text>
           </Text>
@@ -38,9 +40,9 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
     backgroundColor: colors.background,
   },
   center: {
@@ -50,7 +52,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   title: {
-    fontSize: fontSize.hero,
+    fontSize: 44,
     fontWeight: "800",
     color: colors.primary,
   },
@@ -59,8 +61,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   footer: {
-    gap: spacing.md,
-    alignItems: "stretch",
+    gap: spacing.sm,
   },
   textButton: {
     alignItems: "center",
@@ -72,6 +73,6 @@ const styles = StyleSheet.create({
   },
   textButtonStrong: {
     color: colors.primary,
-    fontWeight: "600",
+    fontWeight: "700",
   },
 });
