@@ -1,18 +1,20 @@
 // ys-110 설문 목록 · F-202~204
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
+import SurveyListCard from "@/components/SurveyListCard";
+import Button from "@/components/ui/Button";
+import Chip from "@/components/ui/Chip";
+import EmptyState from "@/components/ui/EmptyState";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
-import { formatPoints, formatTimeLeft } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
 import {
   type DurationKey,
   type SortKey,
   type SurveyCard,
   fetchOpenSurveys,
-  formatHost,
   matchesDuration,
   sortSurveys,
 } from "@/lib/surveys";
@@ -78,48 +80,29 @@ export default function Surveys() {
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={styles.container}
     >
-      <Pressable style={styles.createButton} onPress={() => router.push("/create")}>
-        <Text style={styles.createText}>+ 설문 등록</Text>
-      </Pressable>
-
       {/* 필터: 카테고리 · 소요시간 · 학교 범위, 그리고 정렬 */}
-      <ChipRow
-        options={[{ value: "all", label: "전체" }, ...categories.map((c) => ({ value: c.key, label: c.name }))]}
-        selected={category}
-        onSelect={setCategory}
-      />
-      <ChipRow options={DURATION_OPTIONS} selected={duration} onSelect={setDuration} />
-      <ChipRow options={SCOPE_OPTIONS} selected={scope} onSelect={setScope} />
-      <ChipRow options={SORT_OPTIONS} selected={sort} onSelect={setSort} />
+      <View style={styles.filters}>
+        <ChipRow
+          options={[{ value: "all", label: "전체" }, ...categories.map((c) => ({ value: c.key, label: c.name }))]}
+          selected={category}
+          onSelect={setCategory}
+        />
+        <ChipRow options={DURATION_OPTIONS} selected={duration} onSelect={setDuration} />
+        <ChipRow options={SCOPE_OPTIONS} selected={scope} onSelect={setScope} />
+        <ChipRow options={SORT_OPTIONS} selected={sort} onSelect={setSort} />
+      </View>
+
+      <View style={styles.countRow}>
+        <Text style={styles.count}>{surveys === null ? "" : `설문 ${visible.length}개`}</Text>
+        <Button title="+ 설문 등록" variant="soft" small onPress={() => router.push("/create")} />
+      </View>
 
       {surveys === null ? (
         <ActivityIndicator color={colors.primary} style={styles.loading} />
       ) : visible.length === 0 ? (
-        <Text style={styles.empty}>조건에 맞는 설문이 없어요.</Text>
+        <EmptyState title="조건에 맞는 설문이 없어요" message="필터를 바꿔 보세요." />
       ) : (
-        visible.map((s) => (
-          <Pressable
-            key={s.id}
-            style={styles.card}
-            onPress={() => router.push({ pathname: "/survey/[id]", params: { id: String(s.id) } })}
-          >
-            <View style={styles.cardTop}>
-              <Text style={styles.category}>
-                {formatHost(s)} · {s.category_name}
-              </Text>
-              {s.audience === "campus" && <Text style={styles.campusBadge}>우리 학교</Text>}
-            </View>
-            <Text style={styles.title} numberOfLines={2}>
-              {s.title}
-            </Text>
-            <View style={styles.cardBottom}>
-              <Text style={styles.meta}>
-                {[`${s.est_minutes}분`, formatTimeLeft(s.closes_at)].filter(Boolean).join(" · ")}
-              </Text>
-              <Text style={styles.reward}>{formatPoints(s.reward_points)}</Text>
-            </View>
-          </Pressable>
-        ))
+        visible.map((s) => <SurveyListCard key={s.id} survey={s} />)
       )}
     </ScrollView>
   );
@@ -138,13 +121,7 @@ function ChipRow<T extends string>({
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
       {options.map((o) => (
-        <Pressable
-          key={o.value}
-          style={[styles.chip, selected === o.value && styles.chipSelected]}
-          onPress={() => onSelect(o.value)}
-        >
-          <Text style={[styles.chipText, selected === o.value && styles.chipTextSelected]}>{o.label}</Text>
-        </Pressable>
+        <Chip key={o.value} label={o.label} selected={selected === o.value} onPress={() => onSelect(o.value)} />
       ))}
     </ScrollView>
   );
@@ -157,91 +134,26 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: spacing.md,
-    gap: spacing.sm,
+    gap: spacing.md,
+    paddingBottom: spacing.xl,
   },
   loading: {
     marginTop: spacing.lg,
   },
-  createButton: {
-    marginBottom: spacing.sm,
-    paddingVertical: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  createText: {
-    fontSize: fontSize.body,
-    color: colors.primary,
-    fontWeight: "600",
-  },
-  empty: {
-    marginTop: spacing.lg,
-    fontSize: fontSize.body,
-    color: colors.textMuted,
-    textAlign: "center",
+  filters: {
+    gap: spacing.sm,
   },
   chipRow: {
     gap: spacing.sm,
   },
-  chip: {
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-  },
-  chipSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary,
-  },
-  chipText: {
-    fontSize: fontSize.small,
-    color: colors.text,
-  },
-  chipTextSelected: {
-    color: colors.onPrimary,
-    fontWeight: "600",
-  },
-  card: {
-    marginTop: spacing.sm,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    gap: 6,
-  },
-  cardTop: {
+  countRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-  },
-  category: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
-  },
-  campusBadge: {
-    fontSize: fontSize.small,
-    color: colors.primary,
-    fontWeight: "600",
-  },
-  title: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  cardBottom: {
-    flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
   },
-  meta: {
+  count: {
     fontSize: fontSize.small,
+    fontWeight: "600",
     color: colors.textMuted,
-  },
-  reward: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.primary,
   },
 });

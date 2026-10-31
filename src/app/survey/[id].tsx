@@ -5,8 +5,12 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import ReportLink from "@/components/ReportLink";
+import Badge from "@/components/ui/Badge";
+import BottomBar from "@/components/ui/BottomBar";
+import Card from "@/components/ui/Card";
+import StatTile from "@/components/ui/StatTile";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { formatPoints, formatTimeLeft } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
 import { formatHost, remainingSpots } from "@/lib/surveys";
@@ -126,65 +130,76 @@ export default function SurveyDetail() {
   const join = () => router.push({ pathname: "/survey/respond", params: { id: String(id) } });
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={styles.container}
-    >
+    <View style={styles.screen}>
       <Stack.Screen options={{ title: "설문 상세" }} />
 
-      <Text style={styles.category}>
-        {detail.categoryName}
-        {detail.audience === "campus" ? " · 우리 학교 학생만" : ""}
-      </Text>
-      <Text style={styles.title}>{detail.title}</Text>
-      {detail.description ? <Text style={styles.description}>{detail.description}</Text> : null}
+      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
+        <Card>
+          <View style={styles.badges}>
+            {detail.categoryName ? <Badge label={detail.categoryName} /> : null}
+            {detail.audience === "campus" && <Badge label="우리 학교 학생만" tone="accent" />}
+            {detail.closed && <Badge label="마감" tone="muted" />}
+          </View>
+          <Text style={styles.title}>{detail.title}</Text>
+          {detail.description ? <Text style={styles.description}>{detail.description}</Text> : null}
+          <Text style={styles.host}>
+            {detail.host_verified ? `${formatHost(detail)} 인증 단체` : `작성 · ${formatHost(detail)}`}
+          </Text>
+        </Card>
 
-      <View style={styles.infoBox}>
-        <InfoRow
-          label="작성"
-          value={detail.host_verified ? `${formatHost(detail)} 인증 단체` : formatHost(detail)}
-        />
-        <InfoRow label="보상" value={formatPoints(detail.reward_points)} highlight />
-        <InfoRow label="문항 · 소요시간" value={`${detail.question_count}문항 · 약 ${detail.est_minutes}분`} />
-        <InfoRow label="마감" value={formatTimeLeft(detail.closes_at) || "기한 없음"} />
-        <InfoRow label="남은 자리" value={`${spots}명`} />
-        <InfoRow label="응답 대상" value={detail.audience === "campus" ? "우리 학교 학생" : "전체 대학생"} />
-      </View>
+        <View style={styles.stats}>
+          <StatTile label="보상" value={`+${formatPoints(detail.reward_points)}`} />
+          <StatTile label="소요 시간" value={`약 ${detail.est_minutes}분`} />
+          <StatTile label="남은 자리" value={`${spots}명`} />
+        </View>
 
-      {/* 응답 전에 결과가 어디까지 공개되는지 알린다 (2026-10-30 결정) */}
-      {!detail.isOwner && <Text style={styles.notice}>{VISIBILITY_NOTICE[detail.result_visibility]}</Text>}
+        <Card>
+          <InfoRow label="문항 수" value={`${detail.question_count}문항`} />
+          <InfoRow label="마감" value={formatTimeLeft(detail.closes_at) || "기한 없음"} />
+          <InfoRow label="응답 대상" value={detail.audience === "campus" ? "우리 학교 학생" : "전체 대학생"} />
+        </Card>
 
-      <View style={styles.footer}>
-        {detail.isOwner ? (
-          <View style={styles.ownerBox}>
-            <Text style={styles.muted}>내가 올린 설문이에요.</Text>
+        {/* 응답 전에 결과가 어디까지 공개되는지 알린다 (2026-10-30 결정) */}
+        {!detail.isOwner && (
+          <View style={styles.notice}>
+            <Text style={styles.noticeText}>ⓘ {VISIBILITY_NOTICE[detail.result_visibility]}</Text>
+          </View>
+        )}
+
+        {detail.isOwner && <Text style={styles.muted}>내가 올린 설문이에요.</Text>}
+        {!detail.isOwner && <ReportLink surveyId={Number(id)} />}
+      </ScrollView>
+
+      <BottomBar>
+        <View style={styles.action}>
+          {detail.isOwner ? (
             <PrimaryButton
               title="결과 보기"
               onPress={() => router.push({ pathname: "/survey/results", params: { id: String(id) } })}
             />
-          </View>
-        ) : detail.isOrg ? (
-          <Text style={styles.muted}>단체 계정은 설문에 응답할 수 없어요.</Text>
-        ) : detail.answered ? (
-          <PrimaryButton title="이미 참여한 설문이에요" onPress={() => {}} disabled />
-        ) : detail.closed ? (
-          <PrimaryButton title="마감된 설문이에요" onPress={() => {}} disabled />
-        ) : (
-          <PrimaryButton title={detail.rejected ? "다시 응답하기" : "참여하기"} onPress={join} />
-        )}
-      </View>
-
-      {!detail.isOwner && <ReportLink surveyId={Number(id)} />}
-    </ScrollView>
+          ) : detail.isOrg ? (
+            <Text style={styles.muted}>단체 계정은 설문에 응답할 수 없어요.</Text>
+          ) : detail.answered ? (
+            <PrimaryButton title="이미 참여한 설문이에요" onPress={() => {}} disabled />
+          ) : detail.closed ? (
+            <PrimaryButton title="마감된 설문이에요" onPress={() => {}} disabled />
+          ) : (
+            <PrimaryButton
+              title={detail.rejected ? "다시 응답하기" : `참여하고 ${formatPoints(detail.reward_points)} 받기`}
+              onPress={join}
+            />
+          )}
+        </View>
+      </BottomBar>
+    </View>
   );
 }
 
-function InfoRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.infoRow}>
       <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={[styles.infoValue, highlight && styles.infoValueHighlight]}>{value}</Text>
+      <Text style={styles.infoValue}>{value}</Text>
     </View>
   );
 }
@@ -202,32 +217,37 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    padding: spacing.lg,
+    padding: spacing.md,
     gap: spacing.md,
   },
-  category: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
+  badges: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
   },
   title: {
     fontSize: fontSize.title,
     fontWeight: "700",
     color: colors.text,
+    lineHeight: 30,
   },
   description: {
     fontSize: fontSize.body,
     color: colors.text,
+    lineHeight: 24,
   },
-  infoBox: {
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
+  host: {
+    fontSize: fontSize.small,
+    color: colors.textMuted,
+  },
+  stats: {
+    flexDirection: "row",
     gap: spacing.sm,
   },
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+    paddingVertical: 2,
   },
   infoLabel: {
     fontSize: fontSize.body,
@@ -238,19 +258,19 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: "600",
   },
-  infoValueHighlight: {
-    color: colors.primary,
-  },
   notice: {
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceMuted,
+  },
+  noticeText: {
     fontSize: fontSize.small,
     color: colors.textMuted,
-    lineHeight: 18,
+    lineHeight: 19,
   },
-  footer: {
-    marginTop: spacing.md,
-  },
-  ownerBox: {
-    gap: spacing.md,
+  action: {
+    flex: 1,
+    justifyContent: "center",
   },
   muted: {
     fontSize: fontSize.body,

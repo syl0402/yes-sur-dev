@@ -228,6 +228,7 @@
 | 첫 사용 안내 그림 (이모지 + 글자) | `src/app/onboarding.tsx` | 디자인 시안(11/7)이 오면 그림으로 | 2026-10-31 |
 | 홈 제목줄 로고 (글자로 만든 로고) | `src/components/ui/Logo.tsx` | 디자인팀 로고 PNG(배경 없음)를 받으면 그림으로 | 2026-10-31 |
 | 빈 화면 그림 (이모지) | `src/components/ui/EmptyState.tsx` | 디자인팀 마스코트(옛썰이) PNG를 받으면 그림으로 | 2026-10-31 |
+| 응답 완료 화면 그림 (🎉·🤔 이모지) | `src/app/survey/done.tsx` | 디자인팀 마스코트 PNG를 받으면 그림으로 | 2026-10-31 |
 | 포인트 내역 최근 50개만 | `src/app/(tabs)/my.tsx` | 내역이 많아지면 아래로 내릴 때 더 불러오기 | 2026-10-29 |
 | 탭 아이콘 (Ionicons 기본) | `src/constants/icons.ts` | 디자인팀 아이콘 확정 시 이름만 교체 (직접 그린 아이콘은 `AppIcon.tsx`) | 2026-10-29 |
 | 다크 모드 꺼 둠 (`userInterfaceStyle: "light"`) | `app.json` (JSON이라 주석 불가) | 다크 모드 디자인이 생기면 `"automatic"`으로 | 2026-10-27 |

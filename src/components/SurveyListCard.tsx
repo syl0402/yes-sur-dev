@@ -16,7 +16,10 @@ export default function SurveyListCard({ survey: s }: { survey: SurveyCard }) {
   return (
     <Card onPress={() => router.push({ pathname: "/survey/[id]", params: { id: String(s.id) } })}>
       <View style={styles.top}>
-        <Badge label={s.category_name} />
+        <View style={styles.badges}>
+          <Badge label={s.category_name} />
+          {s.audience === "campus" && <Badge label="우리 학교" tone="accent" />}
+        </View>
         {timeLeft ? <Text style={styles.timeLeft}>{timeLeft}</Text> : null}
       </View>
       <Text style={styles.title} numberOfLines={2}>
@@ -42,6 +45,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  badges: {
+    flexDirection: "row",
+    gap: spacing.xs,
   },
   timeLeft: {
     fontSize: fontSize.caption,
