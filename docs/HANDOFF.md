@@ -61,6 +61,7 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 사용자가 쓴 글의 링크: `LinkedText` (`src/components/LinkedText.tsx`) — http(s) 주소는 파란 링크, 누르면 "옛썰 밖의 링크" 확인 후 열기. 상세 화면 본문·댓글은 길게 눌러 복사(`selectable`)
 - 친구 초대: `src/app/invite.tsx` (마이 탭 "🎁 친구 초대", 학생만). 코드 복사 `expo-clipboard`, 공유 `Share`(RN 기본)
 - 첫 사용 안내: `src/app/onboarding.tsx` (학생만 3장, 가입 완료 → 안내 → 홈. 기존 회원은 홈에서 이 폰 첫 실행 때 한 번, `src/lib/onboarding.ts`로 기억). 내 정보 "사용 안내 다시 보기"(`?again=1`)
+- 학교: 가입 화면 `signup/email.tsx`는 `universities` + `university_domains`(주소 여러 개면 칩으로 고르기, 6개 이상이면 검색칸). 학교 추가·수정은 `supabase/seed/universities.sql`
 - 포인트 안내: `src/app/points.tsx` (모으기·쓰기·규칙, 숫자는 모두 `fetchRules`로 point_rules). 마이 탭 포인트 상자·내 정보·첫 사용 안내에서 링크
 - 테스트할 때 응답자가 적으면 `dev_tools.sql` 10번(최소 응답 수 1)으로. 출시 전 5로 되돌리기
 

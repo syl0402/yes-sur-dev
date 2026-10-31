@@ -9,7 +9,25 @@ import { colors, fontSize, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { supabase } from "@/lib/supabase";
 
-type University = { id: number; name: string; email_domain: string };
+// 학교 + 학생 메일 주소들 (대표 주소가 먼저). 2026-10-31부터 학교 하나에 주소 여러 개
+type University = {
+  id: number;
+  name: string;
+  email_domain: string;
+  university_domains: { domain: string; is_primary: boolean }[];
+};
+
+// 학교의 메일 주소 목록 (대표 먼저, 표가 비면 예전 대표 주소)
+function domainsOf(u: University): string[] {
+  const list = [...(u.university_domains ?? [])]
+    .sort((a, b) => Number(b.is_primary) - Number(a.is_primary))
+    .map((d) => d.domain);
+  return list.length > 0 ? list : [u.email_domain];
+}
+
+// 학교가 이만큼 넘으면 검색해서 고르기 (검색 결과는 최대 SEARCH_RESULTS_MAX개)
+const SEARCH_FROM = 6;
+const SEARCH_RESULTS_MAX = 6;
 
 // 단체 메일 형식 검사 (자세한 검사는 인증번호 메일이 대신한다)
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -20,6 +38,8 @@ export default function SignupEmail() {
 
   const [universities, setUniversities] = useState<University[]>([]);
   const [selected, setSelected] = useState<University | null>(null);
+  const [domain, setDomain] = useState("");
+  const [search, setSearch] = useState("");
   const [localPart, setLocalPart] = useState("");
   const [orgEmail, setOrgEmail] = useState("");
   const [sending, setSending] = useState(false);
@@ -27,21 +47,37 @@ export default function SignupEmail() {
   // 이미 가입된 것으로 확인된 메일 (입력을 바꾸면 안내가 사라진다)
   const [registeredEmail, setRegisteredEmail] = useState("");
 
+  // 학교를 고르면 대표 메일 주소로 맞춘다
+  const pick = (u: University) => {
+    setSelected(u);
+    setDomain(domainsOf(u)[0]);
+  };
+
   useEffect(() => {
     supabase
       .from("universities")
-      .select("id, name, email_domain")
+      .select("id, name, email_domain, university_domains(domain, is_primary)")
       .order("name")
       .then(({ data, error }) => {
         if (error) {
           setError(errorMessage(error));
           return;
         }
-        setUniversities(data ?? []);
+        const list = (data as University[] | null) ?? [];
+        setUniversities(list);
         // 학교가 하나뿐이면 미리 골라 둔다
-        if (data?.length === 1) setSelected(data[0]);
+        if (list.length === 1) pick(list[0]);
       });
   }, []);
+
+  // 학교가 많으면 검색해서 고르기 (검색어가 없으면 목록을 보여 주지 않는다), 적으면 전체 목록
+  const useSearch = universities.length >= SEARCH_FROM;
+  const q = search.trim();
+  const shown = !useSearch
+    ? universities
+    : q
+      ? universities.filter((u) => u.name.includes(q)).slice(0, SEARCH_RESULTS_MAX)
+      : [];
 
   // 학생: 학교 선택 + 아이디 (도메인 고정)
   const trimmed = localPart.trim();
@@ -51,7 +87,7 @@ export default function SignupEmail() {
   const isValidOrgEmail = EMAIL_PATTERN.test(trimmedOrgEmail);
 
   const canSend = isOrg ? isValidOrgEmail : selected !== null && isValidLocalPart;
-  const email = isOrg ? trimmedOrgEmail : `${trimmed}@${selected?.email_domain}`;
+  const email = isOrg ? trimmedOrgEmail : `${trimmed}@${domain}`;
   const alreadyRegistered = registeredEmail !== "" && registeredEmail === email;
 
   const sendCode = async () => {
@@ -114,20 +150,67 @@ export default function SignupEmail() {
         <Text style={styles.heading}>학교를 선택해 주세요</Text>
       )}
 
-      {!isOrg && universities.map((u) => (
-        <Pressable
-          key={u.id}
-          style={[styles.school, selected?.id === u.id && styles.schoolSelected]}
-          onPress={() => setSelected(u)}
-        >
-          <Text style={styles.schoolName}>{u.name}</Text>
-          <Text style={styles.schoolDomain}>@{u.email_domain}</Text>
-        </Pressable>
-      ))}
+      {/* 고른 뒤: 선택한 학교 하나 + [변경] (목록을 접어서 화면이 길어지지 않게) */}
+      {!isOrg && selected && (useSearch || universities.length > 1) && (
+        <View style={[styles.school, styles.schoolSelected, styles.pickedRow]}>
+          <View style={styles.pickedMain}>
+            <Text style={styles.schoolName}>{selected.name}</Text>
+            <Text style={styles.schoolDomain}>{domainsOf(selected).map((d) => `@${d}`).join(" · ")}</Text>
+          </View>
+          <Pressable
+            onPress={() => {
+              setSelected(null);
+              setSearch("");
+            }}
+            hitSlop={8}
+          >
+            <Text style={styles.change}>변경</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {/* 고르기 전: 학교가 많으면 검색해서 고르기, 적으면 전체 */}
+      {!isOrg && !selected && (
+        <>
+          {useSearch && (
+            <TextInput
+              style={styles.input}
+              value={search}
+              onChangeText={setSearch}
+              placeholder="학교 이름을 입력해 주세요 (예: 중앙)"
+              autoCorrect={false}
+            />
+          )}
+          {useSearch && q === "" && <Text style={styles.guide}>학교 이름 일부만 입력해도 찾아요.</Text>}
+          {shown.map((u) => (
+            <Pressable key={u.id} style={styles.school} onPress={() => pick(u)}>
+              <Text style={styles.schoolName}>{u.name}</Text>
+              <Text style={styles.schoolDomain}>{domainsOf(u).map((d) => `@${d}`).join(" · ")}</Text>
+            </Pressable>
+          ))}
+          {q !== "" && shown.length === 0 && (
+            <Text style={styles.guide}>찾는 학교가 없어요. 아직 가입할 수 없는 학교예요.</Text>
+          )}
+        </>
+      )}
 
       {!isOrg && selected && (
         <>
           <Text style={styles.label}>학교 이메일</Text>
+          {/* 학교 메일 주소가 여러 개면 고르기 (예: 포털 메일 · 학생용 구글 메일) */}
+          {domainsOf(selected).length > 1 && (
+            <View style={styles.domainChips}>
+              {domainsOf(selected).map((d) => (
+                <Pressable
+                  key={d}
+                  style={[styles.domainChip, d === domain && styles.domainChipOn]}
+                  onPress={() => setDomain(d)}
+                >
+                  <Text style={[styles.domainChipText, d === domain && styles.domainChipTextOn]}>@{d}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
           <View style={styles.emailRow}>
             <TextInput
               style={styles.input}
@@ -138,7 +221,7 @@ export default function SignupEmail() {
               autoCorrect={false}
               keyboardType="email-address"
             />
-            <Text style={styles.domain}>@{selected.email_domain}</Text>
+            <Text style={styles.domain}>@{domain}</Text>
           </View>
           {localPart.length > 0 && !isValidLocalPart && (
             <Text style={styles.error}>@ 앞부분만 입력해 주세요.</Text>
@@ -214,6 +297,19 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     borderWidth: 2,
   },
+  pickedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  pickedMain: {
+    flex: 1,
+  },
+  change: {
+    fontSize: fontSize.body,
+    fontWeight: "600",
+    color: colors.primary,
+  },
   schoolName: {
     fontSize: fontSize.body,
     color: colors.text,
@@ -227,6 +323,30 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     fontSize: fontSize.small,
     color: colors.textMuted,
+  },
+  domainChips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+  domainChip: {
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+  },
+  domainChipOn: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
+  },
+  domainChipText: {
+    fontSize: fontSize.small,
+    color: colors.text,
+  },
+  domainChipTextOn: {
+    color: colors.background,
+    fontWeight: "700",
   },
   emailRow: {
     flexDirection: "row",
