@@ -8,7 +8,7 @@ import Card from "@/components/ui/Card";
 import { Text } from "@/components/ui/Text";
 import { homeIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
-import { formatPoints, formatTimeLeft } from "@/lib/format";
+import { formatAgo, formatPoints, formatTimeLeft } from "@/lib/format";
 import { type SurveyCard, formatHost } from "@/lib/surveys";
 
 export default function SurveyListCard({ survey: s }: { survey: SurveyCard }) {
@@ -29,7 +29,7 @@ export default function SurveyListCard({ survey: s }: { survey: SurveyCard }) {
         <View style={styles.meta}>
           <AppIcon name={homeIcons.time} size={14} color={colors.textMuted} />
           <Text style={styles.metaText} numberOfLines={1}>
-            {[`약 ${s.est_minutes}분`, formatHost(s)].filter(Boolean).join(" · ")}
+            {[`약 ${s.est_minutes}분`, formatHost(s), formatAgo(s.created_at)].filter(Boolean).join(" · ")}
           </Text>
         </View>
         <View style={styles.reward}>

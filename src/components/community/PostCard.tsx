@@ -8,7 +8,7 @@ import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { KIND_LABELS, type PromoSurvey, type Post } from "@/lib/community";
 import { errorMessage } from "@/lib/errors";
-import { formatPoints, formatTimeLeft } from "@/lib/format";
+import { formatAgo, formatPoints, formatTimeLeft } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
 
@@ -52,6 +52,7 @@ export default function PostCard({ post, onVoted, onOpen, full }: Props) {
           {post.mine ? " (나)" : ""}
           {post.kind === "promo" ? "" : ` · ${post.votes}명 참여`}
           {post.comment_count > 0 ? ` · 댓글 ${post.comment_count}` : ""}
+          {` · ${formatAgo(post.created_at)}`}
         </Text>
       </View>
       <Text style={styles.question} selectable={full}>

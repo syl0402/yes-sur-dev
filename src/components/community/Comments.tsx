@@ -8,7 +8,7 @@ import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { type Comment, COMMENT_MAX, type CommentTarget } from "@/lib/community";
 import { showActions, showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
-import { formatDate } from "@/lib/format";
+import { formatAgo } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
 
@@ -88,7 +88,7 @@ export default function Comments({ type, id, onChanged }: { type: CommentTarget;
           {c.author}
           {c.mine ? " (나)" : ""}
         </Text>
-        <Text style={styles.date}>{formatDate(c.created_at)}</Text>
+        <Text style={styles.date}>{formatAgo(c.created_at)}</Text>
         <Pressable onPress={() => more(c)} hitSlop={8}>
           <Text style={styles.more}>⋯</Text>
         </Pressable>

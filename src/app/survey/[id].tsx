@@ -11,7 +11,7 @@ import Card from "@/components/ui/Card";
 import StatTile from "@/components/ui/StatTile";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
-import { formatPoints, formatTimeLeft } from "@/lib/format";
+import { formatAgo, formatPoints, formatTimeLeft } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
 import { formatHost, remainingSpots } from "@/lib/surveys";
 
@@ -37,6 +37,7 @@ type Detail = {
   host_name: string | null;
   host_verified: boolean;
   result_visibility: "public" | "campus" | "private";
+  createdAt: string;
   // 참여하기 버튼 상태를 정하는 정보
   isOwner: boolean;
   isOrg: boolean;
@@ -56,7 +57,7 @@ async function fetchDetail(id: number): Promise<Detail | null> {
     supabase
       .from("surveys")
       .select(
-        "owner_id, title, description, question_count, est_minutes, reward_points, target_responses, response_count, audience, status, closes_at, host_name, host_verified, result_visibility, survey_categories(name)",
+        "owner_id, title, description, question_count, est_minutes, reward_points, target_responses, response_count, audience, status, closes_at, host_name, host_verified, result_visibility, created_at, survey_categories(name)",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -84,6 +85,7 @@ async function fetchDetail(id: number): Promise<Detail | null> {
     host_name: survey.host_name,
     host_verified: survey.host_verified,
     result_visibility: survey.result_visibility,
+    createdAt: survey.created_at,
     isOwner: survey.owner_id === myId,
     isOrg: profile?.account_type === "org",
     answered: response?.status === "confirmed",
@@ -143,7 +145,7 @@ export default function SurveyDetail() {
           <Text style={styles.title}>{detail.title}</Text>
           {detail.description ? <Text style={styles.description}>{detail.description}</Text> : null}
           <Text style={styles.host}>
-            {detail.host_verified ? `${formatHost(detail)} 인증 단체` : `작성 · ${formatHost(detail)}`}
+            {detail.host_verified ? `${formatHost(detail)} 인증 단체` : `작성 · ${formatHost(detail)}`} · 등록 {formatAgo(detail.createdAt)}
           </Text>
         </Card>
 

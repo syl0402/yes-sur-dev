@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import PasswordInput from "@/components/ui/PasswordInput";
 import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
@@ -62,12 +63,11 @@ export default function Login() {
       />
 
       <Text style={styles.label}>비밀번호</Text>
-      <TextInput
+      <PasswordInput
         style={styles.input}
         value={password}
         onChangeText={setPassword}
         placeholder="비밀번호"
-        secureTextEntry
         autoCapitalize="none"
         textContentType="password"
         onSubmitEditing={login}

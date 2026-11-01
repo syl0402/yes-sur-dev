@@ -4,7 +4,8 @@ import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
-import { Text, TextInput } from "@/components/ui/Text";
+import PasswordInput from "@/components/ui/PasswordInput";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
@@ -90,11 +91,10 @@ export default function DeleteAccount() {
       <Text style={styles.hint}>같은 메일로 다시 가입할 수 있지만, 웰컴 포인트는 다시 받을 수 없어요.</Text>
 
       <Text style={styles.label}>현재 비밀번호</Text>
-      <TextInput
+      <PasswordInput
         style={styles.input}
         value={password}
         onChangeText={setPassword}
-        secureTextEntry
         autoCapitalize="none"
         placeholder="비밀번호를 입력해 주세요"
       />

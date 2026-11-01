@@ -23,3 +23,9 @@ export const homeIcons = {
   time: "time-outline",
   sparkle: "sparkles",
 } satisfies Record<string, IconName>;
+
+// 비밀번호 보기 (2026-11-02)
+export const passwordIcons = {
+  show: "eye-outline",
+  hide: "eye-off-outline",
+} satisfies Record<string, IconName>;

@@ -4,7 +4,8 @@ import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
-import { Text, TextInput } from "@/components/ui/Text";
+import PasswordInput from "@/components/ui/PasswordInput";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { showNotice } from "@/lib/notice";
@@ -55,12 +56,11 @@ export default function ResetPassword() {
       <Text style={styles.heading}>새 비밀번호를 정해 주세요</Text>
 
       <Text style={styles.label}>새 비밀번호</Text>
-      <TextInput
+      <PasswordInput
         style={styles.input}
         value={password}
         onChangeText={setPassword}
         placeholder="8자 이상"
-        secureTextEntry
         autoCapitalize="none"
         textContentType="newPassword"
       />
@@ -69,12 +69,11 @@ export default function ResetPassword() {
       )}
 
       <Text style={styles.label}>새 비밀번호 확인</Text>
-      <TextInput
+      <PasswordInput
         style={styles.input}
         value={passwordConfirm}
         onChangeText={setPasswordConfirm}
         placeholder="한 번 더 입력"
-        secureTextEntry
         autoCapitalize="none"
       />
       {passwordConfirm.length > 0 && !passwordMatch && (

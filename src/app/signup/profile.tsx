@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import PrimaryButton from "@/components/PrimaryButton";
 import StepIndicator from "@/components/StepIndicator";
 import YearPicker from "@/components/YearPicker";
+import PasswordInput from "@/components/ui/PasswordInput";
 import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { GENDER_OPTIONS, type Gender, birthYearOptions } from "@/lib/demographics";
@@ -148,12 +149,11 @@ export default function SignupProfile() {
       <Text style={styles.heading}>회원정보를 입력해 주세요</Text>
 
       <Text style={styles.label}>비밀번호</Text>
-      <TextInput
+      <PasswordInput
         style={styles.input}
         value={password}
         onChangeText={setPassword}
         placeholder="8자 이상"
-        secureTextEntry
         autoCapitalize="none"
       />
       {password.length > 0 && !passwordOk && (
@@ -161,12 +161,11 @@ export default function SignupProfile() {
       )}
 
       <Text style={styles.label}>비밀번호 확인</Text>
-      <TextInput
+      <PasswordInput
         style={styles.input}
         value={passwordConfirm}
         onChangeText={setPasswordConfirm}
         placeholder="한 번 더 입력"
-        secureTextEntry
         autoCapitalize="none"
       />
       {passwordConfirm.length > 0 && !passwordMatch && (

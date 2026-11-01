@@ -5,6 +5,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import StepIndicator from "@/components/StepIndicator";
+import PasswordInput from "@/components/ui/PasswordInput";
 import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
@@ -142,12 +143,11 @@ export default function SignupOrgInfo() {
       {!isResubmit && (
         <>
           <Text style={styles.label}>비밀번호</Text>
-          <TextInput
+          <PasswordInput
             style={styles.input}
             value={password}
             onChangeText={setPassword}
             placeholder="8자 이상 (로그인할 때 써요)"
-            secureTextEntry
             autoCapitalize="none"
           />
           {password.length > 0 && password.length < MIN_PASSWORD_LENGTH && (
@@ -155,12 +155,11 @@ export default function SignupOrgInfo() {
           )}
 
           <Text style={styles.label}>비밀번호 확인</Text>
-          <TextInput
+          <PasswordInput
             style={styles.input}
             value={passwordConfirm}
             onChangeText={setPasswordConfirm}
             placeholder="한 번 더 입력"
-            secureTextEntry
             autoCapitalize="none"
           />
           {passwordConfirm.length > 0 && password !== passwordConfirm && (

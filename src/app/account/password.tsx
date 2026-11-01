@@ -4,7 +4,8 @@ import { useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
-import { Text, TextInput } from "@/components/ui/Text";
+import PasswordInput from "@/components/ui/PasswordInput";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { showNotice } from "@/lib/notice";
@@ -60,26 +61,24 @@ export default function ChangePassword() {
       <Stack.Screen options={{ title: "비밀번호 변경" }} />
 
       <Text style={styles.label}>현재 비밀번호</Text>
-      <TextInput style={styles.input} value={current} onChangeText={setCurrent} secureTextEntry autoCapitalize="none" />
+      <PasswordInput style={styles.input} value={current} onChangeText={setCurrent} autoCapitalize="none" />
 
       <Text style={styles.label}>새 비밀번호</Text>
-      <TextInput
+      <PasswordInput
         style={styles.input}
         value={password}
         onChangeText={setPassword}
         placeholder="8자 이상"
-        secureTextEntry
         autoCapitalize="none"
       />
       {password.length > 0 && !passwordOk && <Text style={styles.error}>비밀번호는 8자 이상으로 정해 주세요.</Text>}
 
       <Text style={styles.label}>새 비밀번호 확인</Text>
-      <TextInput
+      <PasswordInput
         style={styles.input}
         value={passwordConfirm}
         onChangeText={setPasswordConfirm}
         placeholder="한 번 더 입력"
-        secureTextEntry
         autoCapitalize="none"
       />
       {passwordConfirm.length > 0 && !passwordMatch && <Text style={styles.error}>비밀번호가 서로 달라요.</Text>}
