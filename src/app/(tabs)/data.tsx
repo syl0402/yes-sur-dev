@@ -8,7 +8,9 @@ import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import Chip from "@/components/ui/Chip";
 import EmptyState from "@/components/ui/EmptyState";
+import SelectButton from "@/components/ui/SelectButton";
 import { Text, TextInput } from "@/components/ui/Text";
+import TextTabs from "@/components/ui/TextTabs";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { formatDate } from "@/lib/format";
 import { HUB_SORT_OPTIONS, type HubItem, type HubSort } from "@/lib/hub";
@@ -92,21 +94,17 @@ export default function Data() {
         </View>
       )}
 
-      {/* 필터: 카테고리 / 정렬 · 인증 단체 · 저장한 결과 */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
-        <Chip label="전체" selected={category === "all"} onPress={() => setCategory("all")} />
-        {categories.map((c) => (
-          <Chip key={c.key} label={c.name} selected={category === c.key} onPress={() => setCategory(c.key)} />
-        ))}
-      </ScrollView>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
-        {HUB_SORT_OPTIONS.map((o) => (
-          <Chip key={o.value} label={o.label} selected={sort === o.value} onPress={() => setSort(o.value)} />
-        ))}
-        <View style={styles.sep} />
+      {/* 카테고리: 글자 탭 / 정렬 · 인증 단체 · 저장한 결과: 한 줄 (2026-11-02 정리) */}
+      <TextTabs
+        options={[{ value: "all", label: "전체" }, ...categories.map((c) => ({ value: c.key, label: c.name }))]}
+        value={category}
+        onChange={setCategory}
+      />
+      <View style={styles.filters}>
+        <SelectButton title="정렬" options={HUB_SORT_OPTIONS} value={sort} onChange={setSort} />
         <Chip label="✓ 인증 단체" selected={verifiedOnly} onPress={() => setVerifiedOnly(!verifiedOnly)} />
         <Chip label={`★ 저장 ${saved.length}`} selected={savedOnly} onPress={() => setSavedOnly(!savedOnly)} />
-      </ScrollView>
+      </View>
 
       {items === null ? (
         <ActivityIndicator color={colors.primary} style={styles.loading} />
@@ -191,10 +189,11 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     alignItems: "center",
   },
-  sep: {
-    width: 1,
-    height: 20,
-    backgroundColor: colors.border,
+  filters: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   stripCard: {
     width: 180,

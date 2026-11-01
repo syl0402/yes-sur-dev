@@ -7,7 +7,9 @@ import SurveyListCard from "@/components/SurveyListCard";
 import Button from "@/components/ui/Button";
 import Chip from "@/components/ui/Chip";
 import EmptyState from "@/components/ui/EmptyState";
+import SelectButton from "@/components/ui/SelectButton";
 import { Text } from "@/components/ui/Text";
+import TextTabs from "@/components/ui/TextTabs";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import {
@@ -27,11 +29,6 @@ const DURATION_OPTIONS: { value: DurationKey; label: string }[] = [
   { value: "lt5", label: "5분 미만" },
   { value: "5to15", label: "5~15분" },
   { value: "gte15", label: "15분 이상" },
-];
-
-const SCOPE_OPTIONS: { value: Scope; label: string }[] = [
-  { value: "all", label: "전체 학교" },
-  { value: "campus", label: "우리 학교만" },
 ];
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
@@ -80,16 +77,27 @@ export default function Surveys() {
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={styles.container}
     >
-      {/* 필터: 카테고리 · 소요시간 · 학교 범위, 그리고 정렬 */}
+      {/* 카테고리: 글자 탭 / 정렬 · 소요시간 · 우리 학교만: 한 줄 (2026-11-02 정리) */}
+      <TextTabs
+        options={[{ value: "all", label: "전체" }, ...categories.map((c) => ({ value: c.key, label: c.name }))]}
+        value={category}
+        onChange={setCategory}
+      />
       <View style={styles.filters}>
-        <ChipRow
-          options={[{ value: "all", label: "전체" }, ...categories.map((c) => ({ value: c.key, label: c.name }))]}
-          selected={category}
-          onSelect={setCategory}
+        <SelectButton title="정렬" options={SORT_OPTIONS} value={sort} onChange={setSort} />
+        <SelectButton
+          title="소요시간"
+          options={DURATION_OPTIONS}
+          value={duration}
+          onChange={setDuration}
+          defaultValue="all"
+          placeholder="소요시간"
         />
-        <ChipRow options={DURATION_OPTIONS} selected={duration} onSelect={setDuration} />
-        <ChipRow options={SCOPE_OPTIONS} selected={scope} onSelect={setScope} />
-        <ChipRow options={SORT_OPTIONS} selected={sort} onSelect={setSort} />
+        <Chip
+          label="우리 학교만"
+          selected={scope === "campus"}
+          onPress={() => setScope(scope === "campus" ? "all" : "campus")}
+        />
       </View>
 
       <View style={styles.countRow}>
@@ -108,24 +116,6 @@ export default function Surveys() {
   );
 }
 
-// 가로로 넘기는 선택 칩 한 줄
-function ChipRow<T extends string>({
-  options,
-  selected,
-  onSelect,
-}: {
-  options: { value: T; label: string }[];
-  selected: T;
-  onSelect: (value: T) => void;
-}) {
-  return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-      {options.map((o) => (
-        <Chip key={o.value} label={o.label} selected={selected === o.value} onPress={() => onSelect(o.value)} />
-      ))}
-    </ScrollView>
-  );
-}
 
 const styles = StyleSheet.create({
   screen: {
@@ -141,9 +131,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   filters: {
-    gap: spacing.sm,
-  },
-  chipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
     gap: spacing.sm,
   },
   countRow: {

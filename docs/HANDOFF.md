@@ -98,6 +98,8 @@ import { Text, TextInput } from "@/components/ui/Text";
 | `Button` | `variant` primary(파랑)·soft(연파랑)·outline(테두리), `small`, `loading` |
 | `Chip` | 알약 선택 칩 (`selected`). 여러 개 묶음은 `create/Chips` |
 | `Segmented` | 탭 전환 (진행 중·완료 등) |
+| `TextTabs` | 글자 탭 + 밑줄 (카테고리·글 종류, 옆으로 넘김) |
+| `SelectButton` | `[추천순 ▾]` 선택 버튼 → 아래에서 선택 창. `defaultValue`가 아니면 파랗게 (필터 걸림 표시) |
 | `Badge` | 상태 표시 `tone` primary·accent·muted·danger |
 | `ProgressBar` | 진행 막대 `value` 0~1 |
 | `OptionRow` | 선택지 카드 (동그라미, `multiple`이면 네모 체크) |

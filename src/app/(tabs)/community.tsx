@@ -7,10 +7,11 @@ import MajorRankingCard from "@/components/community/MajorRankingCard";
 import PostCard from "@/components/community/PostCard";
 import WeeklyBestCard from "@/components/community/WeeklyBestCard";
 import WorldcupCard from "@/components/community/WorldcupCard";
-import Chips from "@/components/create/Chips";
 import DailyCard from "@/components/DailyCard";
 import EmptyState from "@/components/ui/EmptyState";
+import SelectButton from "@/components/ui/SelectButton";
 import { Text } from "@/components/ui/Text";
+import TextTabs from "@/components/ui/TextTabs";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { KIND_LABELS, POST_SORT_OPTIONS, type Post, type PostKind, type PostSort } from "@/lib/community";
 import { supabase } from "@/lib/supabase";
@@ -59,8 +60,13 @@ export default function Community() {
       {kind === "all" && <WeeklyBestCard />}
       {kind === "all" && <MajorRankingCard />}
 
-      <Chips options={KIND_FILTERS} selected={kind} onSelect={setKind} />
-      {kind !== "worldcup" && <Chips options={POST_SORT_OPTIONS} selected={sort} onSelect={setSort} />}
+      {/* 종류: 글자 탭 / 정렬: 선택 버튼 (2026-11-02 정리) */}
+      <TextTabs options={KIND_FILTERS} value={kind} onChange={setKind} />
+      {kind !== "worldcup" && (
+        <View style={styles.filters}>
+          <SelectButton title="정렬" options={POST_SORT_OPTIONS} value={sort} onChange={setSort} />
+        </View>
+      )}
 
       {kind === "worldcup" ? (
         worldcups === null ? (
@@ -119,6 +125,9 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     fontWeight: "700",
     color: colors.onPrimary,
+  },
+  filters: {
+    flexDirection: "row",
   },
   loading: {
     marginTop: spacing.lg,
