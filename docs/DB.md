@@ -43,6 +43,7 @@
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 | `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
 | `20261031000001_too_fast.sql` | 너무 빠른 응답(문항 수 × `min_seconds_per_question`초 미만)은 확인 문항 오답과 같게 반려, `submit_response`에 `reason`(attention·too_fast) | 2026-10-31 |
+| `20261101000001_weekly_best.sql` | 커뮤니티 주간 베스트 `get_weekly_best` + point_rules `weekly_best_days`(7)·`weekly_best_count`(3)·`weekly_best_min`(3) | 2026-11-01 |
 | `20261031000003_admin.sql` | 앱 안 운영자 화면: `is_admin`, 대기 건수·신고 처리·의견 답변·단체 승인 함수 (운영자만, 신고자·의견 보낸 사람은 안 보임) | 2026-10-31 |
 | `20261031000002_university_domains.sql` | 학교 하나에 메일 주소 여러 개: `university_domains`(로그인 전에도 읽기), 가입 완료 함수가 이 표로 학교를 찾음. 학교 추가는 `supabase/seed/universities.sql` | 2026-10-31 |
 
@@ -215,6 +216,7 @@
 | `create_comment(p_type, p_id, p_body)` / `delete_comment(p_comment_id)` | 댓글 (`post`·`daily`, 200자, 하루 `comment_daily_max`개) / 내 댓글 삭제 | 로그인한 사람 / 작성자 |
 | `like_comment(p_comment_id)` | 좋아요 누르기·취소 (내 댓글 불가) | 로그인한 사람 |
 | `get_comments(p_type, p_id)` | `{ best: 좋아요 많은 3개, all: 오래된 순 }` | 로그인한 사람 |
+| `get_weekly_best()` | 최근 `weekly_best_days`일 안 글 중 투표+보이는 댓글이 `weekly_best_min` 이상인 글 `weekly_best_count`개 (많은 순 → 최신). 홍보글은 설문이 열려 있을 때만. `[{id, kind, question, votes, comment_count}]`, 작성자 없음 | 로그인한 사람 |
 | `report_content(p_type, p_id, p_reason, p_detail)` | 설문·글·댓글 신고 (설문은 `report_survey`로). `report_hide_count`명이면 자동 숨김 | 로그인한 사람 |
 | `change_nickname(p_nickname)` | 닉네임 바꾸기 (학생만, 2~12자, 금칙어·중복 불가, `nickname_change_days`일에 한 번) | 학생 |
 | `create_promo(p_survey_id, p_question, p_body)` | 내 진행 중 설문 홍보글 (한 줄 소개 100자 + 본문 500자, 설문 하나에 하나 `promo_exists`, 하루 글 수에 포함) | 설문 등록자 |

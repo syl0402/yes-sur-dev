@@ -1,10 +1,11 @@
-// ys-140 커뮤니티 · F-601 (오늘의 질문 · 계열 대항전 + 글: 밸런스 · 나만 그래? · 골라 줘 · 설문 홍보)
+// ys-140 커뮤니티 · F-601 (오늘의 질문 · 주간 베스트 · 계열 대항전 + 글: 밸런스 · 나만 그래? · 골라 줘 · 설문 홍보)
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import MajorRankingCard from "@/components/community/MajorRankingCard";
 import PostCard from "@/components/community/PostCard";
+import WeeklyBestCard from "@/components/community/WeeklyBestCard";
 import Chips from "@/components/create/Chips";
 import DailyCard from "@/components/DailyCard";
 import EmptyState from "@/components/ui/EmptyState";
@@ -45,6 +46,7 @@ export default function Community() {
 
       {/* 오늘의 질문 (홈과 같은 카드, "전체"일 때만). 누르면 그룹별 결과·댓글 */}
       {kind === "all" && <DailyCard onOpen={() => router.push("/community/daily")} />}
+      {kind === "all" && <WeeklyBestCard />}
       {kind === "all" && <MajorRankingCard />}
 
       <Chips options={KIND_FILTERS} selected={kind} onSelect={setKind} />
