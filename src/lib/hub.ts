@@ -44,6 +44,9 @@ export type Group = { label: string; n: number | null; hidden: boolean; question
 // get_cross_results: 기준 문항의 답별 묶음 (그룹과 같은 모양, 2026-11-01)
 export type CrossResults = { question_id: number; groups: Group[] };
 
+// get_hub_teaser: 열람 전에 보여 주는 인사이트 1개 (없으면 null)
+export type HubTeaser = { index: number; question: string; option: string; pct: number };
+
 // get_hub_preview
 export type HubPreview = {
   id: number;

@@ -6,11 +6,12 @@ import { colors, fontSize, spacing } from "@/constants/theme";
 import type { Insight } from "@/lib/resultSummary";
 
 // 결과 맨 위 "핵심 인사이트" (규칙으로 만든 문장 3~4개). 없으면 그리지 않는다
-export default function InsightCard({ insights }: { insights: Insight[] }) {
+// title·footer: 열람 전 미리보기처럼 제목·아래 안내를 바꿀 때
+export default function InsightCard({ insights, title = "핵심 인사이트", footer }: { insights: Insight[]; title?: string; footer?: string }) {
   if (insights.length === 0) return null;
   return (
     <Card style={styles.card}>
-      <Text style={styles.title}>핵심 인사이트</Text>
+      <Text style={styles.title}>{title}</Text>
       {insights.map((it, i) => (
         <View key={i} style={[styles.row, i > 0 && styles.divider]}>
           <View style={styles.icon}>
@@ -24,6 +25,7 @@ export default function InsightCard({ insights }: { insights: Insight[] }) {
           </View>
         </View>
       ))}
+      {footer ? <Text style={styles.footer}>{footer}</Text> : null}
     </Card>
   );
 }
@@ -67,6 +69,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.text,
     lineHeight: 22,
+  },
+  footer: {
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    fontSize: fontSize.small,
+    color: colors.textMuted,
   },
   detail: {
     fontSize: fontSize.small,

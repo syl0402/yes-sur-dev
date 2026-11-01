@@ -6,6 +6,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import PrimaryButton from "@/components/PrimaryButton";
 import ReportLink from "@/components/ReportLink";
 import CompositionChart from "@/components/results/CompositionChart";
+import InsightCard from "@/components/results/InsightCard";
 import ResultsView from "@/components/results/ResultsView";
 import Badge from "@/components/ui/Badge";
 import BottomBar from "@/components/ui/BottomBar";
@@ -20,6 +21,7 @@ import {
   FREE_REASON_LABELS,
   type FullResults,
   type HubPreview,
+  type HubTeaser,
 } from "@/lib/hub";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
@@ -28,6 +30,8 @@ import { formatHost } from "@/lib/surveys";
 
 type Loaded = {
   preview: HubPreview;
+  // 열람 전 미리보는 인사이트 1개
+  teaser: HubTeaser | null;
   comparison: Comparison[] | null;
   full: FullResults | null;
 };
@@ -39,15 +43,18 @@ async function fetchAll(id: number): Promise<Loaded | string> {
   const preview = data as HubPreview;
 
   const canSeeFull = preview.viewed || preview.mine;
-  const [comparison, full] = await Promise.all([
+  const [comparison, full, teaser] = await Promise.all([
     preview.answered && !canSeeFull
       ? supabase.rpc("get_my_comparison", { p_survey_id: id }).then(({ data }) => data as Comparison[])
       : Promise.resolve(null),
     canSeeFull
       ? supabase.rpc("get_full_results", { p_survey_id: id }).then(({ data }) => data as FullResults)
       : Promise.resolve(null),
+    canSeeFull
+      ? Promise.resolve(null)
+      : supabase.rpc("get_hub_teaser", { p_survey_id: id }).then(({ data }) => (data as HubTeaser | null) ?? null),
   ]);
-  return { preview, comparison, full };
+  return { preview, comparison, full, teaser };
 }
 
 export default function HubResult() {
@@ -76,7 +83,7 @@ export default function HubResult() {
     );
   }
 
-  const { preview: p, comparison, full } = loaded;
+  const { preview: p, comparison, full, teaser } = loaded;
 
   // 전체 열람: 서버가 무료 여부·차감·등록자 분배를 한 번에 처리
   const view = async () => {
@@ -121,7 +128,20 @@ export default function HubResult() {
           {p.low_count && <Text style={styles.warning}>응답 수가 적어 참고용으로만 봐 주세요.</Text>}
         </View>
 
-        {/* 열람 전: 응답자 구성 · 문항 목록 · 내 답 비교 (열람 후에는 아래 결과 탭으로) */}
+        {/* 열람 전: 미리보는 인사이트 1개 → 응답자 구성 · 문항 목록 · 내 답 비교 (열람 후에는 아래 결과 탭으로) */}
+        {!full && teaser && (
+          <InsightCard
+            title="미리 보는 인사이트"
+            insights={[
+              {
+                emoji: "💡",
+                title: `응답자 ${teaser.pct}%가 ‘${teaser.option}’`,
+                detail: `${teaser.index}번 · ${teaser.question}`,
+              },
+            ]}
+            footer="🔒 열람하면 핵심 인사이트 · 문항별 그래프 · 계열별·문항 답별 나눠 보기를 볼 수 있어요"
+          />
+        )}
         {!full && <CompositionChart groups={p.composition} compact />}
 
         {!full && (
