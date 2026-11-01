@@ -34,7 +34,7 @@ begin
        "options": ["15분 이내 (기숙사·자취 포함)", "15~30분", "30분~1시간", "1~2시간", "2시간 이상"]}]');
 
   -- ── 7일 마감 (짧은 여러 문항) ──
-  perform public.create_survey(gen_random_uuid(), (v_cat ->> 'consume')::bigint,
+  perform public.create_survey(gen_random_uuid(), (v_cat ->> 'life')::bigint,
     '대학생 알바 실태', '지금 하는 알바 기준으로 답해 주세요. 안 하면 첫 문항만 답해도 돼요.', 'all', 100, 7,
     '[{"type": "single", "text": "지금 알바를 하고 있나요?", "options": ["하고 있어요", "방학에만 해요", "지금은 안 해요", "해 본 적 없어요"]},
       {"type": "single", "text": "일주일에 몇 시간 정도 일하나요?", "options": ["안 해요", "10시간 미만", "10~20시간", "20시간 이상"]},
@@ -53,19 +53,19 @@ begin
       {"type": "single", "text": "이번 시험 기간에 밤샘은 몇 번?", "options": ["0번", "1~2번", "3~4번", "5번 이상"]},
       {"type": "scale", "text": "카페에서 공부하면 집중이 잘 된다"}]');
 
-  perform public.create_survey(gen_random_uuid(), (v_cat ->> 'taste')::bigint,
+  perform public.create_survey(gen_random_uuid(), (v_cat ->> 'relation')::bigint,
     '캠퍼스 커플, 어떻게 생각해요?', '가볍게 답해 주세요.', 'all', 100, 7,
     '[{"type": "single", "text": "같은 학교 사람과의 연애(캠퍼스 커플)는?", "options": ["좋아요", "같은 과만 아니면 좋아요", "별로예요", "상관없어요"]},
       {"type": "single", "text": "소개팅·과팅 경험은?", "options": ["여러 번 있어요", "한두 번 있어요", "없어요", "말하고 싶지 않아요"]},
       {"type": "scale", "text": "대학에서 새로운 사람을 만날 기회가 충분하다"}]');
 
-  perform public.create_survey(gen_random_uuid(), (v_cat ->> 'community')::bigint,
+  perform public.create_survey(gen_random_uuid(), (v_cat ->> 'relation')::bigint,
     '동아리 활동, 하고 있나요?', '중앙동아리·과 학회 모두 포함이에요.', 'all', 100, 7,
     '[{"type": "single", "text": "지금 동아리·학회 활동을 하나요?", "options": ["1개 하고 있어요", "2개 이상 해요", "예전에 했어요", "안 해요"]},
       {"type": "multi", "text": "동아리를 고를 때(고른다면) 중요한 것을 모두 골라 주세요", "options": ["관심 분야", "친구 사귀기", "스펙·경력", "분위기", "활동 시간 부담"]},
       {"type": "scale", "text": "동아리 활동이 대학 생활에 도움이 된다"}]');
 
-  perform public.create_survey(gen_random_uuid(), (v_cat ->> 'study')::bigint,
+  perform public.create_survey(gen_random_uuid(), (v_cat ->> 'career')::bigint,
     '진로, 얼마나 정했어요?', '지금 마음 기준으로 답해 주세요.', 'all', 100, 7,
     '[{"type": "scale", "text": "졸업 후 진로를 정한 정도는? (1 전혀 못 정함 ~ 5 확실히 정함)"},
       {"type": "multi", "text": "진로 고민에서 가장 큰 것을 모두 골라 주세요", "options": ["하고 싶은 일을 모름", "취업 경쟁", "전공과 맞지 않음", "경제적 부담", "정보 부족"]},

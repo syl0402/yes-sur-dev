@@ -43,6 +43,7 @@
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 | `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
 | `20261031000001_too_fast.sql` | 너무 빠른 응답(문항 수 × `min_seconds_per_question`초 미만)은 확인 문항 오답과 같게 반려, `submit_response`에 `reason`(attention·too_fast) | 2026-10-31 |
+| `20261102000001_categories.sql` | 설문 카테고리 7개 + 기타 (진로·취업·연애·관계·사회·이슈 추가, 커뮤니티 → 기타) | 2026-11-02 |
 | `20261101000005_hub_bookmarks.sql` | 결과 저장 `hub_bookmarks`(함수로만) + `toggle_bookmark`·`get_my_bookmarks` | 2026-11-01 |
 | `20261101000004_hub_teaser.sql` | 열람 전 인사이트 1개 `get_hub_teaser` | 2026-11-01 |
 | `20261101000003_cross_results.sql` | 교차 분석 `get_cross_results` (기준 문항 답별 묶음, 등록자·열람자만, 소수 묶음 숨김) | 2026-11-01 |
@@ -111,7 +112,7 @@
 - 타기팅은 중계열까지, **공개 통계는 대계열까지** (PRD 7번)
 
 ### survey_categories — 설문 카테고리 (2026-10-29)
-`key`(study/life/consume/taste/community), `name`(학업·생활·소비·취향·커뮤니티), `sort_order`. 바꿀 때는 이 표만 고친다.
+2026-11-02부터 8개: study 학업 · career 진로·취업 · life 생활 · consume 소비·브랜드 · taste 취향·문화 · relation 연애·관계 · society 사회·이슈 · community **기타** (key는 예전 그대로, 이름만 "기타"). `sort_order` 순서로 칩에 나온다. 바꿀 때는 이 표만 고친다 (앱 코드는 표에서 읽음).
 
 ### surveys — 설문 (2026-10-29)
 | 칸 | 설명 |
