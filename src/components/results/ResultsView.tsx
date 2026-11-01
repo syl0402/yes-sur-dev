@@ -1,10 +1,13 @@
 import * as Clipboard from "expo-clipboard";
-import { useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import * as Sharing from "expo-sharing";
+import { type ComponentRef, useRef, useState } from "react";
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { captureRef } from "react-native-view-shot";
 
 import CompositionChart from "@/components/results/CompositionChart";
 import InsightCard from "@/components/results/InsightCard";
 import QuestionResult, { Bar, QuestionHeader, percent, type QuestionStats } from "@/components/results/QuestionResult";
+import ShareCard, { type ShareHero } from "@/components/results/ShareCard";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Chip from "@/components/ui/Chip";
@@ -49,6 +52,9 @@ export default function ResultsView({ surveyId, full, title, host, questions = f
   // 교차 분석: 기준 문항 · 불러온 결과 (null = 불러오는 중)
   const [crossId, setCrossId] = useState<number | null>(null);
   const [cross, setCross] = useState<CrossResults | null>(null);
+  // 공유 이미지로 찍을 카드 (화면 밖에 그려 둔다)
+  const shareRef = useRef<ComponentRef<typeof View>>(null);
+  const [sharing, setSharing] = useState(false);
 
   if (full.total === 0) return <Text style={styles.muted}>결과에 반영된 응답이 없어요.</Text>;
 
@@ -82,10 +88,50 @@ export default function ResultsView({ surveyId, full, title, host, questions = f
     );
 
   const crossIndex = crossable.find((c) => c.q.id === crossId)?.index ?? -1;
+  const insights = buildInsights(full);
+  // 공유 카드 큰 숫자: 하나 고르기 문항 중 1위 비율이 가장 높은 것
+  const hero = full.overall.reduce<ShareHero | null>((best, q) => {
+    if (q.type !== "single" || q.answered === 0) return best;
+    const top = [...q.options].sort((a, b) => b.count - a.count)[0];
+    const pct = top ? percent(top.count, q.answered) : 0;
+    return top && (!best || pct > best.pct) ? { pct, option: top.text, question: q.text } : best;
+  }, null);
+  // 큰 숫자와 같은 내용(압도적 답)은 목록에서 빼고 최대 3개
+  const shareInsights = insights.filter((it) => !(hero && it.title.includes(`‘${hero.option}’`))).slice(0, 3);
+
+  // 결과 카드를 이미지로 만들어 공유 창 열기 (웹 미리보기에서는 버튼을 숨김)
+  const shareImage = async () => {
+    if (!shareRef.current) return;
+    setSharing(true);
+    try {
+      const uri = await captureRef(shareRef, { format: "png", quality: 1, result: "tmpfile" });
+      await Sharing.shareAsync(uri, { mimeType: "image/png", UTI: "public.png", dialogTitle: title });
+    } catch {
+      showNotice("이미지를 만들지 못했어요", "잠시 후 다시 시도해 주세요.");
+    } finally {
+      setSharing(false);
+    }
+  };
 
   return (
     <>
-      <InsightCard insights={buildInsights(full)} />
+      <InsightCard insights={insights} />
+      {Platform.OS !== "web" && (
+        <Button title="📷 결과 카드 이미지로 공유" variant="soft" onPress={shareImage} loading={sharing} />
+      )}
+      {/* 공유용 카드: 화면 밖에 그려 두고 이미지로 찍는다 */}
+      {Platform.OS !== "web" && (
+        <View style={styles.offscreen} pointerEvents="none">
+          <ShareCard
+            ref={shareRef}
+            title={title}
+            hero={hero}
+            insights={shareInsights}
+            total={full.total}
+            period={shortPeriod}
+          />
+        </View>
+      )}
 
       <Segmented options={TABS} value={tab} onChange={setTab} />
 
@@ -262,6 +308,11 @@ function GroupedQuestion({ index, question: q, groups }: { index: number; questi
 }
 
 const styles = StyleSheet.create({
+  offscreen: {
+    position: "absolute",
+    left: -10000,
+    top: 0,
+  },
   chips: {
     gap: spacing.sm,
   },

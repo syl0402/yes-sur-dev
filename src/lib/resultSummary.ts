@@ -100,10 +100,13 @@ export function buildInsights(full: FullResults): Insight[] {
     .filter((s): s is { q: QuestionStats; index: number; avg: number } => s.q.type === "scale" && s.avg !== null)
     .sort((a, b) => b.avg - a.avg);
   if (scales.length > 0) {
-    list.push({ emoji: "⭐", title: `평균 ${scales[0].avg}점${scales.length > 1 ? "으로 가장 높아요" : ""}`, detail: label(scales[0].index, scales[0].q) });
+    // 다른 척도 문항보다 확실히 높을 때만 "가장 높아요" (동점이면 점수만)
+    const highest = scales.length > 1 && scales[0].avg > scales[1].avg;
+    list.push({ emoji: "⭐", title: `평균 ${scales[0].avg}점${highest ? "으로 가장 높아요" : ""}`, detail: label(scales[0].index, scales[0].q) });
   }
-  if (scales.length > 1) {
-    const low = scales[scales.length - 1];
+  // 가장 낮은 점수: 가장 높은 점수와 다를 때만 (같으면 "높아요·낮아요"가 같이 나오지 않게)
+  const low = scales[scales.length - 1];
+  if (scales.length > 1 && low.avg < scales[0].avg) {
     list.push({ emoji: "📉", title: `평균 ${low.avg}점으로 가장 낮아요`, detail: label(low.index, low.q) });
   }
 

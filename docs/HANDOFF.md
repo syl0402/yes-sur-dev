@@ -46,6 +46,7 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 나눠 보기 그룹 순서는 `sortGroups` (`src/lib/hub.ts`)
 - 전체 결과 묶음은 `ResultsView` (`src/components/results/ResultsView.tsx`, 2026-11-01 정리): 핵심 인사이트(`InsightCard`) → 탭 [문항별 결과(기준 칩 전체·계열·학년·성별·나이대·문항 답별(교차 분석 `get_cross_results`) + `QuestionResult`, 묶음 보기는 접힘=묶음별 1위 한 줄/펼침=전체 막대) | 응답자(`CompositionChart`) | 조사 정보(숫자 카드 · 출처 복사 · 집계 CSV)]. 데이터 결과 화면과 내 결과 화면이 같이 씀. 열람 전 미리보기는 `InsightCard`(제목 "미리 보는 인사이트", `get_hub_teaser`) + `CompositionChart compact`
 - 데이터 탭(`(tabs)/data.tsx`, 2026-11-01): 제목 검색 · 카테고리/정렬 칩 · ✓ 인증 단체 · ★ 저장 칩(`get_my_bookmarks`). 결과 상세 오른쪽 위 ☆/★ (`toggle_bookmark`)
+- 결과 카드 이미지 공유 (2026-11-01): 인사이트 아래 [📷 결과 카드 이미지로 공유] → 화면 밖에 그린 `ShareCard`(제목·큰 숫자 = 1위 비율이 가장 높은 답·인사이트 최대 3개(질문 이름 포함)·출처)를 `react-native-view-shot` `captureRef`로 PNG → `expo-sharing`. 웹 미리보기에서는 숨김
 - 인사이트 규칙은 `src/lib/resultSummary.ts` (`buildInsights`: 압도적 답 ≥60% · 팽팽 ≤10%p · 그룹 차이 `biggestGap` · 척도 최고/최저, 최대 4개). 막대는 `Bar`(`top`이면 1위 강조)
 - CSV는 `src/lib/csv.ts`: `aggregateCsv`(집계, 열람자·등록자), `rawCsv`(원본, 등록자), `csvFileName`, `shareCsv`(폰 = 공유 창, 웹 = 바로 다운로드). 엑셀 한글 깨짐 방지(BOM), 수식으로 실행될 글자 막기
 - 마이 탭 "열람한 결과"는 `get_my_views` → 누르면 `/data/[id]` (이미 열람해서 전체 결과가 바로 보임)
