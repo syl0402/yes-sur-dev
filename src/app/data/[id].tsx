@@ -1,13 +1,17 @@
-// ys-131 결과 상세 · F-502~504 (무료 정보 → 내 답 비교 → 열람 → 전체 결과)
+// ys-131 결과 상세 · F-502~504 (무료 정보 → 내 답 비교 → 열람 → 전체 결과. 2026-11-01 정리: 뱃지 머리 · 구성 차트 · 아래 고정 열람 버튼)
 import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import ReportLink from "@/components/ReportLink";
+import CompositionChart from "@/components/results/CompositionChart";
 import ResultsView from "@/components/results/ResultsView";
+import Badge from "@/components/ui/Badge";
+import BottomBar from "@/components/ui/BottomBar";
+import Card from "@/components/ui/Card";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
+import { colors, fontSize, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
 import { formatDate, formatPoints } from "@/lib/format";
@@ -15,9 +19,7 @@ import {
   type Comparison,
   FREE_REASON_LABELS,
   type FullResults,
-  GROUP_DIMS,
   type HubPreview,
-  sortGroups,
 } from "@/lib/hub";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
@@ -100,82 +102,81 @@ export default function HubResult() {
         });
 
   return (
-    <ScrollView style={styles.screen} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
+    <View style={styles.screen}>
       <Stack.Screen options={{ title: "설문 결과" }} />
 
-      {/* ── 누구나 (무료): 설문 정보 ── */}
-      <Text style={styles.meta}>
-        {formatHost(p)} · {p.category_name}
-        {p.trusted ? "  ·  신뢰도 높음" : ""}
-      </Text>
-      <Text style={styles.title}>{p.title}</Text>
-      {p.description ? <Text style={styles.body}>{p.description}</Text> : null}
-      <Text style={styles.meta}>
-        응답 {p.response_count}명 · {formatDate(p.started_at)} ~ {formatDate(p.ended_at)}
-      </Text>
-      {p.low_count && <Text style={styles.warning}>응답 수가 적어 참고용으로만 봐 주세요.</Text>}
-
-      {/* 응답자 구성 (5명 미만 그룹은 숫자 없이) */}
-      <View style={styles.box}>
-        <Text style={styles.boxTitle}>응답자 구성</Text>
-        {GROUP_DIMS.map((d) => (
-          <Text key={d.value} style={styles.body}>
-            <Text style={styles.label}>{d.label}  </Text>
-            {sortGroups(d.value, p.composition[d.value])
-              .map((g) => (g.hidden ? `${g.label} 5명 미만` : `${g.label} ${g.n}`))
-              .join(" · ")}
+      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
+        {/* ── 누구나 (무료): 설문 정보 ── */}
+        <View style={styles.header}>
+          <View style={styles.badges}>
+            <Badge label={p.category_name} />
+            <Badge label={formatHost(p)} tone="muted" />
+            {p.trusted && <Badge label="✓ 신뢰도 높음" tone="accent" />}
+          </View>
+          <Text style={styles.title}>{p.title}</Text>
+          {p.description ? <Text style={styles.body}>{p.description}</Text> : null}
+          <Text style={styles.meta}>
+            응답 {p.response_count}명 · {formatDate(p.started_at)} ~ {formatDate(p.ended_at)}
           </Text>
-        ))}
-      </View>
-
-      {/* 문항 목록 (질문만) — 전체를 볼 수 있으면 아래 결과로 대신 */}
-      {!full && (
-        <View style={styles.box}>
-          <Text style={styles.boxTitle}>문항 {p.questions.length}개</Text>
-          {p.questions.map((q, i) => (
-            <Text key={i} style={styles.body}>
-              {i + 1}. {q.text} <Text style={styles.label}>({QUESTION_TYPE_LABELS[q.type]})</Text>
-            </Text>
-          ))}
+          {p.low_count && <Text style={styles.warning}>응답 수가 적어 참고용으로만 봐 주세요.</Text>}
         </View>
-      )}
 
-      {/* ── 응답자 (무료): 내 답 비교 ── */}
-      {comparison && (
-        <View style={styles.box}>
-          <Text style={styles.boxTitle}>내 답 비교</Text>
-          {comparison.map((c, i) => (
-            <View key={i} style={styles.compareRow}>
-              <Text style={styles.body}>{c.text}</Text>
-              {c.mine.map((m, j) => (
-                <Text key={j} style={styles.compare}>
-                  나: {c.type === "scale" ? `${m}점 (${SCALE_LABELS[Number(m) - 1]})` : m} · 나와 같은 답 {c.same_pct[j]}%
+        {/* 열람 전: 응답자 구성 · 문항 목록 · 내 답 비교 (열람 후에는 아래 결과 탭으로) */}
+        {!full && <CompositionChart groups={p.composition} compact />}
+
+        {!full && (
+          <Card>
+            <Text style={styles.boxTitle}>문항 {p.questions.length}개</Text>
+            {p.questions.map((q, i) => (
+              <View key={i} style={styles.questionRow}>
+                <Text style={styles.questionNo}>Q{i + 1}</Text>
+                <Text style={styles.questionText}>
+                  {q.text} <Text style={styles.label}>· {QUESTION_TYPE_LABELS[q.type]}</Text>
                 </Text>
-              ))}
-            </View>
-          ))}
-        </View>
-      )}
+              </View>
+            ))}
+          </Card>
+        )}
 
-      {/* ── 열람 버튼 ── */}
+        {/* ── 응답자 (무료): 내 답 비교 ── */}
+        {comparison && (
+          <Card>
+            <Text style={styles.boxTitle}>내 답 비교</Text>
+            {comparison.map((c, i) => (
+              <View key={i} style={[styles.compareRow, i > 0 && styles.divider]}>
+                <Text style={styles.body}>{c.text}</Text>
+                {c.mine.map((m, j) => (
+                  <Text key={j} style={styles.compare}>
+                    나: {c.type === "scale" ? `${m}점 (${SCALE_LABELS[Number(m) - 1]})` : m} · 나와 같은 답 {c.same_pct[j]}%
+                  </Text>
+                ))}
+              </View>
+            ))}
+          </Card>
+        )}
+
+        {/* ── 열람 (전체 결과) ── */}
+        {full && <ResultsView full={full} title={p.title} host={formatHost(p)} />}
+
+        {!p.mine && <ReportLink surveyId={surveyId} />}
+      </ScrollView>
+
+      {/* ── 열람 버튼 (화면 아래 고정) ── */}
       {!full && (
-        <View style={styles.viewBox}>
-          <PrimaryButton
-            title={p.free_reason ? "무료로 전체 결과 보기" : `${formatPoints(p.price)}로 전체 결과 보기`}
-            onPress={confirmView}
-            loading={viewing}
-          />
-          <Text style={styles.hint}>
-            {p.free_reason ? FREE_REASON_LABELS[p.free_reason] : "전체 그래프·통계·계열별 나눠 보기를 볼 수 있어요."}
-          </Text>
-        </View>
+        <BottomBar>
+          <View style={styles.viewBox}>
+            <Text style={styles.hint}>
+              {p.free_reason ? FREE_REASON_LABELS[p.free_reason] : "핵심 인사이트 · 문항별 그래프 · 계열별 나눠 보기"}
+            </Text>
+            <PrimaryButton
+              title={p.free_reason ? "무료로 전체 결과 보기" : `${formatPoints(p.price)}로 전체 결과 보기`}
+              onPress={confirmView}
+              loading={viewing}
+            />
+          </View>
+        </BottomBar>
       )}
-
-      {/* ── 열람 (전체 결과) ── */}
-      {full && <ResultsView full={full} title={p.title} host={formatHost(p)} />}
-
-      {!p.mine && <ReportLink surveyId={surveyId} />}
-    </ScrollView>
+    </View>
   );
 }
 
@@ -192,17 +193,29 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    padding: spacing.lg,
+    padding: spacing.md,
     gap: spacing.md,
+    paddingBottom: spacing.xl,
+  },
+  header: {
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xs,
+  },
+  badges: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
   },
   title: {
     fontSize: fontSize.title,
-    fontWeight: "700",
+    fontWeight: "800",
     color: colors.text,
+    lineHeight: 30,
   },
   body: {
     fontSize: fontSize.body,
     color: colors.text,
+    lineHeight: 23,
   },
   meta: {
     fontSize: fontSize.small,
@@ -217,7 +230,7 @@ const styles = StyleSheet.create({
     color: colors.danger,
   },
   hint: {
-    fontSize: fontSize.small,
+    fontSize: fontSize.caption,
     color: colors.textMuted,
     textAlign: "center",
   },
@@ -226,25 +239,34 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: "center",
   },
-  box: {
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
-    gap: spacing.sm,
-    ...shadow.card,
-  },
   boxTitle: {
     fontSize: fontSize.body,
     fontWeight: "700",
     color: colors.text,
   },
+  questionRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  questionNo: {
+    width: 28,
+    fontSize: fontSize.small,
+    fontWeight: "800",
+    color: colors.primary,
+  },
+  questionText: {
+    flex: 1,
+    fontSize: fontSize.small,
+    color: colors.text,
+    lineHeight: 20,
+  },
   compareRow: {
     gap: 2,
     paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  },
+  divider: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
   compare: {
     fontSize: fontSize.small,
@@ -252,6 +274,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   viewBox: {
-    gap: spacing.sm,
+    flex: 1,
+    gap: spacing.xs,
   },
 });

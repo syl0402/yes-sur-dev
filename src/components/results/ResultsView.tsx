@@ -1,18 +1,31 @@
 import * as Clipboard from "expo-clipboard";
 import { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 
-import Chips from "@/components/create/Chips";
-import QuestionResult, { Bar, percent, type QuestionStats } from "@/components/results/QuestionResult";
+import CompositionChart from "@/components/results/CompositionChart";
+import InsightCard from "@/components/results/InsightCard";
+import QuestionResult, { Bar, QuestionHeader, percent, type QuestionStats } from "@/components/results/QuestionResult";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import Chip from "@/components/ui/Chip";
+import Segmented from "@/components/ui/Segmented";
+import StatTile from "@/components/ui/StatTile";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { aggregateCsv, csvFileName, shareCsv } from "@/lib/csv";
 import { formatDate, formatPoints } from "@/lib/format";
 import { type FullResults, GROUP_DIMS, type GroupDim, sortGroups } from "@/lib/hub";
 import { showNotice } from "@/lib/notice";
-import { biggestGap, formatSeconds, questionLine } from "@/lib/resultSummary";
+import { buildInsights, formatSeconds } from "@/lib/resultSummary";
 
+type Tab = "questions" | "people" | "info";
 type Dim = "all" | GroupDim;
+
+const TABS: { value: Tab; label: string }[] = [
+  { value: "questions", label: "문항별 결과" },
+  { value: "people", label: "응답자" },
+  { value: "info", label: "조사 정보" },
+];
 
 type Props = {
   full: FullResults;
@@ -25,14 +38,16 @@ type Props = {
   showEarnings?: boolean;
 };
 
-// 전체 결과 (ys-131 열람 후 · ys-121 등록자): 신뢰 정보 → 핵심 요약 → 출처 복사 → 나눠 보기 → 문항별 결과
+// 전체 결과 (ys-131 열람 후 · ys-121 등록자): 핵심 인사이트 → 탭 [문항별 결과 | 응답자 | 조사 정보] (2026-11-01 정리)
 export default function ResultsView({ full, title, host, questions = full.overall, showEarnings = true }: Props) {
+  const [tab, setTab] = useState<Tab>("questions");
   const [dim, setDim] = useState<Dim>("all");
 
   if (full.total === 0) return <Text style={styles.muted}>결과에 반영된 응답이 없어요.</Text>;
 
   const period = `${formatDate(full.started_at)}~${formatDate(full.ended_at)}`;
-  const gap = biggestGap(full);
+  // 숫자 카드용 짧은 기간 "10.16~10.23"
+  const shortPeriod = `${formatDate(full.started_at).slice(5)}~${formatDate(full.ended_at).slice(5)}`;
 
   const copyCitation = async () => {
     const text = `출처: 옛썰 설문 「${title}」(${host}, 유효 응답 ${full.total}명, ${period} 조사)`;
@@ -48,123 +63,112 @@ export default function ResultsView({ full, title, host, questions = full.overal
 
   return (
     <>
-      {/* 신뢰 정보 */}
-      <View style={styles.box}>
-        <Text style={styles.boxTitle}>응답 정보</Text>
-        <Text style={styles.body}>
-          유효 응답 {full.total}명{full.excluded > 0 ? ` (확인 문항 오답 ${full.excluded}건 제외)` : ""}
-        </Text>
-        {full.pass_rate !== null && <Text style={styles.body}>확인 문항 통과율 {full.pass_rate}%</Text>}
-        {full.avg_seconds !== null && <Text style={styles.body}>평균 응답 시간 {formatSeconds(full.avg_seconds)}</Text>}
-        <Text style={styles.body}>조사 기간 {period}</Text>
-        {full.share_earned !== null && (
-          <Text style={styles.earned}>
-            열람 {full.view_count}회{showEarnings ? ` · 열람 수익 +${formatPoints(full.share_earned)}` : ""}
-          </Text>
-        )}
-      </View>
+      <InsightCard insights={buildInsights(full)} />
 
-      {/* 핵심 요약 (규칙으로 만든 문장) */}
-      <View style={styles.box}>
-        <Text style={styles.boxTitle}>핵심 요약</Text>
-        {full.overall.map((q, i) => {
-          const line = questionLine(q);
-          return line ? (
-            <Text key={q.id} style={styles.body}>
-              <Text style={styles.label}>{i + 1}번  </Text>
-              {line}
-            </Text>
-          ) : null;
-        })}
-        {gap && (
-          <View style={styles.gap}>
-            <Text style={styles.gapTitle}>{gap.title}</Text>
-            <Text style={styles.body}>{gap.detail}</Text>
+      <Segmented options={TABS} value={tab} onChange={setTab} />
+
+      {tab === "questions" && (
+        <>
+          {/* 나눠 보는 기준 */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+            <Chip label="전체" selected={dim === "all"} onPress={() => setDim("all")} />
+            {GROUP_DIMS.map((d) => (
+              <Chip key={d.value} label={d.label} selected={dim === d.value} onPress={() => setDim(d.value)} />
+            ))}
+          </ScrollView>
+
+          {dim === "all"
+            ? questions.map((q, index) => <QuestionResult key={q.id} index={index} question={q} />)
+            : full.overall.map((q, index) => (
+                <GroupedQuestion key={q.id} index={index} question={q} full={full} dim={dim} />
+              ))}
+        </>
+      )}
+
+      {tab === "people" && <CompositionChart groups={full.groups} />}
+
+      {tab === "info" && (
+        <>
+          <View style={styles.tiles}>
+            <StatTile label="유효 응답" value={`${full.total}명`} />
+            <StatTile label="확인 문항 통과율" value={full.pass_rate !== null ? `${full.pass_rate}%` : "-"} />
           </View>
-        )}
-      </View>
-
-      <View style={styles.actions}>
-        <Pressable style={styles.copyButton} onPress={copyCitation}>
-          <Text style={styles.copyText}>출처 복사</Text>
-        </Pressable>
-        <Pressable style={styles.copyButton} onPress={downloadCsv}>
-          <Text style={styles.copyText}>집계 CSV 받기</Text>
-        </Pressable>
-      </View>
-
-      {/* 나눠 보기 */}
-      <Chips
-        options={[{ value: "all" as Dim, label: "전체" }, ...GROUP_DIMS.map((d) => ({ value: d.value as Dim, label: d.label }))]}
-        selected={dim}
-        onSelect={setDim}
-      />
-
-      {dim === "all"
-        ? questions.map((q, index) => <QuestionResult key={q.id} index={index} question={q} />)
-        : full.overall.map((q, index) => <GroupedQuestion key={q.id} index={index} question={q} full={full} dim={dim} />)}
+          <View style={styles.tiles}>
+            <StatTile label="평균 응답 시간" value={full.avg_seconds !== null ? formatSeconds(full.avg_seconds) : "-"} />
+            <StatTile label="조사 기간" value={shortPeriod} />
+          </View>
+          <Card>
+            {full.excluded > 0 && <Text style={styles.body}>확인 문항 오답 {full.excluded}건은 결과에서 뺐어요.</Text>}
+            <Text style={styles.body}>조사 기간 {period}</Text>
+            {full.share_earned !== null && (
+              <Text style={styles.earned}>
+                열람 {full.view_count}회{showEarnings ? ` · 열람 수익 +${formatPoints(full.share_earned)}` : ""}
+              </Text>
+            )}
+          </Card>
+          <View style={styles.actions}>
+            <Button title="출처 복사" variant="outline" onPress={copyCitation} style={styles.action} />
+            <Button title="집계 CSV 받기" variant="outline" onPress={downloadCsv} style={styles.action} />
+          </View>
+        </>
+      )}
     </>
   );
 }
 
-// 문항 하나를 그룹별로: 그룹 이름(인원) 아래 막대. 5명 미만 그룹은 숨김
+// 문항 하나를 그룹별로: 그룹마다 작은 묶음. 5명 미만 그룹은 맨 아래 한 줄로 모은다
 function GroupedQuestion({ index, question: q, full, dim }: { index: number; question: QuestionStats; full: FullResults; dim: GroupDim }) {
+  const groups = sortGroups(dim, full.groups[dim]);
+  const shown = groups
+    .map((g) => ({ g, s: g.questions.find((x) => x.id === q.id) }))
+    .filter((r): r is { g: (typeof groups)[number]; s: QuestionStats } => !r.g.hidden && !!r.s);
+  const hidden = groups.filter((g) => g.hidden);
+
   return (
-    <View style={styles.box}>
-      <Text style={styles.boxTitle}>
-        {index + 1}. {q.text}
-      </Text>
+    <Card>
+      <QuestionHeader index={index} question={q} />
       {q.type === "text" ? (
         <Text style={styles.label}>주관식은 나눠 보기를 하지 않아요.</Text>
       ) : (
-        sortGroups(dim, full.groups[dim]).map((g) => {
-          const s = g.questions.find((x) => x.id === q.id);
-          if (g.hidden || !s) {
-            return (
-              <Text key={g.label} style={styles.label}>
-                {g.label}: 5명 미만이라 숨겼어요
-              </Text>
-            );
-          }
+        shown.map(({ g, s }) => {
+          const max = Math.max(0, ...s.options.map((o) => o.count));
           return (
             <View key={g.label} style={styles.group}>
               <Text style={styles.groupTitle}>
-                {g.label} ({g.n}명)
+                {g.label} <Text style={styles.groupN}>{g.n}명</Text>
               </Text>
               {q.type === "scale" ? (
-                <Text style={styles.body}>평균 {s.scale?.avg ?? "-"}점</Text>
+                <Text style={styles.groupAvg}>평균 {s.scale?.avg ?? "-"}점</Text>
               ) : (
-                s.options.map((o) => <Bar key={o.id} label={o.text} count={o.count} pct={percent(o.count, s.answered)} />)
+                s.options.map((o) => (
+                  <Bar key={o.id} label={o.text} count={o.count} pct={percent(o.count, s.answered)} top={max > 0 && o.count === max} />
+                ))
               )}
             </View>
           );
         })
       )}
-    </View>
+      {q.type !== "text" && hidden.length > 0 && (
+        <Text style={styles.label}>5명 미만이라 숨김: {hidden.map((g) => g.label).join(", ")}</Text>
+      )}
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  box: {
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
+  chips: {
     gap: spacing.sm,
-    ...shadow.card,
   },
-  boxTitle: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.text,
+  tiles: {
+    flexDirection: "row",
+    gap: spacing.sm,
   },
   body: {
-    fontSize: fontSize.body,
+    fontSize: fontSize.small,
     color: colors.text,
   },
   label: {
-    fontSize: fontSize.small,
+    fontSize: fontSize.caption,
     color: colors.textMuted,
   },
   muted: {
@@ -177,42 +181,32 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.primary,
   },
-  gap: {
-    marginTop: spacing.sm,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    gap: 2,
-  },
-  gapTitle: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.primary,
-  },
   actions: {
     flexDirection: "row",
     gap: spacing.sm,
   },
-  copyButton: {
+  action: {
     flex: 1,
-    paddingVertical: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: radius.md,
-    alignItems: "center",
-  },
-  copyText: {
-    fontSize: fontSize.body,
-    fontWeight: "600",
-    color: colors.primary,
   },
   group: {
-    gap: 4,
-    paddingTop: spacing.sm,
+    gap: 6,
+    padding: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.background,
   },
   groupTitle: {
     fontSize: fontSize.small,
     fontWeight: "700",
     color: colors.text,
+  },
+  groupN: {
+    fontSize: fontSize.caption,
+    fontWeight: "400",
+    color: colors.textMuted,
+  },
+  groupAvg: {
+    fontSize: fontSize.body,
+    fontWeight: "700",
+    color: colors.primary,
   },
 });

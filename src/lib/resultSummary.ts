@@ -1,23 +1,10 @@
-// 결과 핵심 요약: 정해진 규칙으로 문장을 만든다 (AI 요약은 출시 후 검토)
+// 결과 핵심 인사이트: 정해진 규칙으로 문장을 만든다 (AI 요약은 출시 후 검토)
 import { percent, type QuestionStats } from "@/components/results/QuestionResult";
 import { type FullResults, GROUP_DIMS } from "@/lib/hub";
 
 // 그룹 차이를 짚어 줄 최소 차이. 고르기는 %p, 척도는 점수 차이 × 25로 같은 눈금에 맞춘다
 const MIN_GAP = 10;
 const SCALE_TO_PCT = 25;
-
-// 문항 한 줄: "가장 많은 답: 찬성 (62%)" / "평균 3.8점". 주관식·응답 없음은 null
-export function questionLine(q: QuestionStats): string | null {
-  if (q.answered === 0) return null;
-  if (q.type === "scale") return q.scale?.avg != null ? `평균 ${q.scale.avg}점` : null;
-  if (q.type === "single" || q.type === "multi") {
-    const max = Math.max(0, ...q.options.map((o) => o.count));
-    if (max === 0) return null;
-    const tops = q.options.filter((o) => o.count === max).map((o) => o.text);
-    return `가장 많은 답: ${tops.join(" · ")} (${percent(max, q.answered)}%)`;
-  }
-  return null;
-}
 
 // 그룹 차이가 가장 큰 곳: "3번 문항, 성별 차이가 가장 커요" + "‘찬성’ 남성 40% · 여성 70%"
 // 비교할 그룹(숨김·미입력 제외)이 2개 이상일 때만
@@ -65,6 +52,68 @@ export function biggestGap(full: FullResults): Gap | null {
   }
 
   return found.best;
+}
+
+// 인사이트 카드 한 줄
+export type Insight = { emoji: string; title: string; detail: string };
+
+// 한 문항이 압도적이라고 볼 1위 비율(%) · 팽팽하다고 볼 1·2위 차이(%p) · 카드 최대 개수
+const DOMINANT_PCT = 60;
+const CLOSE_GAP = 10;
+const MAX_INSIGHTS = 4;
+
+// 핵심 인사이트 (최대 4개): 압도적인 답 · 팽팽한 문항 · 그룹 차이 · 척도 최고/최저. 결과가 없으면 빈 배열
+export function buildInsights(full: FullResults): Insight[] {
+  const list: Insight[] = [];
+  const label = (index: number, q: QuestionStats) => `${index + 1}번 · ${q.text}`;
+
+  // 하나 고르기 문항의 1·2위
+  const singles = full.overall
+    .map((q, index) => ({ q, index }))
+    .filter(({ q }) => q.type === "single" && q.answered > 0 && q.options.length >= 2)
+    .map(({ q, index }) => {
+      const sorted = [...q.options].sort((a, b) => b.count - a.count);
+      return { q, index, first: sorted[0], second: sorted[1], p1: percent(sorted[0].count, q.answered), p2: percent(sorted[1].count, q.answered) };
+    });
+
+  const dominant = [...singles].filter((s) => s.p1 >= DOMINANT_PCT).sort((a, b) => b.p1 - a.p1)[0];
+  if (dominant) {
+    list.push({ emoji: "💡", title: `응답자 ${dominant.p1}%가 ‘${dominant.first.text}’`, detail: label(dominant.index, dominant.q) });
+  }
+
+  const close = [...singles]
+    .filter((s) => s !== dominant && s.p1 - s.p2 <= CLOSE_GAP && s.second.count > 0)
+    .sort((a, b) => a.p1 - a.p2 - (b.p1 - b.p2))[0];
+  if (close) {
+    list.push({
+      emoji: "⚖️",
+      title: `의견이 팽팽해요 · ‘${close.first.text}’ ${close.p1}% vs ‘${close.second.text}’ ${close.p2}%`,
+      detail: label(close.index, close.q),
+    });
+  }
+
+  const gap = biggestGap(full);
+  if (gap) list.push({ emoji: "🔍", title: gap.title, detail: gap.detail });
+
+  const scales = full.overall
+    .map((q, index) => ({ q, index, avg: q.scale?.avg ?? null }))
+    .filter((s): s is { q: QuestionStats; index: number; avg: number } => s.q.type === "scale" && s.avg !== null)
+    .sort((a, b) => b.avg - a.avg);
+  if (scales.length > 0) {
+    list.push({ emoji: "⭐", title: `평균 ${scales[0].avg}점${scales.length > 1 ? "으로 가장 높아요" : ""}`, detail: label(scales[0].index, scales[0].q) });
+  }
+  if (scales.length > 1) {
+    const low = scales[scales.length - 1];
+    list.push({ emoji: "📉", title: `평균 ${low.avg}점으로 가장 낮아요`, detail: label(low.index, low.q) });
+  }
+
+  // 아무 규칙에도 안 걸리면 첫 고르기 문항의 가장 많은 답이라도
+  if (list.length === 0 && singles[0]) {
+    const s = singles[0];
+    list.push({ emoji: "💡", title: `가장 많은 답 ‘${s.first.text}’ ${s.p1}%`, detail: label(s.index, s.q) });
+  }
+
+  return list.slice(0, MAX_INSIGHTS);
 }
 
 // 평균 응답 시간: 95 → "1분 35초"

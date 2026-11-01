@@ -217,13 +217,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    padding: spacing.lg,
+    padding: spacing.md,
     gap: spacing.md,
+    paddingBottom: spacing.xl,
   },
   title: {
     fontSize: fontSize.title,
-    fontWeight: "700",
+    fontWeight: "800",
     color: colors.text,
+    lineHeight: 30,
+    paddingHorizontal: spacing.xs,
   },
   summary: {
     padding: spacing.md,

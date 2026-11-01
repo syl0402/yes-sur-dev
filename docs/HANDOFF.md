@@ -44,8 +44,8 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 서버 함수: `get_hub_list`, `get_hub_preview`, `get_my_comparison`, `view_survey`, `get_full_results` (모양은 `src/lib/hub.ts` 타입, 설명은 `docs/DB.md`)
 - 결과 그래프는 공용 `QuestionResult` (`src/components/results/QuestionResult.tsx`) — 내 결과 화면과 같이 씀
 - 나눠 보기 그룹 순서는 `sortGroups` (`src/lib/hub.ts`)
-- 전체 결과 묶음은 `ResultsView` (`src/components/results/ResultsView.tsx`): 응답 정보 · 핵심 요약 · 출처 복사(expo-clipboard) · 나눠 보기 칩 · 문항별 결과. 데이터 결과 화면과 내 결과 화면이 같이 씀
-- 요약 문장 규칙은 `src/lib/resultSummary.ts` (`questionLine`, `biggestGap`, `formatSeconds`)
+- 전체 결과 묶음은 `ResultsView` (`src/components/results/ResultsView.tsx`, 2026-11-01 정리): 핵심 인사이트(`InsightCard`) → 탭 [문항별 결과(기준 칩 + `QuestionResult`) | 응답자(`CompositionChart`) | 조사 정보(숫자 카드 · 출처 복사 · 집계 CSV)]. 데이터 결과 화면과 내 결과 화면이 같이 씀. 열람 전 미리보기는 `CompositionChart compact`
+- 인사이트 규칙은 `src/lib/resultSummary.ts` (`buildInsights`: 압도적 답 ≥60% · 팽팽 ≤10%p · 그룹 차이 `biggestGap` · 척도 최고/최저, 최대 4개). 막대는 `Bar`(`top`이면 1위 강조)
 - CSV는 `src/lib/csv.ts`: `aggregateCsv`(집계, 열람자·등록자), `rawCsv`(원본, 등록자), `csvFileName`, `shareCsv`(폰 = 공유 창, 웹 = 바로 다운로드). 엑셀 한글 깨짐 방지(BOM), 수식으로 실행될 글자 막기
 - 마이 탭 "열람한 결과"는 `get_my_views` → 누르면 `/data/[id]` (이미 열람해서 전체 결과가 바로 보임)
 - 신고: 화면 `src/app/report.tsx`(ys-160, `?survey=id`), 링크 `ReportLink` (`src/components/ReportLink.tsx`)를 설문 상세·데이터 결과 맨 아래에 (본인 설문 제외). 서버 `report_survey`. 숨긴 설문은 마이 탭 "내가 올린 설문"에 "검토 중"

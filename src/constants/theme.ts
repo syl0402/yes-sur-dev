@@ -6,6 +6,8 @@ export const colors = {
   primary: "#3157D5",
   // 대표 색을 옅게 (선택된 칩·뱃지·아이콘 바탕)
   primarySoft: "#ECF0FC",
+  // 대표 색 중간 밝기 (결과 막대에서 1위가 아닌 보기)
+  primaryMuted: "#A9BBEF",
   // 강조 (별·포인트·완료 뱃지). 흰 바탕 위 글자색으로 쓰지 않는다 (잘 안 읽힘) → 바탕으로 쓰고 글자는 onAccent
   accent: "#B7E65A",
   accentSoft: "#F1FADF",
