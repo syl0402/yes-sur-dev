@@ -109,7 +109,11 @@ export function matchesDuration(s: SurveyCard, key: DurationKey): boolean {
   }
 }
 
-// 작성자 표시: 인증된 단체는 "단체 이름 ✓", 학생은 "개인" (학교·닉네임은 보여주지 않는다, 2026-10-30 결정)
+// 작성자 표시: 인증된 단체는 "단체 이름 ✓", 학생은 닉네임을 공개했으면 닉네임, 아니면 "옛썰러" (2026-11-02)
+// 개인 설문 비공개 이름
+export const ANONYMOUS_HOST = "옛썰러";
+
 export function formatHost(s: { host_name: string | null; host_verified: boolean }): string {
-  return s.host_name && s.host_verified ? `${s.host_name} ✓` : "개인";
+  if (s.host_name && s.host_verified) return `${s.host_name} ✓`;
+  return s.host_name ?? ANONYMOUS_HOST;
 }

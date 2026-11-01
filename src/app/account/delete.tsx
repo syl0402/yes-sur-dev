@@ -79,7 +79,7 @@ export default function DeleteAccount() {
       <View style={styles.box}>
         <Text style={styles.boxTitle}>남는 것 (누구인지 알 수 없게)</Text>
         <Text style={styles.body}>
-          · 다른 설문에 남긴 응답: 이름 없이 통계에만 남아요{"\n"}· 공개된 내 설문 결과: 데이터 허브에 그대로 남아요 (개인 설문은 원래처럼 ‘개인’으로만 표시)
+          · 다른 설문에 남긴 응답: 이름 없이 통계에만 남아요{"\n"}· 공개된 내 설문 결과: 데이터 허브에 그대로 남아요 (작성자는 ‘옛썰러’로 표시)
         </Text>
       </View>
 

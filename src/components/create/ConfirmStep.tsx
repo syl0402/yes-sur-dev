@@ -1,11 +1,12 @@
 import { StyleSheet, View } from "react-native";
 
+import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
 import { type SurveyDraft, VISIBILITY_LABELS, estimate } from "@/lib/surveyDraft";
-import { formatHost } from "@/lib/surveys";
+import { ANONYMOUS_HOST, formatHost } from "@/lib/surveys";
 
 type Props = {
   draft: SurveyDraft;
@@ -15,14 +16,19 @@ type Props = {
   cost: number;
   balance: number;
   isOrg: boolean;
-  // 단체 이름 (학생은 null → "개인")
+  // 단체 이름 (학생은 null)
   orgName: string | null;
+  // 학생 닉네임 (작성자 표시 고르기용)
+  nickname: string | null;
+  onChange: (patch: Partial<SurveyDraft>) => void;
 };
 
-// 작성 ④ 등록 전 요약
-export default function ConfirmStep({ draft, rules, categoryName, cost, balance, isOrg, orgName }: Props) {
+// 작성 ④ 등록 전 요약 (학생은 작성자 표시를 "옛썰러" / 닉네임 공개 중에서 고른다, 2026-11-02)
+export default function ConfirmStep({ draft, rules, categoryName, cost, balance, isOrg, orgName, nickname, onChange }: Props) {
   const { minutes, reward, price } = estimate(draft, rules);
-  const hostLabel = formatHost({ host_name: orgName, host_verified: orgName !== null });
+  const hostLabel = isOrg
+    ? formatHost({ host_name: orgName, host_verified: orgName !== null })
+    : formatHost({ host_name: draft.showNickname ? nickname : null, host_verified: false });
   const hasAttention = draft.questions.length >= rules.attention_min_questions;
   // 다른 사람이 결과를 열람할 때 등록자가 받는 몫 (서버와 같은 계산: 열람료 × 비율, 내림)
   const shareEach = Math.floor(rules.cost_data_view * rules.data_share_rate);
@@ -31,6 +37,21 @@ export default function ConfirmStep({ draft, rules, categoryName, cost, balance,
     <>
       <Text style={styles.title}>{draft.title.trim()}</Text>
       <Text style={formStyles.hint}>{categoryName}</Text>
+
+      {!isOrg && (
+        <View style={styles.box}>
+          <Text style={styles.benefitTitle}>작성자 표시</Text>
+          <Chips
+            options={[
+              { value: "anon", label: `${ANONYMOUS_HOST}로 표시` },
+              { value: "nick", label: nickname ? `닉네임 공개 (${nickname})` : "닉네임 공개" },
+            ]}
+            selected={draft.showNickname ? "nick" : "anon"}
+            onSelect={(v) => onChange({ showNickname: v === "nick" })}
+          />
+          <Text style={formStyles.hint}>설문 목록·결과에 보이는 이름이에요. 학교는 보이지 않아요.</Text>
+        </View>
+      )}
 
       <View style={styles.box}>
         <Row label="작성자로 표시" value={hostLabel} />
@@ -55,7 +76,7 @@ export default function ConfirmStep({ draft, rules, categoryName, cost, balance,
         · 응답자 보상은 소요시간에 따라 앱이 정하고, 응답자에게 앱이 지급해요.{"\n"}
         {isOrg ? "" : "· 일찍 마감하면 못 받은 인원만큼 등록비를 돌려받아요.\n"}
         {hasAttention ? "· 성실한 응답을 확인하는 문항이 가운데쯤 1개 들어가요. 결과에는 빠져요.\n" : ""}
-        {isOrg ? "" : "· 개인 설문은 작성자가 '개인'으로만 보여요. 소속을 알리고 싶으면 설명에 적어 주세요.\n"}
+        {isOrg ? "" : "· 소속을 알리고 싶으면 설명에 적어 주세요.\n"}
         · 등록한 뒤에는 내용을 고칠 수 없어요.
       </Text>
 

@@ -45,6 +45,8 @@ type Setup = {
   isOrg: boolean;
   // 작성자로 표시될 단체 이름 (학생은 null)
   orgName: string | null;
+  // 학생 닉네임 (작성자 표시 고르기)
+  nickname: string | null;
   hasSchool: boolean;
   balance: number;
   // 가장 작은 설문(1문항·최소 인원)의 등록비. 이것도 못 내면 작성 전에 안내한다
@@ -57,7 +59,7 @@ async function fetchSetup(): Promise<Setup> {
     supabase.auth.getUser(),
     fetchRules(CREATE_RULE_KEYS),
     supabase.from("survey_categories").select("id, name").order("sort_order"),
-    supabase.from("profiles").select("account_type, university_id").maybeSingle(),
+    supabase.from("profiles").select("account_type, university_id, nickname").maybeSingle(),
     supabase.rpc("get_my_balance"),
     supabase.from("organizations").select("name, kind, universities(name)").maybeSingle(),
   ]);
@@ -74,6 +76,7 @@ async function fetchSetup(): Promise<Setup> {
     categories: categories ?? [],
     isOrg,
     orgName: isOrg ? orgName : null,
+    nickname: isOrg ? null : (profile?.nickname ?? null),
     hasSchool: profile?.university_id != null,
     balance: typeof balance === "number" ? balance : 0,
     minCost: isOrg ? rules.cost_survey_create_org : rules.price_1q * rules.survey_min_target,
@@ -208,6 +211,11 @@ export default function CreateSurvey() {
       return;
     }
 
+    // 닉네임 공개를 골랐으면 작성자 이름을 닉네임으로 (실패해도 설문은 등록됨 → "옛썰러"로 보임)
+    if (!setup.isOrg && draft.showNickname) {
+      await supabase.rpc("set_survey_show_nickname", { p_survey_id: surveyId, p_show: true });
+    }
+
     // 등록됐으니 임시저장은 지운다. 작성 화면을 내 설문 상세로 교체 (뒤로 가기로 돌아오지 않게)
     deleteDraft(setup.userId, draftId);
     allowLeave();
@@ -287,6 +295,8 @@ export default function CreateSurvey() {
             balance={setup.balance}
             isOrg={setup.isOrg}
             orgName={setup.orgName}
+            nickname={setup.nickname}
+            onChange={update}
           />
         )}
       </ScrollView>

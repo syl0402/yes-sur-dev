@@ -31,6 +31,8 @@ export type SurveyDraft = {
   // 입력칸 글자 그대로 (숫자 검사는 settingsValid에서)
   target: string;
   days: string;
+  // 학생 설문 작성자 표시: true = 닉네임 공개, false·없음 = "옛썰러" (2026-11-02, 예전 임시저장에는 없음)
+  showNickname?: boolean;
 };
 
 export const TITLE_MIN = 2;
