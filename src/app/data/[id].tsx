@@ -1,7 +1,7 @@
 // ys-131 결과 상세 · F-502~504 (무료 정보 → 내 답 비교 → 열람 → 전체 결과. 2026-11-01 정리: 뱃지 머리 · 구성 차트 · 아래 고정 열람 버튼)
 import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import ReportLink from "@/components/ReportLink";
@@ -32,6 +32,8 @@ type Loaded = {
   preview: HubPreview;
   // 열람 전 미리보는 인사이트 1개
   teaser: HubTeaser | null;
+  // 내가 저장(☆)한 결과인지
+  saved: boolean;
   comparison: Comparison[] | null;
   full: FullResults | null;
 };
@@ -43,7 +45,7 @@ async function fetchAll(id: number): Promise<Loaded | string> {
   const preview = data as HubPreview;
 
   const canSeeFull = preview.viewed || preview.mine;
-  const [comparison, full, teaser] = await Promise.all([
+  const [comparison, full, teaser, bookmarks] = await Promise.all([
     preview.answered && !canSeeFull
       ? supabase.rpc("get_my_comparison", { p_survey_id: id }).then(({ data }) => data as Comparison[])
       : Promise.resolve(null),
@@ -53,8 +55,9 @@ async function fetchAll(id: number): Promise<Loaded | string> {
     canSeeFull
       ? Promise.resolve(null)
       : supabase.rpc("get_hub_teaser", { p_survey_id: id }).then(({ data }) => (data as HubTeaser | null) ?? null),
+    supabase.rpc("get_my_bookmarks").then(({ data }) => (data as number[] | null) ?? []),
   ]);
-  return { preview, comparison, full, teaser };
+  return { preview, comparison, full, teaser, saved: bookmarks.includes(id) };
 }
 
 export default function HubResult() {
@@ -83,7 +86,19 @@ export default function HubResult() {
     );
   }
 
-  const { preview: p, comparison, full, teaser } = loaded;
+  const { preview: p, comparison, full, teaser, saved } = loaded;
+
+  // 저장 ↔ 해제 (먼저 화면을 바꾸고, 실패하면 되돌린다)
+  const toggleSaved = async () => {
+    setLoaded({ ...loaded, saved: !saved });
+    const { data, error } = await supabase.rpc("toggle_bookmark", { p_survey_id: surveyId });
+    if (error) {
+      setLoaded({ ...loaded, saved });
+      showNotice("저장하지 못했어요", errorMessage(error));
+      return;
+    }
+    setLoaded({ ...loaded, saved: data === true });
+  };
 
   // 전체 열람: 서버가 무료 여부·차감·등록자 분배를 한 번에 처리
   const view = async () => {
@@ -110,7 +125,16 @@ export default function HubResult() {
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: "설문 결과" }} />
+      <Stack.Screen
+        options={{
+          title: "설문 결과",
+          headerRight: () => (
+            <Pressable onPress={toggleSaved} hitSlop={10}>
+              <Text style={styles.star}>{saved ? "★" : "☆"}</Text>
+            </Pressable>
+          ),
+        }}
+      />
 
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
         {/* ── 누구나 (무료): 설문 정보 ── */}
@@ -292,6 +316,10 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     color: colors.primary,
     fontWeight: "600",
+  },
+  star: {
+    fontSize: 24,
+    color: colors.primary,
   },
   viewBox: {
     flex: 1,
