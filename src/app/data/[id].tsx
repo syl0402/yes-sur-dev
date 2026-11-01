@@ -156,7 +156,7 @@ export default function HubResult() {
         )}
 
         {/* ── 열람 (전체 결과) ── */}
-        {full && <ResultsView full={full} title={p.title} host={formatHost(p)} />}
+        {full && <ResultsView surveyId={surveyId} full={full} title={p.title} host={formatHost(p)} />}
 
         {!p.mine && <ReportLink surveyId={surveyId} />}
       </ScrollView>

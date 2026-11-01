@@ -93,6 +93,9 @@ const MESSAGES: Record<string, string> = {
   not_played: "한 판 끝내면 결과를 볼 수 있어요.",
   invalid_bracket: "대진이 올바르지 않아요. 처음부터 다시 해 주세요.",
 
+  // 교차 분석 (20261101000003_cross_results)
+  invalid_cross: "하나 고르기·척도 문항으로만 나눠 볼 수 있어요.",
+
   // Supabase 인증
   over_email_send_rate_limit: "잠시 후 다시 보내 주세요.",
   otp_expired: "인증번호가 틀렸거나 만료됐어요.",

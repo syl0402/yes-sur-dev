@@ -41,6 +41,9 @@ export const GROUP_DIMS: { value: GroupDim; label: string }[] = [
 // 그룹 하나 (n이 null이면 5명 미만이라 숨김)
 export type Group = { label: string; n: number | null; hidden: boolean; questions: QuestionStats[] };
 
+// get_cross_results: 기준 문항의 답별 묶음 (그룹과 같은 모양, 2026-11-01)
+export type CrossResults = { question_id: number; groups: Group[] };
+
 // get_hub_preview
 export type HubPreview = {
   id: number;

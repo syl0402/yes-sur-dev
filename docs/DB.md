@@ -43,6 +43,7 @@
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 | `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
 | `20261031000001_too_fast.sql` | 너무 빠른 응답(문항 수 × `min_seconds_per_question`초 미만)은 확인 문항 오답과 같게 반려, `submit_response`에 `reason`(attention·too_fast) | 2026-10-31 |
+| `20261101000003_cross_results.sql` | 교차 분석 `get_cross_results` (기준 문항 답별 묶음, 등록자·열람자만, 소수 묶음 숨김) | 2026-11-01 |
 | `20261101000002_worldcup.sql` | 커뮤니티 월드컵: `worldcups`·`worldcup_candidates`·`worldcup_plays`(1인 1회)·`worldcup_matches` (모두 함수로만), 댓글 대상에 `worldcup`. 등록은 `supabase/seed/worldcups.sql` | 2026-11-01 |
 | `20261101000001_weekly_best.sql` | 커뮤니티 주간 베스트 `get_weekly_best` + point_rules `weekly_best_days`(7)·`weekly_best_count`(3)·`weekly_best_min`(3) | 2026-11-01 |
 | `20261031000003_admin.sql` | 앱 안 운영자 화면: `is_admin`, 대기 건수·신고 처리·의견 답변·단체 승인 함수 (운영자만, 신고자·의견 보낸 사람은 안 보임) | 2026-10-31 |
@@ -218,6 +219,7 @@
 | `like_comment(p_comment_id)` | 좋아요 누르기·취소 (내 댓글 불가) | 로그인한 사람 |
 | `get_comments(p_type, p_id)` | `{ best: 좋아요 많은 3개, all: 오래된 순 }` | 로그인한 사람 |
 | `get_weekly_best()` | 최근 `weekly_best_days`일 안 글 중 투표+보이는 댓글이 `weekly_best_min` 이상인 글 `weekly_best_count`개 (많은 순 → 최신). 홍보글은 설문이 열려 있을 때만. `[{id, kind, question, votes, comment_count}]`, 작성자 없음 | 로그인한 사람 |
+| `get_cross_results(p_survey_id, p_question_id)` | 기준 문항(하나 고르기·척도)의 답별로 다른 문항 집계 `{question_id, groups:[{label, n, hidden, questions}]}` (그룹과 같은 모양). 등록자 또는 열람한 사람(`not_viewed`), 유효 응답만, `result_min_count` 미만 묶음 숨김 | 등록자·열람자 |
 | `get_worldcups()` | 월드컵 목록 최신순 `[{id, title, size, plays, played}]` | 로그인한 사람 |
 | `get_worldcup(p_id)` | 월드컵 하나 + 후보 `{…, played, candidates:[{id,name}]}` | 로그인한 사람 |
 | `submit_worldcup(p_id, p_matches)` | 한 판 결과 `[{winner, loser}]` 검사·저장 (첫 판만, `already_played`). 학생이면 `community_vote`P (커뮤니티 하루 `community_daily_cap` 안, ref `worldcup:<id>`) | 로그인한 사람 |
@@ -361,6 +363,7 @@
 | `feedback_not_found` | 없는 의견 |
 | `reject_reason_required` / `reject_reason_too_long` | 단체 거절 사유가 비었거나 200자 넘음 |
 | `org_not_pending` | 이미 승인·거절한 단체 |
+| `invalid_cross` | 교차 분석 기준이 하나 고르기·척도가 아니거나 다른 설문 문항 |
 | `worldcup_not_found` | 없는 월드컵 |
 | `already_played` | 이미 집계된 월드컵 (다시 하기는 앱에서만) |
 | `not_played` | 월드컵 결과는 한 판 끝낸 뒤에 |

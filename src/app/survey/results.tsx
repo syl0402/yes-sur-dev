@@ -193,6 +193,7 @@ export default function SurveyResults() {
       </View>
 
       <ResultsView
+        surveyId={surveyId}
         full={results.full}
         title={results.title}
         host={results.host}
