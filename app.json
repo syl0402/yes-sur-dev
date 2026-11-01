@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "yes-sur",
-    "slug": "yes-sur",
+    "slug": "yessur",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -39,6 +39,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ec7d5321-136e-4a97-9798-5d4537a814e3"
+      }
+    },
+    "owner": "yessurs-team"
   }
 }
