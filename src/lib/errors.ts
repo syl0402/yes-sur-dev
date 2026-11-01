@@ -87,6 +87,12 @@ const MESSAGES: Record<string, string> = {
   reject_reason_too_long: "거절 사유는 200자까지 쓸 수 있어요.",
   org_not_pending: "이미 처리된 단체예요.",
 
+  // 월드컵 (20261101000002_worldcup)
+  worldcup_not_found: "월드컵을 찾을 수 없어요.",
+  already_played: "이미 참여한 월드컵이에요. 다시 하면 결과에 들어가지 않아요.",
+  not_played: "한 판 끝내면 결과를 볼 수 있어요.",
+  invalid_bracket: "대진이 올바르지 않아요. 처음부터 다시 해 주세요.",
+
   // Supabase 인증
   over_email_send_rate_limit: "잠시 후 다시 보내 주세요.",
   otp_expired: "인증번호가 틀렸거나 만료됐어요.",

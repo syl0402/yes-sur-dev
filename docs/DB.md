@@ -43,6 +43,7 @@
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 | `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
 | `20261031000001_too_fast.sql` | 너무 빠른 응답(문항 수 × `min_seconds_per_question`초 미만)은 확인 문항 오답과 같게 반려, `submit_response`에 `reason`(attention·too_fast) | 2026-10-31 |
+| `20261101000002_worldcup.sql` | 커뮤니티 월드컵: `worldcups`·`worldcup_candidates`·`worldcup_plays`(1인 1회)·`worldcup_matches` (모두 함수로만), 댓글 대상에 `worldcup`. 등록은 `supabase/seed/worldcups.sql` | 2026-11-01 |
 | `20261101000001_weekly_best.sql` | 커뮤니티 주간 베스트 `get_weekly_best` + point_rules `weekly_best_days`(7)·`weekly_best_count`(3)·`weekly_best_min`(3) | 2026-11-01 |
 | `20261031000003_admin.sql` | 앱 안 운영자 화면: `is_admin`, 대기 건수·신고 처리·의견 답변·단체 승인 함수 (운영자만, 신고자·의견 보낸 사람은 안 보임) | 2026-10-31 |
 | `20261031000002_university_domains.sql` | 학교 하나에 메일 주소 여러 개: `university_domains`(로그인 전에도 읽기), 가입 완료 함수가 이 표로 학교를 찾음. 학교 추가는 `supabase/seed/universities.sql` | 2026-10-31 |
@@ -217,6 +218,10 @@
 | `like_comment(p_comment_id)` | 좋아요 누르기·취소 (내 댓글 불가) | 로그인한 사람 |
 | `get_comments(p_type, p_id)` | `{ best: 좋아요 많은 3개, all: 오래된 순 }` | 로그인한 사람 |
 | `get_weekly_best()` | 최근 `weekly_best_days`일 안 글 중 투표+보이는 댓글이 `weekly_best_min` 이상인 글 `weekly_best_count`개 (많은 순 → 최신). 홍보글은 설문이 열려 있을 때만. `[{id, kind, question, votes, comment_count}]`, 작성자 없음 | 로그인한 사람 |
+| `get_worldcups()` | 월드컵 목록 최신순 `[{id, title, size, plays, played}]` | 로그인한 사람 |
+| `get_worldcup(p_id)` | 월드컵 하나 + 후보 `{…, played, candidates:[{id,name}]}` | 로그인한 사람 |
+| `submit_worldcup(p_id, p_matches)` | 한 판 결과 `[{winner, loser}]` 검사·저장 (첫 판만, `already_played`). 학생이면 `community_vote`P (커뮤니티 하루 `community_daily_cap` 안, ref `worldcup:<id>`) | 로그인한 사람 |
+| `get_worldcup_result(p_id)` | 한 판 끝낸 뒤에만(`not_played`): 우승 비율·1:1 승률 랭킹, 계열별·성별 1위(`result_min_count` 미만 숨김), 참여 수. 누가 뭘 골랐는지 없음 | 로그인한 사람 |
 | `report_content(p_type, p_id, p_reason, p_detail)` | 설문·글·댓글 신고 (설문은 `report_survey`로). `report_hide_count`명이면 자동 숨김 | 로그인한 사람 |
 | `change_nickname(p_nickname)` | 닉네임 바꾸기 (학생만, 2~12자, 금칙어·중복 불가, `nickname_change_days`일에 한 번) | 학생 |
 | `create_promo(p_survey_id, p_question, p_body)` | 내 진행 중 설문 홍보글 (한 줄 소개 100자 + 본문 500자, 설문 하나에 하나 `promo_exists`, 하루 글 수에 포함) | 설문 등록자 |
@@ -356,6 +361,10 @@
 | `feedback_not_found` | 없는 의견 |
 | `reject_reason_required` / `reject_reason_too_long` | 단체 거절 사유가 비었거나 200자 넘음 |
 | `org_not_pending` | 이미 승인·거절한 단체 |
+| `worldcup_not_found` | 없는 월드컵 |
+| `already_played` | 이미 집계된 월드컵 (다시 하기는 앱에서만) |
+| `not_played` | 월드컵 결과는 한 판 끝낸 뒤에 |
+| `invalid_bracket` | 월드컵 대진이 맞지 않음 (매치 수·후보·진 후보 재등장) |
 
 ## 신고 처리 (운영자, 2026-10-30)
 
@@ -372,6 +381,10 @@
 1. Table Editor → `feedback`에서 `status = pending`인 의견을 본다 (`screen` = 보낸 화면, `device` = 기기·앱 버전)
 2. `reply`에 답변을 쓰고, `status`를 `answered`(답변함) 또는 `done`(반영함)으로, `replied_at`에 지금 시각
 3. 보낸 사람은 앱의 "의견 보내기 → 내가 보낸 의견"에서 답변을 본다
+
+## 월드컵 등록 (운영자, 2026-11-01)
+
+`supabase/seed/worldcups.sql`의 블록 하나를 복사해 제목·설명·후보(8개 또는 16개)만 바꿔 SQL Editor에서 Run. 가장 최근 월드컵이 커뮤니티 '전체' 위쪽 카드에 나온다. 지우기: Table Editor → `worldcups`에서 행 삭제 (후보·참여·매치가 같이 지워짐)
 
 ## 금칙어 추가 (운영자, 2026-10-30)
 

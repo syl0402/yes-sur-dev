@@ -69,7 +69,7 @@ export type Post = {
 };
 
 // 댓글 대상: 커뮤니티 글 / 지난 오늘의 질문
-export type CommentTarget = "post" | "daily";
+export type CommentTarget = "post" | "daily" | "worldcup";
 
 // get_comments 한 줄
 export type Comment = {

@@ -58,8 +58,8 @@ export default function PointsGuide() {
       note: `${r.streak_days ?? "-"}일 연속으로 답하면 +${p("streak_bonus")}`,
     },
     {
-      label: "커뮤니티 투표",
-      value: `1번 ${p("community_vote")}`,
+      label: "커뮤니티 투표 · 월드컵",
+      value: `1번 ${p("community_vote")} (월드컵은 처음 한 판)`,
       note: `커뮤니티 활동은 하루 최대 ${p("community_daily_cap")} · 내 투표에 ${r.creator_bonus_every ?? "-"}명이 참여할 때마다 +${p("creator_bonus")}`,
     },
     {
