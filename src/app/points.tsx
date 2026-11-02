@@ -6,18 +6,12 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
+import { BAND_RULE_KEYS, BANDS } from "@/lib/pointBands";
 import { fetchRules } from "@/lib/rules";
 
 const RULE_KEYS = [
   "welcome",
-  "reward_1q",
-  "reward_lt5",
-  "reward_5to15",
-  "reward_gte15",
-  "price_1q",
-  "price_lt5",
-  "price_5to15",
-  "price_gte15",
+  ...BAND_RULE_KEYS,
   "daily_reward",
   "streak_days",
   "streak_bonus",
@@ -50,7 +44,7 @@ export default function PointsGuide() {
     {
       label: "설문 응답",
       value: `${p("reward_1q")} ~ ${p("reward_gte15")}`,
-      note: `1문항 ${p("reward_1q")} · 5분 미만 ${p("reward_lt5")} · 5~15분 ${p("reward_5to15")} · 15분 이상 ${p("reward_gte15")}`,
+      note: `예상 시간에 따라 ${BANDS.map((b) => `${b.label} ${p(`reward_${b.key}`)}`).join(" · ")}`,
     },
     {
       label: "오늘의 질문",
@@ -79,7 +73,7 @@ export default function PointsGuide() {
     {
       label: "설문 등록",
       value: `응답 1명당 ${p("price_1q")} ~ ${p("price_gte15")}`,
-      note: `등록비 = 1명당 가격 × 목표 인원 (1문항 ${p("price_1q")} · 5분 미만 ${p("price_lt5")} · 5~15분 ${p("price_5to15")} · 15분 이상 ${p("price_gte15")}). 일찍 마감하면 못 받은 인원만큼 돌려받아요`,
+      note: `등록비 = 1명당 가격 × 목표 인원 (${BANDS.map((b) => `${b.label} ${p(`price_${b.key}`)}`).join(" · ")}). 일찍 마감하면 못 받은 인원만큼 돌려받아요`,
     },
     {
       label: "결과 열람",

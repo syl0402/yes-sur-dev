@@ -1,5 +1,6 @@
 // 설문 작성 화면(ys-120)에서 쓰는 작성 중인 설문의 모양과 검사·계산.
 // 글자 수 한도는 서버 create_survey와 같게 맞춘다 (docs/DB.md "create_survey 입력 규칙")
+import { BAND_RULE_KEYS, bandOf } from "@/lib/pointBands";
 
 export type QuestionType = "single" | "multi" | "scale" | "text";
 
@@ -56,14 +57,7 @@ export const CREATE_RULE_KEYS = [
   "data_share_rate",
   "sec_per_choice",
   "sec_per_text",
-  "reward_1q",
-  "reward_lt5",
-  "reward_5to15",
-  "reward_gte15",
-  "price_1q",
-  "price_lt5",
-  "price_5to15",
-  "price_gte15",
+  ...BAND_RULE_KEYS,
   "cost_survey_create_org",
 ];
 
@@ -222,7 +216,7 @@ export function estimate(
     0,
   );
   const minutes = Math.max(1, Math.ceil(seconds / 60));
-  const band = d.questions.length === 1 ? "1q" : minutes < 5 ? "lt5" : minutes < 15 ? "5to15" : "gte15";
+  const band = bandOf(d.questions.length, minutes);
   return { minutes, reward: rules[`reward_${band}`], price: rules[`price_${band}`] };
 }
 

@@ -26,8 +26,9 @@ type Scope = "all" | "campus";
 
 const DURATION_OPTIONS: { value: DurationKey; label: string }[] = [
   { value: "all", label: "전체 시간" },
-  { value: "lt5", label: "5분 미만" },
-  { value: "5to15", label: "5~15분" },
+  { value: "le3", label: "3분 이내" },
+  { value: "3to7", label: "3~7분" },
+  { value: "7to15", label: "7~15분" },
   { value: "gte15", label: "15분 이상" },
 ];
 

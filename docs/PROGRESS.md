@@ -342,6 +342,8 @@ update organizations set reject_reason = '사유' where id = (select id from aut
 
 ## 출시 전에 할 일
 
+- [ ] 테스트 1주차·2주차: `docs/DB.md` "포인트 경제 확인" SQL로 설문 목표 달성률·이유별 포인트 보고 `point_rules` 조정 (2026-11-03)
+
 - [ ] 위 "임시로 둔 것" 표가 비어 있는지 확인
 - [ ] Supabase Authentication → Users의 테스트 계정 정리
 - [ ] `result_min_count`가 5인지 확인 (dev_tools 10번 "테스트 모드"로 1로 바꿨다면 되돌리기, 2026-10-30)

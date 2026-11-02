@@ -1,4 +1,5 @@
 // 설문 목록 불러오기·정렬·필터. 홈과 설문 탭이 같이 쓴다.
+import { timeBandOf } from "@/lib/pointBands";
 import { supabase } from "@/lib/supabase";
 
 export type SurveyCard = {
@@ -18,7 +19,7 @@ export type SurveyCard = {
 };
 
 export type SortKey = "recommended" | "latest" | "closing" | "reward";
-export type DurationKey = "all" | "lt5" | "5to15" | "gte15";
+export type DurationKey = "all" | "le3" | "3to7" | "7to15" | "gte15";
 
 // 남은 자리 (목표 응답 수 - 현재 응답 수)
 export function remainingSpots(s: { target_responses: number; response_count: number }): number {
@@ -95,18 +96,9 @@ export function sortSurveys(list: SurveyCard[], key: SortKey): SurveyCard[] {
   }
 }
 
-// 소요시간 필터 (보상 구간과 같은 기준)
+// 소요시간 필터 (보상 구간과 같은 기준, 2026-11-03)
 export function matchesDuration(s: SurveyCard, key: DurationKey): boolean {
-  switch (key) {
-    case "all":
-      return true;
-    case "lt5":
-      return s.est_minutes < 5;
-    case "5to15":
-      return s.est_minutes >= 5 && s.est_minutes < 15;
-    case "gte15":
-      return s.est_minutes >= 15;
-  }
+  return key === "all" || timeBandOf(s.est_minutes) === key;
 }
 
 // 작성자 표시: 인증된 단체는 "단체 이름 ✓", 학생은 닉네임을 공개했으면 닉네임, 아니면 "옛썰러" (2026-11-02)
