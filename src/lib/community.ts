@@ -41,11 +41,11 @@ export type PromoSurvey = {
   answered: boolean;
 };
 
-// get_major_ranking (이번 주 계열 대항전)
-export type MajorRanking = {
+// get_school_ranking: 이번 주 학교 대항전 (활동한 학생이 적은 학교는 빠져서 옴, 2026-11-02)
+export type SchoolRanking = {
   week_start: string;
-  ranking: { major: string; count: number; rank: number }[];
-  my_major: string | null;
+  ranking: { school: string; count: number; rank: number }[];
+  my_school: string | null;
   my_rank: number | null;
 };
 
