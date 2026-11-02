@@ -110,29 +110,22 @@ export default function Community() {
           ) : worldcups.length === 0 ? (
             <EmptyState title="아직 월드컵이 없어요" message="곧 새 월드컵이 열려요." emoji="🏆" />
           ) : (
-            <View style={styles.feed}>
-              {worldcups.map((w) => (
-                <WorldcupCard key={w.id} item={w} hot={hotIds.has(`worldcup-${w.id}`)} />
-              ))}
-            </View>
+            worldcups.map((w) => <WorldcupCard key={w.id} item={w} hot={hotIds.has(`worldcup-${w.id}`)} />)
           )
         ) : posts === null ? (
           <ActivityIndicator color={colors.primary} style={styles.loading} />
         ) : posts.length === 0 ? (
           <EmptyState title="아직 글이 없어요" message="첫 글을 만들어 보세요!" emoji="🗳️" />
         ) : (
-          // 글 목록: 카드 없이 화면 가로 끝까지, 구분선으로 나눈 피드 (2026-11-03)
-          <View style={styles.feed}>
-            {posts.map((p) => (
-              <PostCard
-                key={p.id}
-                post={p}
-                hot={hotIds.has(`post-${p.id}`)}
-                onVoted={load}
-                onOpen={() => router.push({ pathname: "/community/[id]", params: { id: String(p.id) } })}
-              />
-            ))}
-          </View>
+          posts.map((p) => (
+            <PostCard
+              key={p.id}
+              post={p}
+              hot={hotIds.has(`post-${p.id}`)}
+              onVoted={load}
+              onOpen={() => router.push({ pathname: "/community/[id]", params: { id: String(p.id) } })}
+            />
+          ))
         )}
       </ScrollView>
 
@@ -155,12 +148,6 @@ const styles = StyleSheet.create({
   },
   filters: {
     flexDirection: "row",
-  },
-  // 바깥 여백을 무시하고 화면 가로 끝까지
-  feed: {
-    marginHorizontal: -spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
   },
   loading: {
     marginTop: spacing.lg,

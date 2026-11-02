@@ -62,7 +62,6 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 설문 홍보·계열 대항전: 홍보글은 `PostCard` 안 `PromoBox`(설문 요약 + 응답하러 가기), 만들기 화면 종류 "설문 홍보"(`create_promo`). 대항전은 피드 위 `SchoolRankingCard` (2026-11-02 학교 대항전으로 교체, `get_school_ranking`)
 - 월드컵 (2026-11-01): `WorldcupCard` ('월드컵' 탭 목록 한 줄, `hot`이면 🔥 HOT 뱃지), 화면 `community/worldcup/[id].tsx`, 대진 계산은 `src/lib/worldcup.ts`(`startBracket`·`pick`). 첫 판만 서버 저장
 - 커뮤니티 위쪽 (2026-11-03): `DailyCard compact`(답하면 얇은 막대 2줄) + `TrendingTicker items`("🔥 HOT" 롤링 한 줄: HOT 1~5위 글·월드컵, 3초마다, 동작 줄이기면 멈춤, ▾로 HOT TOP + 학교 대항전 펼침). HOT 목록은 `community.tsx`가 `fetchHot()`(lib/community)으로 들어올 때 + 30초마다 불러와 롤링·뱃지에 나눠 줌. 누르면 갈 곳은 `hotHref()`
-- 커뮤니티 목록 = 피드 (2026-11-03): `PostCard`는 목록에서 카드 없이 구분선 한 줄(아래에 작성자·시간·💬·👥), `full`(상세)일 때만 카드. `WorldcupCard`도 같은 줄 모양. `community.tsx`의 `feed` 스타일이 화면 가로 끝까지 펼침
 - 🔥 HOT 뱃지: `PostCard hot`, `WorldcupCard hot` (Badge tone `hot`, 색은 theme `hot`·`hotSoft`)
 - 당겨서 새로고침 (2026-11-03): 커뮤니티·설문·데이터 탭 ScrollView에 `RefreshControl` (React Native 기본)
 - HOT TOP 목록: `WeeklyBestCard items` (HOT 롤링 ▾ 안, 비면 안 그림)

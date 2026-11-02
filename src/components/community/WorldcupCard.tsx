@@ -1,18 +1,19 @@
 import { router } from "expo-router";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { type WorldcupItem, roundLabel } from "@/lib/worldcup";
 
-// 월드컵 목록 한 줄 (글 목록과 같은 구분선 피드). HOT 게시판에 든 월드컵이면 🔥 HOT 뱃지 (2026-11-03)
+// 월드컵 목록 한 줄. HOT 게시판에 든 월드컵이면 🔥 HOT 뱃지 (2026-11-03)
 export default function WorldcupCard({ item: w, hot }: { item: WorldcupItem; hot?: boolean }) {
   const open = () => router.push({ pathname: "/community/worldcup/[id]", params: { id: String(w.id) } });
 
   return (
-    <Pressable style={({ pressed }) => [styles.row, pressed && styles.rowPressed]} onPress={open}>
+    <Card onPress={open}>
       <View style={styles.top}>
         <Text style={styles.eyebrow}>🏆 월드컵</Text>
         {hot && <Badge label="🔥 HOT" tone="hot" />}
@@ -24,22 +25,11 @@ export default function WorldcupCard({ item: w, hot }: { item: WorldcupItem; hot
         <Text style={styles.meta}>{w.plays}명 참여</Text>
         <Button title={w.played ? "결과 보기" : "시작하기"} variant={w.played ? "soft" : "primary"} small onPress={open} />
       </View>
-    </Pressable>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
-    gap: spacing.sm,
-  },
-  rowPressed: {
-    backgroundColor: colors.surfaceMuted,
-  },
   top: {
     flexDirection: "row",
     alignItems: "center",
@@ -54,7 +44,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   title: {
-    fontSize: fontSize.body,
+    fontSize: fontSize.subtitle,
     fontWeight: "700",
     color: colors.text,
   },
