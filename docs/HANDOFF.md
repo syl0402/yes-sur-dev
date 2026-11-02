@@ -60,8 +60,11 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 커뮤니티 댓글: `Comments` (`src/components/community/Comments.tsx`, `type` = post·daily). 글 ⋯ 메뉴는 `showActions` (`src/lib/confirm.ts`). 본문 수정 `community/edit.tsx`. 신고 화면은 `?type=post|comment&id=` 또는 예전 `?survey=`
 - 오늘의 질문 상세: 홈 `DailyCard`를 누르면 `community/daily.tsx` (같은 카드 + 그룹별 + 댓글 `type=daily`, 오늘 것만. 2026-10-30 지난 질문 목록은 없앰). 닉네임 바꾸기 `account/nickname.tsx` (내 정보 → 학생만)
 - 설문 홍보·계열 대항전: 홍보글은 `PostCard` 안 `PromoBox`(설문 요약 + 응답하러 가기), 만들기 화면 종류 "설문 홍보"(`create_promo`). 대항전은 피드 위 `SchoolRankingCard` (2026-11-02 학교 대항전으로 교체, `get_school_ranking`)
-- 월드컵 (2026-11-01): `WorldcupCard` ('전체' 위쪽 = 최근 1개, '월드컵' 칩 = 목록), 화면 `community/worldcup/[id].tsx`, 대진 계산은 `src/lib/worldcup.ts`(`startBracket`·`pick`). 첫 판만 서버 저장
-- 주간 베스트 (2026-11-01): `WeeklyBestCard` (커뮤니티 "전체"에서 오늘의 질문 아래, `get_weekly_best`, 비면 안 그림)
+- 월드컵 (2026-11-01): `WorldcupCard` ('월드컵' 탭 목록 한 줄, `hot`이면 🔥 HOT 뱃지), 화면 `community/worldcup/[id].tsx`, 대진 계산은 `src/lib/worldcup.ts`(`startBracket`·`pick`). 첫 판만 서버 저장
+- 커뮤니티 위쪽 (2026-11-03): `DailyCard compact`(답하면 얇은 막대 2줄) + `TrendingTicker items`("🔥 HOT" 롤링 한 줄: HOT 1~5위 글·월드컵, 3초마다, 동작 줄이기면 멈춤, ▾로 HOT TOP + 학교 대항전 펼침). HOT 목록은 `community.tsx`가 `fetchHot()`(lib/community)으로 들어올 때 + 30초마다 불러와 롤링·뱃지에 나눠 줌. 누르면 갈 곳은 `hotHref()`
+- 🔥 HOT 뱃지: `PostCard hot`, `WorldcupCard hot` (Badge tone `hot`, 색은 theme `hot`·`hotSoft`)
+- 당겨서 새로고침 (2026-11-03): 커뮤니티·설문·데이터 탭 ScrollView에 `RefreshControl` (React Native 기본)
+- HOT TOP 목록: `WeeklyBestCard items` (HOT 롤링 ▾ 안, 비면 안 그림)
 - 사용자가 쓴 글의 링크: `LinkedText` (`src/components/LinkedText.tsx`) — http(s) 주소는 파란 링크, 누르면 "옛썰 밖의 링크" 확인 후 열기. 상세 화면 본문·댓글은 길게 눌러 복사(`selectable`)
 - 친구 초대: `src/app/invite.tsx` (마이 탭 "🎁 친구 초대", 학생만). 코드 복사 `expo-clipboard`, 공유 `Share`(RN 기본)
 - 첫 사용 안내: `src/app/onboarding.tsx` (학생만 3장, 가입 완료 → 안내 → 홈. 기존 회원은 홈에서 이 폰 첫 실행 때 한 번, `src/lib/onboarding.ts`로 기억). 내 정보 "사용 안내 다시 보기"(`?again=1`)
@@ -103,6 +106,7 @@ import { Text, TextInput } from "@/components/ui/Text";
 | `Segmented` | 탭 전환 (진행 중·완료 등) |
 | `TextTabs` | 글자 탭 + 밑줄 (카테고리·글 종류, 옆으로 넘김) |
 | `PasswordInput` | 비밀번호 입력칸 + 👁 보기/가리기 (secureTextEntry 대신 항상 이것) |
+| `Fab` | 오른쪽 아래 둥근 버튼 (부모 View 안에 absolute). 커뮤니티 글 만들기 |
 | `SelectButton` | `[추천순 ▾]` 선택 버튼 → 아래에서 선택 창. `defaultValue`가 아니면 파랗게 (필터 걸림 표시) |
 | `Badge` | 상태 표시 `tone` primary·accent·muted·danger |
 | `ProgressBar` | 진행 막대 `value` 0~1 |

@@ -29,6 +29,9 @@ export const colors = {
   // 상태
   danger: "#E5484D",
   dangerSoft: "#FDECEC",
+  // 커뮤니티 HOT 표시 (롤링 줄 제목·🔥 HOT 뱃지, 2026-11-03)
+  hot: "#E5484D",
+  hotSoft: "#FDECEC",
   disabled: "#C5CAD6",
   onPrimary: "#FFFFFF",
   // 목록 창 뒤를 어둡게 덮는 색

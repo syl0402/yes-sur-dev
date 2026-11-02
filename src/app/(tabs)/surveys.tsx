@@ -1,7 +1,7 @@
 // ys-110 설문 목록 · F-202~204
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
 import SurveyListCard from "@/components/SurveyListCard";
 import Button from "@/components/ui/Button";
@@ -45,18 +45,30 @@ export default function Surveys() {
   const [duration, setDuration] = useState<DurationKey>("all");
   const [scope, setScope] = useState<Scope>("all");
   const [sort, setSort] = useState<SortKey>("recommended");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const load = useCallback(async () => {
+    supabase
+      .from("survey_categories")
+      .select("key, name")
+      .order("sort_order")
+      .then(({ data }) => setCategories(data ?? []));
+    setSurveys(await fetchOpenSurveys());
+  }, []);
 
   // 탭에 돌아올 때마다 새로 불러온다 (응답한 설문이 바로 빠지게)
   useFocusEffect(
     useCallback(() => {
-      fetchOpenSurveys().then(setSurveys);
-      supabase
-        .from("survey_categories")
-        .select("key, name")
-        .order("sort_order")
-        .then(({ data }) => setCategories(data ?? []));
-    }, []),
+      load();
+    }, [load]),
   );
+
+  // 아래로 당겨서 새로고침 (2026-11-03)
+  const refresh = async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  };
 
   const visible =
     surveys === null
@@ -76,6 +88,9 @@ export default function Surveys() {
       style={styles.screen}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} colors={[colors.primary]} />
+      }
     >
       {/* 카테고리: 글자 탭 / 정렬 · 소요시간 · 우리 학교만: 한 줄 (2026-11-02 정리) */}
       <TextTabs

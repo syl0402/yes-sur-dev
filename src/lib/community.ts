@@ -1,5 +1,8 @@
 // 커뮤니티 (ys-140~142). 서버 함수 모양은 docs/DB.md "커뮤니티"
+import type { Href } from "expo-router";
+
 import type { GroupDim } from "@/lib/hub";
+import { supabase } from "@/lib/supabase";
 
 export type PostKind = "balance" | "relate" | "pick" | "promo";
 
@@ -48,6 +51,29 @@ export type SchoolRanking = {
   my_school: string | null;
   my_rank: number | null;
 };
+
+// get_weekly_best: HOT 게시판 한 줄 (글 + 월드컵, 작성자 정보 없음, 2026-11-03). 월드컵은 votes = 최근 참여 수
+export type HotItem = {
+  type: "post" | "worldcup";
+  id: number;
+  kind: PostKind | "worldcup";
+  question: string;
+  votes: number;
+  comment_count: number;
+};
+
+export async function fetchHot(): Promise<HotItem[]> {
+  const { data, error } = await supabase.rpc("get_weekly_best");
+  if (error) throw error;
+  return (data as HotItem[] | null) ?? [];
+}
+
+// HOT 한 줄을 누르면 갈 곳
+export function hotHref(h: HotItem): Href {
+  return h.type === "worldcup"
+    ? { pathname: "/community/worldcup/[id]", params: { id: String(h.id) } }
+    : { pathname: "/community/[id]", params: { id: String(h.id) } };
+}
 
 // get_feed 한 줄 / get_post (counts·groups는 투표했거나 내 글일 때만, survey는 홍보글만)
 export type Post = {

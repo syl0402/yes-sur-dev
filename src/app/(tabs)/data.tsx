@@ -1,7 +1,7 @@
 // ys-130 데이터 목록 · F-501 (2026-11-01: 검색 · 저장한 결과 · 카드 정리)
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import Badge from "@/components/ui/Badge";
@@ -33,21 +33,33 @@ export default function Data() {
   // 데이터 허브에 올라가는 최소 응답 수 (빈 화면 안내용, point_rules)
   const [minCount, setMinCount] = useState<number | null>(null);
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const load = useCallback(async () => {
+    supabase.rpc("get_my_bookmarks").then(({ data }) => setSaved((data as number[] | null) ?? []));
+    supabase
+      .from("survey_categories")
+      .select("key, name")
+      .order("sort_order")
+      .then(({ data }) => setCategories(data ?? []));
+    fetchRules(["result_min_count"]).then((r) => setMinCount(r.result_min_count ?? null));
+    const { data } = await supabase.rpc("get_hub_list", { p_category: category === "all" ? null : category, p_sort: sort });
+    setItems((data as HubItem[] | null) ?? []);
+  }, [category, sort]);
+
   // 탭에 돌아올 때·필터를 바꿀 때마다 새로 불러온다 (열람함·저장 표시가 바로 바뀌게)
   useFocusEffect(
     useCallback(() => {
-      supabase
-        .rpc("get_hub_list", { p_category: category === "all" ? null : category, p_sort: sort })
-        .then(({ data }) => setItems((data as HubItem[] | null) ?? []));
-      supabase.rpc("get_my_bookmarks").then(({ data }) => setSaved((data as number[] | null) ?? []));
-      supabase
-        .from("survey_categories")
-        .select("key, name")
-        .order("sort_order")
-        .then(({ data }) => setCategories(data ?? []));
-      fetchRules(["result_min_count"]).then((r) => setMinCount(r.result_min_count ?? null));
-    }, [category, sort]),
+      load();
+    }, [load]),
   );
+
+  // 아래로 당겨서 새로고침 (2026-11-03)
+  const refresh = async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  };
 
   const open = (id: number) => router.push({ pathname: "/data/[id]", params: { id: String(id) } });
   // 내가 응답한 설문 결과 (내 답 비교는 무료)
@@ -67,6 +79,9 @@ export default function Data() {
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="handled"
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} colors={[colors.primary]} />
+      }
     >
       {/* 검색 (제목) */}
       <TextInput

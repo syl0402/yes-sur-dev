@@ -36,10 +36,12 @@ type Props = {
   onOpen?: () => void;
   // 상세 화면: 불러올 때마다 데이터를 넘겨받아 그룹별 결과를 그린다
   onLoaded?: (daily: Daily | null) => void;
+  // 커뮤니티 탭: 작게 (질문 + 답 버튼 2개 / 답했으면 얇은 결과 막대 2줄, 2026-11-03)
+  compact?: boolean;
 };
 
 // "오늘의 질문": A/B 중 하나 → 바로 비율 + 출석 포인트. 오늘 질문이 없으면 아무것도 그리지 않는다
-export default function DailyCard({ onAnswered, onOpen, onLoaded }: Props) {
+export default function DailyCard({ onAnswered, onOpen, onLoaded, compact }: Props) {
   const [daily, setDaily] = useState<Daily | null>(null);
   const [sending, setSending] = useState(false);
   // 방금 받은 포인트 (출석 + 보너스) — 답한 직후 한 번만 보여 준다
@@ -77,6 +79,63 @@ export default function DailyCard({ onAnswered, onOpen, onLoaded }: Props) {
   const total = (daily.a ?? 0) + (daily.b ?? 0);
   // 다음 보너스까지 남은 날
   const toBonus = daily.streak_days - (daily.streak % daily.streak_days);
+
+  if (compact) {
+    return (
+      <Pressable style={[styles.card, styles.compactCard]} onPress={onOpen} disabled={!onOpen}>
+        <View style={styles.compactTop}>
+          <Text style={styles.eyebrow}>오늘의 질문</Text>
+          {daily.rewarded && daily.streak > 0 && <Text style={styles.compactStreak}>🔥 연속 {daily.streak}일</Text>}
+          <Text style={styles.compactMore}>
+            {daily.comment_count > 0 ? `댓글 ${daily.comment_count} ` : ""}›
+          </Text>
+        </View>
+        <Text style={styles.compactQuestion} numberOfLines={2}>
+          {daily.question}
+        </Text>
+        {answered ? (
+          <View style={styles.compactResults}>
+            {(["a", "b"] as const).map((key) => {
+              const label = key === "a" ? daily.option_a : daily.option_b;
+              const pct = percent((key === "a" ? daily.a : daily.b) ?? 0, total);
+              const mine = daily.my_choice === key;
+              return (
+                <View key={key} style={styles.compactRow}>
+                  <Text style={[styles.compactLabel, mine && styles.mine]} numberOfLines={1}>
+                    {label}
+                    {mine ? " ✓" : ""}
+                  </Text>
+                  <View style={[styles.track, styles.compactTrack]}>
+                    <View style={[styles.fill, styles.compactFill, mine && styles.fillMine, { width: `${pct}%` }]} />
+                  </View>
+                  <Text style={[styles.compactPct, mine && styles.mine]}>{pct}%</Text>
+                </View>
+              );
+            })}
+            <Text style={styles.compactMeta}>
+              {total}명 참여
+              {earned ? ` · +${formatPoints(earned.reward + earned.bonus)} 받았어요` : ""}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.buttons}>
+            {(["a", "b"] as const).map((key) => (
+              <Pressable
+                key={key}
+                style={({ pressed }) => [styles.choice, styles.compactChoice, pressed && styles.choicePressed]}
+                onPress={() => answer(key)}
+                disabled={sending}
+              >
+                <Text style={styles.choiceText} numberOfLines={1}>
+                  {key === "a" ? daily.option_a : daily.option_b}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+      </Pressable>
+    );
+  }
 
   return (
     <Pressable style={styles.card} onPress={onOpen} disabled={!onOpen}>
@@ -232,6 +291,66 @@ const styles = StyleSheet.create({
   streak: {
     fontSize: fontSize.small,
     color: colors.textMuted,
+  },
+  compactCard: {
+    gap: spacing.xs,
+    paddingVertical: spacing.sm + spacing.xs,
+  },
+  compactTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  compactStreak: {
+    flex: 1,
+    fontSize: fontSize.caption,
+    color: colors.textMuted,
+  },
+  compactMore: {
+    marginLeft: "auto",
+    fontSize: fontSize.small,
+    fontWeight: "600",
+    color: colors.primary,
+  },
+  compactQuestion: {
+    fontSize: fontSize.body,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  compactResults: {
+    gap: 6,
+  },
+  // 보기 · 얇은 막대 · % 를 한 줄에
+  compactRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  compactLabel: {
+    width: "34%",
+    fontSize: fontSize.small,
+    color: colors.text,
+  },
+  compactTrack: {
+    flex: 1,
+    height: 6,
+    backgroundColor: colors.surfaceMuted,
+  },
+  compactFill: {
+    backgroundColor: colors.primaryMuted,
+  },
+  compactPct: {
+    width: 36,
+    fontSize: fontSize.small,
+    color: colors.textMuted,
+    textAlign: "right",
+  },
+  compactMeta: {
+    fontSize: fontSize.caption,
+    color: colors.textMuted,
+  },
+  compactChoice: {
+    paddingVertical: spacing.sm + 2,
   },
   more: {
     fontSize: fontSize.small,

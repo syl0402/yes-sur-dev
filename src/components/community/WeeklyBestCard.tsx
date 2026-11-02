@@ -1,49 +1,39 @@
-import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { router } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
-import { KIND_LABELS, type PostKind } from "@/lib/community";
-import { supabase } from "@/lib/supabase";
+import { type HotItem, hotHref, KIND_LABELS } from "@/lib/community";
 
-// get_weekly_best 한 줄 (작성자 정보 없음)
-type BestPost = { id: number; kind: PostKind; question: string; votes: number; comment_count: number };
-
-// 주간 베스트: 최근 며칠 안에 올라온 글 중 투표+댓글이 많은 글 (기간·개수·최소 반응은 point_rules). 없으면 그리지 않는다
-export default function WeeklyBestCard() {
-  const [posts, setPosts] = useState<BestPost[]>([]);
-
-  // 오류가 나면 조용히 숨긴다 (보조 정보라서)
-  const load = useCallback(() => {
-    supabase.rpc("get_weekly_best").then(({ data }) => setPosts((data as BestPost[] | null) ?? []));
-  }, []);
-
-  useFocusEffect(load);
-
-  if (posts.length === 0) return null;
+// HOT 게시판 TOP: 최근 며칠 안에 반응(투표·참여 + 댓글)이 많은 글·월드컵 (기간·개수·최소 반응은 point_rules, 2026-11-03)
+// 목록은 커뮤니티 화면이 불러와서 넘겨준다. 없으면 그리지 않는다
+export default function WeeklyBestCard({ items }: { items: HotItem[] }) {
+  if (items.length === 0) return null;
 
   return (
     <Card>
-      <Text style={styles.title}>🔥 주간 베스트</Text>
-      {posts.map((p, i) => (
+      <Text style={styles.title}>🔥 HOT</Text>
+      {items.map((h, i) => (
         <Pressable
-          key={p.id}
+          key={`${h.type}-${h.id}`}
           style={({ pressed }) => [styles.row, i > 0 && styles.divider, pressed && styles.pressed]}
-          onPress={() => router.push({ pathname: "/community/[id]", params: { id: String(p.id) } })}
+          onPress={() => router.push(hotHref(h))}
         >
           <Text style={[styles.rank, i === 0 && styles.rankFirst]}>{i + 1}</Text>
           <View style={styles.main}>
             <View style={styles.top}>
-              <Badge label={KIND_LABELS[p.kind]} tone={p.kind === "promo" ? "accent" : "primary"} />
+              <Badge
+                label={h.kind === "worldcup" ? "월드컵" : KIND_LABELS[h.kind]}
+                tone={h.kind === "promo" || h.kind === "worldcup" ? "accent" : "primary"}
+              />
               <Text style={styles.meta}>
-                투표 {p.votes} · 댓글 {p.comment_count}
+                {h.type === "worldcup" ? "참여" : "투표"} {h.votes} · 댓글 {h.comment_count}
               </Text>
             </View>
             <Text style={styles.question} numberOfLines={1}>
-              {p.question}
+              {h.question}
             </Text>
           </View>
         </Pressable>

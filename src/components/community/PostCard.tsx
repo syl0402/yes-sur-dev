@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import LinkedText from "@/components/LinkedText";
 import { percent } from "@/components/results/QuestionResult";
+import Badge from "@/components/ui/Badge";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { KIND_LABELS, type PromoSurvey, type Post } from "@/lib/community";
@@ -20,10 +21,12 @@ type Props = {
   onOpen?: () => void;
   // 상세 화면: 본문을 줄이지 않고 다 보여 준다
   full?: boolean;
+  // HOT 게시판에 든 글이면 🔥 HOT 뱃지 (2026-11-03)
+  hot?: boolean;
 };
 
 // 투표 글 카드: 투표 전엔 보기 버튼, 투표 후(또는 내 글)엔 비율 막대
-export default function PostCard({ post, onVoted, onOpen, full }: Props) {
+export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
   const [sending, setSending] = useState(false);
   const [earned, setEarned] = useState<number | null>(null);
   const showResult = post.counts !== null;
@@ -45,14 +48,13 @@ export default function PostCard({ post, onVoted, onOpen, full }: Props) {
 
   return (
     <Pressable style={styles.card} onPress={onOpen} disabled={!onOpen}>
+      {/* 머리: 종류 뱃지 · 작성자 · 시간 (2026-11-03 정리) */}
       <View style={styles.head}>
-        <Text style={styles.kind}>{KIND_LABELS[post.kind]}</Text>
-        <Text style={styles.meta}>
+        <Badge label={KIND_LABELS[post.kind]} tone={post.kind === "promo" ? "accent" : "primary"} />
+        {hot && <Badge label="🔥 HOT" tone="hot" />}
+        <Text style={styles.meta} numberOfLines={1}>
           {post.author}
-          {post.mine ? " (나)" : ""}
-          {post.kind === "promo" ? "" : ` · ${post.votes}명 참여`}
-          {post.comment_count > 0 ? ` · 댓글 ${post.comment_count}` : ""}
-          {` · ${formatAgo(post.created_at)}`}
+          {post.mine ? " (나)" : ""} · {formatAgo(post.created_at)}
         </Text>
       </View>
       <Text style={styles.question} selectable={full}>
@@ -104,6 +106,13 @@ export default function PostCard({ post, onVoted, onOpen, full }: Props) {
             </Pressable>
           ))}
         </View>
+      )}
+
+      {/* 아래: 참여·댓글 수 */}
+      {post.kind !== "promo" && (
+        <Text style={styles.footer}>
+          👥 {post.votes}명 참여{post.comment_count > 0 ? `  ·  💬 댓글 ${post.comment_count}` : ""}
+        </Text>
       )}
     </Pressable>
   );
@@ -173,10 +182,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
   },
-  kind: {
-    fontSize: fontSize.small,
-    fontWeight: "700",
-    color: colors.primary,
+  footer: {
+    fontSize: fontSize.caption,
+    color: colors.textMuted,
   },
   meta: {
     flexShrink: 1,
@@ -184,7 +192,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   question: {
-    fontSize: fontSize.body,
+    fontSize: fontSize.subtitle,
     fontWeight: "700",
     color: colors.text,
   },
@@ -245,14 +253,15 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   track: {
-    height: 10,
-    borderRadius: radius.sm,
-    backgroundColor: colors.border,
+    height: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceMuted,
     overflow: "hidden",
   },
   fill: {
     height: "100%",
-    backgroundColor: colors.textMuted,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primaryMuted,
   },
   fillMine: {
     backgroundColor: colors.primary,

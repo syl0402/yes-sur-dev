@@ -43,6 +43,7 @@
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 | `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
 | `20261031000001_too_fast.sql` | 너무 빠른 응답(문항 수 × `min_seconds_per_question`초 미만)은 확인 문항 오답과 같게 반려, `submit_response`에 `reason`(attention·too_fast) | 2026-10-31 |
+| `20261103000001_hot_board.sql` | HOT 게시판: `get_weekly_best`에 월드컵 추가(최근 `weekly_best_days`일 참여 + 댓글), 결과에 `type`(post·worldcup), `weekly_best_count` 3 → 5 | 2026-11-03 |
 | `20261102000003_school_ranking.sql` | 학교 대항전 `get_school_ranking` (계열 대항전 대신, 활동 횟수 합계, 활동 학생 `result_min_count` 미만 학교 숨김) | 2026-11-02 |
 | `20261102000002_survey_nickname.sql` | 개인 설문 작성자 표시: `surveys.show_nickname`, `set_survey_show_nickname`(켜면 host_name = 닉네임, 인증 ✓은 그대로 false), 닉네임 변경 시 같이 바뀜, 탈퇴하면 지움 | 2026-11-02 |
 | `20261102000001_categories.sql` | 설문 카테고리 7개 + 기타 (진로·취업·연애·관계·사회·이슈 추가, 커뮤니티 → 기타) | 2026-11-02 |
@@ -225,7 +226,7 @@
 | `get_comments(p_type, p_id)` | `{ best: 좋아요 많은 3개, all: 오래된 순 }` | 로그인한 사람 |
 | `set_survey_show_nickname(p_survey_id, p_show)` | 내 개인 설문의 작성자 표시: 닉네임 공개 ↔ 비공개(앱에서 "옛썰러"). 학생 등록자만(`nickname_student_only`, 남의 설문 `survey_not_found`) | 학생 등록자 |
 | `get_school_ranking()` | 이번 주(한국 시간 월요일부터) 학교별 활동 횟수 합계(투표·오늘의 질문·글·댓글·월드컵, 학생만) 순위 + 내 학교 순위. 활동한 학생이 `result_min_count` 미만인 학교는 뺌. `get_major_ranking`은 남아 있지만 앱에서 안 씀 | 로그인한 사람 |
-| `get_weekly_best()` | 최근 `weekly_best_days`일 안 글 중 투표+보이는 댓글이 `weekly_best_min` 이상인 글 `weekly_best_count`개 (많은 순 → 최신). 홍보글은 설문이 열려 있을 때만. `[{id, kind, question, votes, comment_count}]`, 작성자 없음 | 로그인한 사람 |
+| `get_weekly_best()` | HOT 게시판 (2026-11-03). 글: 최근 `weekly_best_days`일 안 글의 투표 + 보이는 댓글 (홍보글은 설문이 열려 있을 때만). 월드컵: 최근 `weekly_best_days`일 안 참여 + 보이는 댓글. 합이 `weekly_best_min` 이상인 것 `weekly_best_count`개 (많은 순 → 최신). `[{type: post|worldcup, id, kind, question, votes, comment_count}]` (월드컵은 kind `worldcup`, question = 제목, votes = 참여 수), 작성자 없음 | 로그인한 사람 |
 | `toggle_bookmark(p_survey_id)` | 결과 저장 ↔ 해제, 저장 상태면 true. 데이터 탭에 보이는 설문만(`not_listed`) | 로그인한 사람 |
 | `get_my_bookmarks()` | 내가 저장한 설문 번호 배열 (최근 순) | 로그인한 사람 |
 | `get_hub_teaser(p_survey_id)` | 열람 전 미리보기: 하나 고르기 문항 중 1위 비율이 가장 높은 것 `{index, question, option, pct}`. 목록에 보이는 설문(`survey_listed`)만, 아니면 null | 로그인한 사람 |
