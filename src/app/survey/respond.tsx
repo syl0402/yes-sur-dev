@@ -10,6 +10,7 @@ import Card from "@/components/ui/Card";
 import OptionRow from "@/components/ui/OptionRow";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { Text, TextInput } from "@/components/ui/Text";
+import HeaderBack from "@/components/ui/HeaderBack";
 import { homeIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
@@ -214,11 +215,7 @@ export default function SurveyRespond() {
         options={{
           title: info?.title ?? "설문 응답",
           headerBackVisible: false,
-          headerLeft: () => (
-            <Pressable onPress={() => router.back()} hitSlop={8}>
-              <Text style={styles.headerButton}>나가기</Text>
-            </Pressable>
-          ),
+          headerLeft: () => <HeaderBack onPress={() => router.back()} />,
         }}
       />
 
@@ -353,10 +350,6 @@ const styles = StyleSheet.create({
   container: {
     padding: spacing.md,
     gap: spacing.md,
-  },
-  headerButton: {
-    fontSize: fontSize.body,
-    color: colors.primary,
   },
   progressTop: {
     flexDirection: "row",

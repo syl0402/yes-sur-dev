@@ -29,3 +29,8 @@ export const passwordIcons = {
   show: "eye-outline",
   hide: "eye-off-outline",
 } satisfies Record<string, IconName>;
+
+// 화면 위쪽 뒤로 가기·나가기 (2026-11-03, "나가기" 글자 대신 화살표로 통일)
+export const headerIcons = {
+  back: "arrow-back",
+} satisfies Record<string, IconName>;

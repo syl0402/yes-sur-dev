@@ -8,6 +8,7 @@ import StepIndicator from "@/components/StepIndicator";
 import YearPicker from "@/components/YearPicker";
 import PasswordInput from "@/components/ui/PasswordInput";
 import { Text, TextInput } from "@/components/ui/Text";
+import HeaderBack from "@/components/ui/HeaderBack";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { GENDER_OPTIONS, type Gender, birthYearOptions } from "@/lib/demographics";
 import { errorMessage } from "@/lib/errors";
@@ -137,11 +138,7 @@ export default function SignupProfile() {
           title: "회원가입",
           headerBackVisible: false,
           gestureEnabled: false,
-          headerLeft: () => (
-            <Pressable onPress={confirmLeaveSignup} hitSlop={8}>
-              <Text style={styles.leave}>나가기</Text>
-            </Pressable>
-          ),
+          headerLeft: () => <HeaderBack onPress={confirmLeaveSignup} />,
         }}
       />
 
@@ -409,10 +406,6 @@ const styles = StyleSheet.create({
   hint: {
     fontSize: fontSize.small,
     color: colors.primary,
-  },
-  leave: {
-    fontSize: fontSize.body,
-    color: colors.text,
   },
   footer: {
     marginTop: spacing.lg,
