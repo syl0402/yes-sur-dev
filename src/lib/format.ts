@@ -21,6 +21,14 @@ export function formatAgo(iso: string): string {
   return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
 }
 
+// 날짜와 시각: "11/01 20:37" (올해) · "2025/11/01 20:37" (2026-11-03, 댓글·글 상세)
+export function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const day = `${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return d.getFullYear() === new Date().getFullYear() ? day : `${d.getFullYear()}/${day}`;
+}
+
 // 날짜: "2026-10-29T..." → "2026.10.29"
 export function formatDate(iso: string): string {
   const d = new Date(iso);

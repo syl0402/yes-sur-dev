@@ -97,16 +97,27 @@ export type Post = {
 // 댓글 대상: 커뮤니티 글 / 지난 오늘의 질문
 export type CommentTarget = "post" | "daily" | "worldcup";
 
-// get_comments 한 줄
+// get_comments 한 줄. author: 익명1·익명(글쓴이)·닉네임·단체 이름 (2026-11-03)
+// deleted: 지운 원댓글인데 답글이 있어서 자리만 남은 것 (본문·이름은 빈칸)
 export type Comment = {
   id: number;
+  parent_id: number | null;
+  deleted: boolean;
   body: string;
   author: string;
   mine: boolean;
   likes: number;
   liked: boolean;
   created_at: string;
+  // 원댓글에만 (답글 목록)
+  replies?: Comment[];
 };
+
+// 익명으로 쓸 수 있는지 (운영자가 아닌 학생만. 서버도 한 번 더 막는다)
+export async function fetchCanAnonymous(): Promise<boolean> {
+  const { data } = await supabase.from("profiles").select("account_type, role").maybeSingle();
+  return data?.account_type === "student" && data?.role !== "admin";
+}
 
 // 본문·댓글 글자 수 (서버와 같은 규칙)
 export const POST_BODY_MAX = 500;

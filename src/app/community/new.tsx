@@ -3,12 +3,13 @@ import { Stack, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
+import AnonToggle from "@/components/community/AnonToggle";
 import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
 import PrimaryButton from "@/components/PrimaryButton";
 import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
-import { KIND_HINTS, KIND_LABELS, POST_BODY_MAX, type PostKind } from "@/lib/community";
+import { fetchCanAnonymous, KIND_HINTS, KIND_LABELS, POST_BODY_MAX, type PostKind } from "@/lib/community";
 import { errorMessage } from "@/lib/errors";
 import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
@@ -32,8 +33,12 @@ export default function NewPost() {
   // 설문 홍보: 홍보할 수 있는 내 설문 (진행 중, 아직 홍보 안 함)
   const [mySurveys, setMySurveys] = useState<{ id: number; title: string }[]>([]);
   const [surveyId, setSurveyId] = useState<number | null>(null);
+  // 익명으로 올리기 (학생만 체크가 보인다. 기본 켜짐, 2026-11-03)
+  const [anonymous, setAnonymous] = useState(true);
+  const [canAnon, setCanAnon] = useState(false);
 
   useEffect(() => {
+    fetchCanAnonymous().then(setCanAnon);
     fetchRules(["post_daily_max"]).then((r) => setDailyMax(r.post_daily_max ?? null));
     supabase.rpc("get_promotable_surveys").then(({ data }) => {
       const list = (data as { id: number; title: string }[] | null) ?? [];
@@ -71,6 +76,7 @@ export default function NewPost() {
           p_question: question.trim(),
           p_options: needsOptions ? filled : undefined,
           p_body: body.trim() || undefined,
+          p_anonymous: anonymous,
         });
     setSending(false);
     if (sendError) {
@@ -169,6 +175,13 @@ export default function NewPost() {
         {dailyMax !== null ? ` 하루에 ${dailyMax}개까지 만들 수 있어요.` : ""}
       </Text>
 
+      {canAnon && !isPromo && (
+        <View style={styles.anonRow}>
+          <AnonToggle value={anonymous} onChange={setAnonymous} />
+          <Text style={formStyles.hint}>{anonymous ? "익명으로 올려요" : "닉네임이 보여요"}</Text>
+        </View>
+      )}
+
       {error !== "" && <Text style={formStyles.error}>{error}</Text>}
 
       <PrimaryButton title="올리기" onPress={send} disabled={!canSend} loading={sending} />
@@ -177,6 +190,11 @@ export default function NewPost() {
 }
 
 const styles = StyleSheet.create({
+  anonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
   screen: {
     flex: 1,
     backgroundColor: colors.background,

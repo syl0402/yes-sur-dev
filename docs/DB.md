@@ -43,6 +43,8 @@
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 | `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
 | `20261031000001_too_fast.sql` | 너무 빠른 응답(문항 수 × `min_seconds_per_question`초 미만)은 확인 문항 오답과 같게 반려, `submit_response`에 `reason`(attention·too_fast) | 2026-10-31 |
+| `20261103000003_point_bands.sql` | 포인트 구간 정리: 1문항·3분 이내·3~7분·7~15분·15분 이상 (10·30·60·100·200 / 등록비 절반), `calc_survey_reward`·`calc_survey_price` 교체, `streak_bonus` 20·`community_daily_cap` 10, `submit_response` 너무 빠름 = 예상 시간 × `min_time_ratio` 미만 | 2026-11-03 |
+| `20261103000002_community_anon_reply.sql` | 익명 번호·대댓글: `posts.anonymous`·`comments.anonymous`(기본 true, 학생만)·`comments.parent_id`(한 단계), `create_post`·`create_comment`에 `p_anonymous`(+`p_parent_id`), `get_comments` 이름 익명N·익명(글쓴이) + `replies`, 베스트 `best_comment_min`(3) | 2026-11-03 |
 | `20261103000001_hot_board.sql` | HOT 게시판: `get_weekly_best`에 월드컵 추가(최근 `weekly_best_days`일 참여 + 댓글), 결과에 `type`(post·worldcup), `weekly_best_count` 3 → 5 | 2026-11-03 |
 | `20261102000003_school_ranking.sql` | 학교 대항전 `get_school_ranking` (계열 대항전 대신, 활동 횟수 합계, 활동 학생 `result_min_count` 미만 학교 숨김) | 2026-11-02 |
 | `20261102000002_survey_nickname.sql` | 개인 설문 작성자 표시: `surveys.show_nickname`, `set_survey_show_nickname`(켜면 host_name = 닉네임, 인증 ✓은 그대로 false), 닉네임 변경 시 같이 바뀜, 탈퇴하면 지움 | 2026-11-02 |
@@ -157,6 +159,8 @@
 
 포인트 구조 (2026-10-30 변경, `20261030000005`): 응답 보상(앱 지급) `reward_1q` 10 · `reward_lt5` 30 · `reward_5to15` 80 · `reward_gte15` 150. 등록비 = 1명당 값 × 목표 인원, 1명당 값 `price_1q` 5 · `price_lt5` 15 · `price_5to15` 40 · `price_gte15` 75. 열람료 `cost_data_view` 100, 등록자 분배율 `data_share_rate` 0.4. `cost_survey_create`(700)는 더 이상 쓰지 않음
 
+포인트 구간 (2026-11-03 변경, `20261103000003`): 예상 시간 구간 1문항 / 3분 이내 / 3~7분 / 7~15분 / 15분 이상 → 응답 보상 `reward_1q` 10 · `reward_le3` 30 · `reward_3to7` 60 · `reward_7to15` 100 · `reward_gte15` 200, 1명당 등록비 `price_1q` 5 · `price_le3` 15 · `price_3to7` 30 · `price_7to15` 50 · `price_gte15` 100 (보상의 절반). `streak_bonus` 20 · `community_daily_cap` 10. 너무 빠른 응답 = 예상 시간 × `min_time_ratio`(0.25) 미만. `reward_lt5`·`reward_5to15`·`price_lt5`·`price_5to15`·`min_seconds_per_question`·`balance_vote`·`balance_daily_cap`·`early_bird_rate`·`cost_survey_create`는 사용 안 함. 앱의 구간 기준은 `src/lib/pointBands.ts` (서버와 같게)
+
 ### point_ledger — 포인트 기록
 | 칸 | 설명 |
 | --- | --- |
@@ -195,7 +199,7 @@
 | `update_my_demographics(p_gender, p_birth_year)` | 본인 성별·출생연도 **한 번만** 입력 (기존 회원용, 비어 있는 칸만 채움. 둘 다 있으면 `demographics_locked`). 고치려면 운영자가 대시보드에서 (2026-10-30) | 학생 |
 | `complete_signup(p_nickname, p_major_field_id, p_admission_year, p_degree_type, p_terms_agreed, p_gender, p_birth_year)` | 학교 도메인 검사 → 학생 회원정보 저장 → 웰컴 포인트 지급. 이미 가입했으면 아무것도 안 함 | 로그인한 사람 (이메일 인증 완료) |
 | `request_org_signup(...)` | 단체 신청·재신청 → 승인 대기. 포인트 없음 | 로그인한 사람 (이메일 인증 완료) |
-| `calc_survey_reward(문항 수, 소요분)` | `point_rules`로 응답 1건 보상 계산 (1문항 / 5분 미만 / 5~15분 / 15분 이상) | 로그인한 사람 (설문 등록 때 서버가 사용) |
+| `calc_survey_reward(문항 수, 소요분)` | `point_rules`로 응답 1건 보상 계산 (1문항 / 3분 이내 / 3~7분 / 7~15분 / 15분 이상, 2026-11-03) | 로그인한 사람 (설문 등록 때 서버가 사용) |
 | `submit_response(p_survey_id, p_answers, p_duration_seconds)` | (2026-10-31) 너무 빠르면 반려, 결과에 `reason` 추가 · 이전 설명: 응답 제출 + 보상 지급 + 응답 수 +1 + 목표 도달 시 마감. **`{ reward, passed }`를 돌려줌** (2026-10-30). 확인 문항을 틀리면 응답은 `rejected`, 보상 0, 응답 수 그대로 → 다시 응답하면 이전 반려 응답을 지우고 새로 받음. `p_duration_seconds`(걸린 초)는 참고용 저장 | 학생 |
 | `set_result_visibility(p_survey_id, p_visibility)` | 결과 공개 범위 바꾸기 (`invalid_visibility`: 값이 틀렸거나 학교 없는 계정이 campus) (2026-10-30) | 작성자 본인 |
 | `calc_survey_price(문항 수, 소요분)` | 응답 1명 받는 값 (`calc_survey_reward`와 같은 구간) | 서버 함수 안에서 사용 |
@@ -224,6 +228,8 @@
 | `create_comment(p_type, p_id, p_body)` / `delete_comment(p_comment_id)` | 댓글 (`post`·`daily`, 200자, 하루 `comment_daily_max`개) / 내 댓글 삭제 | 로그인한 사람 / 작성자 |
 | `like_comment(p_comment_id)` | 좋아요 누르기·취소 (내 댓글 불가) | 로그인한 사람 |
 | `get_comments(p_type, p_id)` | `{ best: 좋아요 많은 3개, all: 오래된 순 }` | 로그인한 사람 |
+| `create_post(…, p_body, p_anonymous)` / `create_comment(p_type, p_id, p_body, p_parent_id, p_anonymous)` | (2026-11-03) 익명 기본 true, 운영자·단체는 항상 false로 저장. 답글은 같은 글의 보이는 원댓글에만 (아니면 `comment_not_found`) | 로그인한 사람 |
+| `get_comments(p_type, p_id)` (2026-11-03) | `{ best: 공감 ≥ best_comment_min 최대 3, all: 원댓글 오래된 순 + replies[] }`. 댓글 `{id, parent_id, deleted, body, author, mine, likes, liked, created_at}`. author = 익명N(그 글에서 처음 익명 댓글 단 순서, 지운 것도 셈)·익명(글쓴이)·닉네임·단체 이름. 지운 원댓글은 답글이 있으면 `deleted`로 자리만. 글 이름은 `post_author_name`(익명/닉네임/단체) | 로그인한 사람 |
 | `set_survey_show_nickname(p_survey_id, p_show)` | 내 개인 설문의 작성자 표시: 닉네임 공개 ↔ 비공개(앱에서 "옛썰러"). 학생 등록자만(`nickname_student_only`, 남의 설문 `survey_not_found`) | 학생 등록자 |
 | `get_school_ranking()` | 이번 주(한국 시간 월요일부터) 학교별 활동 횟수 합계(투표·오늘의 질문·글·댓글·월드컵, 학생만) 순위 + 내 학교 순위. 활동한 학생이 `result_min_count` 미만인 학교는 뺌. `get_major_ranking`은 남아 있지만 앱에서 안 씀 | 로그인한 사람 |
 | `get_weekly_best()` | HOT 게시판 (2026-11-03). 글: 최근 `weekly_best_days`일 안 글의 투표 + 보이는 댓글 (홍보글은 설문이 열려 있을 때만). 월드컵: 최근 `weekly_best_days`일 안 참여 + 보이는 댓글. 합이 `weekly_best_min` 이상인 것 `weekly_best_count`개 (많은 순 → 최신). `[{type: post|worldcup, id, kind, question, votes, comment_count}]` (월드컵은 kind `worldcup`, question = 제목, votes = 참여 수), 작성자 없음 | 로그인한 사람 |
@@ -399,6 +405,32 @@
 ## 월드컵 등록 (운영자, 2026-11-01)
 
 `supabase/seed/worldcups.sql`의 블록 하나를 복사해 제목·설명·후보(8개 또는 16개)만 바꿔 SQL Editor에서 Run. 가장 최근 월드컵이 커뮤니티 '전체' 위쪽 카드에 나온다. 지우기: Table Editor → `worldcups`에서 행 삭제 (후보·참여·매치가 같이 지워짐)
+
+## 포인트 경제 확인 (운영자, 2026-11-03)
+
+테스트 1주차·2주차에 SQL Editor에서 실행해 보고 `point_rules` 값을 조정한다. 보는 것: 설문이 목표 인원을 잘 채우는지(응답자 부족), 커뮤니티·출석이 설문 응답보다 많이 생기지 않는지, 잔액이 한쪽에 쏠리지 않는지.
+
+```sql
+-- 1. 최근 7일 이유별 생김·사라짐
+select reason, sum(amount) filter (where amount > 0) as 생김, -sum(amount) filter (where amount < 0) as 사라짐, count(*) as 건수
+  from public.point_ledger
+ where status = 'confirmed' and created_at >= now() - interval '7 days'
+ group by reason order by 생김 desc nulls last;
+
+-- 2. 최근 14일 마감된 설문의 목표 달성률
+select count(*) as 마감, round(avg(least(response_count::numeric / target_responses, 1)) * 100) as 평균_달성률,
+       count(*) filter (where response_count >= target_responses) as 목표_채움
+  from public.surveys
+ where status = 'closed' and created_at >= now() - interval '14 days';
+
+-- 3. 학생 잔액 분포 (25% · 50% · 75% · 90%)
+with b as (
+  select p.id, coalesce(sum(l.amount) filter (where l.status = 'confirmed'), 0) as bal
+    from public.profiles p left join public.point_ledger l on l.user_id = p.id
+   where p.account_type = 'student' group by p.id)
+select percentile_cont(array[0.25, 0.5, 0.75, 0.9]) within group (order by bal) as 분포, max(bal) as 최대, count(*) as 학생
+  from b;
+```
 
 ## 금칙어 추가 (운영자, 2026-10-30)
 

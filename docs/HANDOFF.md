@@ -57,7 +57,7 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 의견 보내기: `src/app/feedback.tsx`(ys-170, `?from=화면 이름`). 마이 탭 이름 아래 한 줄 + 내 정보 메뉴. 기기 정보는 `Platform` · `expo-device` · `expo-constants`. 답변은 운영자가 Table Editor에서
 - 오늘의 질문: 홈 맨 위 `DailyCard` (`src/components/DailyCard.tsx`) → `get_today_daily` / `answer_daily`. 질문 예약은 `supabase/seed/daily_questions.sql` 또는 Table Editor → `daily_questions` (날짜 하나에 질문 하나)
 - 커뮤니티 (2026-10-30 밸런스 탭 → 커뮤니티 탭): 피드 `src/app/(tabs)/community.tsx`, 글 `community/[id].tsx`, 만들기 `community/new.tsx`, 카드 `PostCard` (`src/components/community/`). 타입·라벨 `src/lib/community.ts`. `sortGroups`는 그룹 모양과 상관없이 씀 (`src/lib/hub.ts`)
-- 커뮤니티 댓글: `Comments` (`src/components/community/Comments.tsx`, `type` = post·daily). 글 ⋯ 메뉴는 `showActions` (`src/lib/confirm.ts`). 본문 수정 `community/edit.tsx`. 신고 화면은 `?type=post|comment&id=` 또는 예전 `?survey=`
+- 커뮤니티 댓글: `Comments` (`src/components/community/Comments.tsx`, `type` = post·daily·worldcup). 2026-11-03: 익명 체크 `AnonToggle`(학생만, `fetchCanAnonymous`), 답글 한 단계(댓글의 [답글] → 그 아래 입력칸), 👍 공감, BEST 뱃지, 시간 `formatDateTime`(11/01 20:37). 글 만들기에도 `AnonToggle`. 글 ⋯ 메뉴는 `showActions` (`src/lib/confirm.ts`). 본문 수정 `community/edit.tsx`. 신고 화면은 `?type=post|comment&id=` 또는 예전 `?survey=`
 - 오늘의 질문 상세: 홈 `DailyCard`를 누르면 `community/daily.tsx` (같은 카드 + 그룹별 + 댓글 `type=daily`, 오늘 것만. 2026-10-30 지난 질문 목록은 없앰). 닉네임 바꾸기 `account/nickname.tsx` (내 정보 → 학생만)
 - 설문 홍보·계열 대항전: 홍보글은 `PostCard` 안 `PromoBox`(설문 요약 + 응답하러 가기), 만들기 화면 종류 "설문 홍보"(`create_promo`). 대항전은 피드 위 `SchoolRankingCard` (2026-11-02 학교 대항전으로 교체, `get_school_ranking`)
 - 월드컵 (2026-11-01): `WorldcupCard` ('월드컵' 탭 목록 한 줄, `hot`이면 🔥 HOT 뱃지), 화면 `community/worldcup/[id].tsx`, 대진 계산은 `src/lib/worldcup.ts`(`startBracket`·`pick`). 첫 판만 서버 저장
