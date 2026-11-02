@@ -43,6 +43,7 @@
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 | `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
 | `20261031000001_too_fast.sql` | 너무 빠른 응답(문항 수 × `min_seconds_per_question`초 미만)은 확인 문항 오답과 같게 반려, `submit_response`에 `reason`(attention·too_fast) | 2026-10-31 |
+| `20261103000004_too_fast_off.sql` | 너무 빠른 응답 검사 끄기: `min_time_ratio` 0 (팀 결정, 값만 올리면 다시 켜짐) | 2026-11-03 |
 | `20261103000003_point_bands.sql` | 포인트 구간 정리: 1문항·3분 이내·3~7분·7~15분·15분 이상 (10·30·60·100·200 / 등록비 절반), `calc_survey_reward`·`calc_survey_price` 교체, `streak_bonus` 20·`community_daily_cap` 10, `submit_response` 너무 빠름 = 예상 시간 × `min_time_ratio` 미만 | 2026-11-03 |
 | `20261103000002_community_anon_reply.sql` | 익명 번호·대댓글: `posts.anonymous`·`comments.anonymous`(기본 true, 학생만)·`comments.parent_id`(한 단계), `create_post`·`create_comment`에 `p_anonymous`(+`p_parent_id`), `get_comments` 이름 익명N·익명(글쓴이) + `replies`, 베스트 `best_comment_min`(3) | 2026-11-03 |
 | `20261103000001_hot_board.sql` | HOT 게시판: `get_weekly_best`에 월드컵 추가(최근 `weekly_best_days`일 참여 + 댓글), 결과에 `type`(post·worldcup), `weekly_best_count` 3 → 5 | 2026-11-03 |
@@ -159,7 +160,7 @@
 
 포인트 구조 (2026-10-30 변경, `20261030000005`): 응답 보상(앱 지급) `reward_1q` 10 · `reward_lt5` 30 · `reward_5to15` 80 · `reward_gte15` 150. 등록비 = 1명당 값 × 목표 인원, 1명당 값 `price_1q` 5 · `price_lt5` 15 · `price_5to15` 40 · `price_gte15` 75. 열람료 `cost_data_view` 100, 등록자 분배율 `data_share_rate` 0.4. `cost_survey_create`(700)는 더 이상 쓰지 않음
 
-포인트 구간 (2026-11-03 변경, `20261103000003`): 예상 시간 구간 1문항 / 3분 이내 / 3~7분 / 7~15분 / 15분 이상 → 응답 보상 `reward_1q` 10 · `reward_le3` 30 · `reward_3to7` 60 · `reward_7to15` 100 · `reward_gte15` 200, 1명당 등록비 `price_1q` 5 · `price_le3` 15 · `price_3to7` 30 · `price_7to15` 50 · `price_gte15` 100 (보상의 절반). `streak_bonus` 20 · `community_daily_cap` 10. 너무 빠른 응답 = 예상 시간 × `min_time_ratio`(0.25) 미만. `reward_lt5`·`reward_5to15`·`price_lt5`·`price_5to15`·`min_seconds_per_question`·`balance_vote`·`balance_daily_cap`·`early_bird_rate`·`cost_survey_create`는 사용 안 함. 앱의 구간 기준은 `src/lib/pointBands.ts` (서버와 같게)
+포인트 구간 (2026-11-03 변경, `20261103000003`): 예상 시간 구간 1문항 / 3분 이내 / 3~7분 / 7~15분 / 15분 이상 → 응답 보상 `reward_1q` 10 · `reward_le3` 30 · `reward_3to7` 60 · `reward_7to15` 100 · `reward_gte15` 200, 1명당 등록비 `price_1q` 5 · `price_le3` 15 · `price_3to7` 30 · `price_7to15` 50 · `price_gte15` 100 (보상의 절반). `streak_bonus` 20 · `community_daily_cap` 10. 너무 빠른 응답 = 예상 시간 × `min_time_ratio` 미만 (2026-11-03 팀 결정으로 0 = 끔, `20261103000004`). `reward_lt5`·`reward_5to15`·`price_lt5`·`price_5to15`·`min_seconds_per_question`·`balance_vote`·`balance_daily_cap`·`early_bird_rate`·`cost_survey_create`는 사용 안 함. 앱의 구간 기준은 `src/lib/pointBands.ts` (서버와 같게)
 
 ### point_ledger — 포인트 기록
 | 칸 | 설명 |
