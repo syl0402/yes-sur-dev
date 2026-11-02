@@ -9,7 +9,7 @@ import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { KIND_LABELS, type PromoSurvey, type Post } from "@/lib/community";
 import { errorMessage } from "@/lib/errors";
-import { formatAgo, formatPoints, formatTimeLeft } from "@/lib/format";
+import { formatAgo, formatDateTime, formatPoints, formatTimeLeft } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
 
@@ -25,7 +25,8 @@ type Props = {
   hot?: boolean;
 };
 
-// 투표 글 카드: 투표 전엔 보기 버튼, 투표 후(또는 내 글)엔 비율 막대
+// 투표 글: 투표 전엔 보기 버튼, 투표 후(또는 내 글)엔 비율 막대
+// 목록에서는 카드 없이 구분선으로 나뉜 한 줄(피드), 상세(full)에서는 카드 (2026-11-03)
 export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
   const [sending, setSending] = useState(false);
   const [earned, setEarned] = useState<number | null>(null);
@@ -47,22 +48,22 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
   };
 
   return (
-    <Pressable style={styles.card} onPress={onOpen} disabled={!onOpen}>
-      {/* 머리: 종류 뱃지 · 작성자 · 시간 (2026-11-03 정리) */}
+    <Pressable
+      style={({ pressed }) => [full ? styles.card : styles.row, !full && pressed && styles.rowPressed]}
+      onPress={onOpen}
+      disabled={!onOpen}
+    >
+      {/* 머리: 종류 · HOT 뱃지 */}
       <View style={styles.head}>
         <Badge label={KIND_LABELS[post.kind]} tone={post.kind === "promo" ? "accent" : "primary"} />
         {hot && <Badge label="🔥 HOT" tone="hot" />}
-        <Text style={styles.meta} numberOfLines={1}>
-          {post.author}
-          {post.mine ? " (나)" : ""} · {formatAgo(post.created_at)}
-        </Text>
       </View>
-      <Text style={styles.question} selectable={full}>
+      <Text style={[styles.question, !full && styles.questionList]} selectable={full}>
         {post.question}
       </Text>
       {/* 본문: 주소는 링크, 상세에서는 길게 눌러 복사 */}
       {post.body ? (
-        <LinkedText style={styles.body} numberOfLines={full ? undefined : 3} selectable={full}>
+        <LinkedText style={styles.body} numberOfLines={full ? undefined : 2} selectable={full}>
           {post.body}
         </LinkedText>
       ) : null}
@@ -98,7 +99,12 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
           {post.options.map((label, i) => (
             <Pressable
               key={i}
-              style={({ pressed }) => [styles.choice, post.options.length === 2 && styles.choiceHalf, pressed && styles.choicePressed]}
+              style={({ pressed }) => [
+                styles.choice,
+                !full && styles.choiceSmall,
+                post.options.length === 2 && styles.choiceHalf,
+                pressed && styles.choicePressed,
+              ]}
               onPress={() => vote(i)}
               disabled={sending}
             >
@@ -108,12 +114,13 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
         </View>
       )}
 
-      {/* 아래: 참여·댓글 수 */}
-      {post.kind !== "promo" && (
-        <Text style={styles.footer}>
-          👥 {post.votes}명 참여{post.comment_count > 0 ? `  ·  💬 댓글 ${post.comment_count}` : ""}
-        </Text>
-      )}
+      {/* 아래 한 줄: 작성자 · 시간 · 댓글 · 참여 */}
+      <Text style={styles.footer} numberOfLines={1}>
+        {post.author}
+        {post.mine ? " (나)" : ""} · {full ? formatDateTime(post.created_at) : formatAgo(post.created_at)}
+        {post.comment_count > 0 ? `  💬 ${post.comment_count}` : ""}
+        {post.kind !== "promo" ? `  👥 ${post.votes}` : ""}
+      </Text>
     </Pressable>
   );
 }
@@ -177,6 +184,18 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     ...shadow.card,
   },
+  // 목록 한 줄: 카드 없이 흰 바탕 + 아래 구분선
+  row: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
+    gap: spacing.sm,
+  },
+  rowPressed: {
+    backgroundColor: colors.surfaceMuted,
+  },
   head: {
     flexDirection: "row",
     alignItems: "center",
@@ -195,6 +214,9 @@ const styles = StyleSheet.create({
     fontSize: fontSize.subtitle,
     fontWeight: "700",
     color: colors.text,
+  },
+  questionList: {
+    fontSize: fontSize.body,
   },
   body: {
     fontSize: fontSize.body,
@@ -215,6 +237,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: "center",
+  },
+  choiceSmall: {
+    paddingVertical: spacing.sm,
   },
   choiceHalf: {
     flex: 1,
