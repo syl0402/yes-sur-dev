@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "yes-sur",
+    "name": "옛썰",
     "slug": "yessur",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,6 +11,7 @@
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.yessur.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -34,7 +35,9 @@
         }
       ],
       "expo-sqlite",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-image",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -45,6 +48,12 @@
         "projectId": "ec7d5321-136e-4a97-9798-5d4537a814e3"
       }
     },
-    "owner": "yessurs-team"
+    "owner": "yessurs-team",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/ec7d5321-136e-4a97-9798-5d4537a814e3"
+    }
   }
 }

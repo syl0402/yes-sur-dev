@@ -314,3 +314,12 @@ const { data } = await supabase
 | `invalid_admission_year` | 입학년도를 선택해 주세요. |
 | `terms_not_agreed` | 필수 약관에 동의해 주세요. |
 | 그 외 | 잠시 후 다시 시도해 주세요. |
+
+## 앱 빌드·원격 업데이트 (2026-11-03)
+
+- 앱 이름 "옛썰", 안드로이드 패키지 `com.yessur.app` (Play에 올리면 못 바꿈), 버전 번호는 EAS가 관리(`appVersionSource: remote`)
+- `eas.json`: `preview` = 내부 테스트용 APK (채널 `preview`), `production` = Play 스토어용 (채널 `production`)
+- Supabase 주소·공개 키는 `.env`가 빌드에 안 올라가서 EAS 환경 변수(preview·production)에 따로 등록해 둠. 키를 바꾸면 `npx eas-cli@latest env:update`로 같이 바꿀 것
+- 설치 파일 새로 만들기 (네이티브 라이브러리 추가·app.json 변경 때만): `npx eas-cli@latest build -p android --profile preview`
+- 화면·기능만 고쳤을 때 (JS만): `npx eas-cli@latest update --channel preview --environment preview --message "무엇을 고쳤는지"` → 팀원이 앱을 껐다 켜면(최대 두 번) 반영
+- 원격 업데이트는 `runtimeVersion`(= 앱 버전 1.0.0)이 같은 설치 파일에만 간다. 버전을 올리면 새로 빌드해야 함
