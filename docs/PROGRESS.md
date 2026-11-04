@@ -226,7 +226,6 @@
 | 단체 설문 등록 무료 (`cost_survey_create_org` = 0) | `supabase/migrations/20261030000001_survey_create.sql` | Q14 기획팀 답이 오면 point_rules 값 변경 | 2026-10-30 |
 | 단체 설문은 "나만 보기" 불가 (결과 공개 조건으로 무료) | `supabase/migrations/20261030000013_org_public.sql` (트리거), `src/components/create/SettingsStep.tsx`, `src/app/survey/results.tsx` | Q14 기획팀 답이 오면 "나만 보기 = 유료"로 | 2026-10-30 |
 | 첫 사용 안내 그림 (이모지 + 글자) | `src/app/onboarding.tsx` | 디자인 시안(11/7)이 오면 그림으로 | 2026-10-31 |
-| 홈 제목줄 로고 (글자로 만든 로고) | `src/components/ui/Logo.tsx` | 디자인팀 로고 PNG(배경 없음)를 받으면 그림으로 | 2026-10-31 |
 | 빈 화면 그림 (이모지) | `src/components/ui/EmptyState.tsx` | 디자인팀 마스코트(옛썰이) PNG를 받으면 그림으로 | 2026-10-31 |
 | 응답 완료 화면 그림 (🎉·🤔 이모지) | `src/app/survey/done.tsx` | 디자인팀 마스코트 PNG를 받으면 그림으로 | 2026-10-31 |
 | 예시 월드컵 2개 (학식 메뉴 8강, 시험 끝나면 16강) | `supabase/seed/worldcups.sql` | 기획팀이 테스트용 월드컵 목록을 주면 교체 | 2026-11-01 |
