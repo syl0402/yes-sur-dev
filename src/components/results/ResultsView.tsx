@@ -1,4 +1,3 @@
-import * as Clipboard from "expo-clipboard";
 import * as Sharing from "expo-sharing";
 import { type ComponentRef, useRef, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
@@ -15,7 +14,6 @@ import Segmented from "@/components/ui/Segmented";
 import StatTile from "@/components/ui/StatTile";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
-import { aggregateCsv, csvFileName, shareCsv } from "@/lib/csv";
 import { errorMessage } from "@/lib/errors";
 import { formatDate, formatPoints } from "@/lib/format";
 import { type CrossResults, type FullResults, GROUP_DIMS, type Group, type GroupDim, sortGroups } from "@/lib/hub";
@@ -36,9 +34,8 @@ const TABS: { value: Tab; label: string }[] = [
 type Props = {
   surveyId: number;
   full: FullResults;
-  // 출처 복사에 들어갈 설문 이름·주최
+  // 공유 카드에 들어갈 설문 이름
   title: string;
-  host: string;
   // 등록자 화면: 주관식 원문이 든 문항 (없으면 full.overall)
   questions?: QuestionStats[];
   // 등록자의 열람 수익 표시 (단체는 포인트를 쓰지 않아 열람 수만)
@@ -46,7 +43,8 @@ type Props = {
 };
 
 // 전체 결과 (ys-131 열람 후 · ys-121 등록자): 핵심 인사이트 → 탭 [문항별 결과 | 응답자 | 조사 정보] (2026-11-01 정리)
-export default function ResultsView({ surveyId, full, title, host, questions = full.overall, showEarnings = true }: Props) {
+// 출처 복사·집계 CSV는 화면 아래 고정 바(ResultsActionBar)로 (2026-11-07)
+export default function ResultsView({ surveyId, full, title, questions = full.overall, showEarnings = true }: Props) {
   const [tab, setTab] = useState<Tab>("questions");
   const [dim, setDim] = useState<Dim>("all");
   // 교차 분석: 기준 문항 · 불러온 결과 (null = 불러오는 중)
@@ -58,7 +56,6 @@ export default function ResultsView({ surveyId, full, title, host, questions = f
 
   if (full.total === 0) return <Text style={styles.muted}>결과에 반영된 응답이 없어요.</Text>;
 
-  const period = `${formatDate(full.started_at)}~${formatDate(full.ended_at)}`;
   // 숫자 카드용 짧은 기간 "10.16~10.23"
   const shortPeriod = `${formatDate(full.started_at).slice(5)}~${formatDate(full.ended_at).slice(5)}`;
   // 기준으로 쓸 수 있는 문항 (하나 고르기·척도)
@@ -74,18 +71,6 @@ export default function ResultsView({ surveyId, full, title, host, questions = f
     }
     setCross(data as CrossResults);
   };
-
-  const copyCitation = async () => {
-    const text = `출처: 옛썰 설문 「${title}」(${host}, 유효 응답 ${full.total}명, ${period} 조사)`;
-    await Clipboard.setStringAsync(text);
-    showNotice("출처를 복사했어요", text);
-  };
-
-  // 집계 CSV (화면에 보이는 것과 같은 내용, 5명 미만 그룹은 숨김)
-  const downloadCsv = () =>
-    shareCsv(csvFileName(title, "집계"), aggregateCsv(full)).catch(() =>
-      showNotice("파일을 만들지 못했어요", "잠시 후 다시 시도해 주세요."),
-    );
 
   const crossIndex = crossable.find((c) => c.q.id === crossId)?.index ?? -1;
   const insights = buildInsights(full);
@@ -211,10 +196,6 @@ export default function ResultsView({ surveyId, full, title, host, questions = f
               )}
             </Card>
           )}
-          <View style={styles.actions}>
-            <Button title="출처 복사" variant="outline" onPress={copyCitation} style={styles.action} />
-            <Button title="집계 CSV 받기" variant="outline" onPress={downloadCsv} style={styles.action} />
-          </View>
         </>
       )}
     </>
@@ -337,13 +318,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.body,
     fontWeight: "700",
     color: colors.primary,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  action: {
-    flex: 1,
   },
   crossCard: {
     backgroundColor: colors.primarySoft,

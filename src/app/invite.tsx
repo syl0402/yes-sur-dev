@@ -2,15 +2,17 @@
 import * as Clipboard from "expo-clipboard";
 import { Stack, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, ScrollView, Share, StyleSheet, View } from "react-native";
 
 import { formStyles } from "@/components/create/formStyles";
 import PrimaryButton from "@/components/PrimaryButton";
+import Card from "@/components/ui/Card";
 import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { formatDate, formatPoints } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
+import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
 
 // get_my_invite
@@ -31,11 +33,14 @@ export default function InviteScreen() {
   const [code, setCode] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  // 입력 기간(일)·한 달 최대 인원 (point_rules)
+  const [rules, setRules] = useState<Record<string, number>>({});
 
   const load = useCallback(() => {
     supabase.rpc("get_my_invite").then(({ data, error: loadError }) => {
       setInvite(loadError ? errorMessage(loadError) : (data as Invite));
     });
+    fetchRules(["invite_window_days", "invite_monthly_max"]).then(setRules);
   }, []);
 
   useFocusEffect(load);
@@ -62,8 +67,19 @@ export default function InviteScreen() {
     }
   };
 
-  const share = () => {
-    Share.share({ message }).catch(() => undefined);
+  // 웹은 브라우저에 공유 기능이 없거나 막혀 있으면 메시지를 복사해 준다 (2026-11-07 피드백: 웹에서 안 눌림)
+  const share = async () => {
+    try {
+      await Share.share({ message });
+    } catch {
+      if (Platform.OS !== "web") return;
+      try {
+        await Clipboard.setStringAsync(message);
+        showNotice("초대 메시지를 복사했어요", "카톡 등에 붙여 넣어 보내 주세요.");
+      } catch {
+        showNotice("공유하지 못했어요", "초대 코드를 복사해서 보내 주세요.");
+      }
+    }
   };
 
   const redeem = async () => {
@@ -123,11 +139,31 @@ export default function InviteScreen() {
             autoCapitalize="characters"
             autoCorrect={false}
           />
-          <Text style={formStyles.hint}>{formatDate(invite.deadline)}까지 한 번만 입력할 수 있어요.</Text>
+          <Text style={formStyles.hint}>
+            가입 후 {rules.invite_window_days ?? ""}일 안에 한 번만 입력할 수 있어요 ({formatDate(invite.deadline)}까지)
+          </Text>
           {error !== "" && <Text style={formStyles.error}>{error}</Text>}
           <PrimaryButton title="입력" onPress={redeem} disabled={code.trim().length !== CODE_LENGTH} loading={sending} />
         </View>
       )}
+
+      {/* 이렇게 초대해요: 코드 입력 칸이 사라진 뒤에도 방법을 알 수 있게 (2026-11-07 피드백: 아래가 허전함) */}
+      <Card>
+        <Text style={styles.howTitle}>이렇게 초대해요</Text>
+        {[
+          "공유하기로 친구에게 내 코드를 보내요",
+          `친구가 가입하고 ${rules.invite_window_days ?? ""}일 안에 마이 탭 > 친구 초대에서 코드를 입력해요`,
+          `나는 ${formatPoints(invite.inviter_reward)}, 친구는 ${formatPoints(invite.invitee_reward)}를 받아요`,
+        ].map((step, i) => (
+          <View key={i} style={styles.step}>
+            <Text style={styles.stepNo}>{i + 1}</Text>
+            <Text style={styles.stepText}>{step}</Text>
+          </View>
+        ))}
+        {rules.invite_monthly_max !== undefined && (
+          <Text style={styles.howNote}>포인트는 한 달에 {rules.invite_monthly_max}명까지 받을 수 있어요.</Text>
+        )}
+      </Card>
     </ScrollView>
   );
 }
@@ -193,5 +229,37 @@ const styles = StyleSheet.create({
   },
   redeemBox: {
     gap: spacing.sm,
+  },
+  howTitle: {
+    fontSize: fontSize.body,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  step: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+  },
+  stepNo: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    overflow: "hidden",
+    textAlign: "center",
+    lineHeight: 22,
+    fontSize: fontSize.caption,
+    fontWeight: "800",
+    color: colors.primary,
+    backgroundColor: colors.primarySoft,
+  },
+  stepText: {
+    flex: 1,
+    fontSize: fontSize.small,
+    lineHeight: 22,
+    color: colors.text,
+  },
+  howNote: {
+    fontSize: fontSize.caption,
+    color: colors.textMuted,
   },
 });

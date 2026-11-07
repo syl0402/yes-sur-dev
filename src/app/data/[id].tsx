@@ -7,6 +7,7 @@ import PrimaryButton from "@/components/PrimaryButton";
 import ReportLink from "@/components/ReportLink";
 import CompositionChart from "@/components/results/CompositionChart";
 import InsightCard from "@/components/results/InsightCard";
+import ResultsActionBar from "@/components/results/ResultsActionBar";
 import ResultsView from "@/components/results/ResultsView";
 import Badge from "@/components/ui/Badge";
 import BottomBar from "@/components/ui/BottomBar";
@@ -200,10 +201,13 @@ export default function HubResult() {
         )}
 
         {/* ── 열람 (전체 결과) ── */}
-        {full && <ResultsView surveyId={surveyId} full={full} title={p.title} host={formatHost(p)} />}
+        {full && <ResultsView surveyId={surveyId} full={full} title={p.title} />}
 
         {!p.mine && <ReportLink surveyId={surveyId} />}
       </ScrollView>
+
+      {/* ── 열람 후: 출처 복사 · 집계 CSV (화면 아래 고정) ── */}
+      {full && <ResultsActionBar full={full} title={p.title} host={formatHost(p)} />}
 
       {/* ── 열람 버튼 (화면 아래 고정) ── */}
       {!full && (

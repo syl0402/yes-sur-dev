@@ -341,6 +341,8 @@ update organizations set reject_reason = '사유' where id = (select id from aut
 
 ## 출시 전에 할 일
 
+- [ ] Play 스토어 페이지가 생기면: 친구 초대 메시지(`src/app/invite.tsx` `message`)에 스토어 링크 한 줄 추가. 지금은 코드만 글자로 감 (2026-11-07 팀 피드백)
+  - 출시 후: 누르면 설치 후 코드가 자동 입력되는 링크 · 카톡 카드 공유 (라이브러리·설정 필요)
 - [ ] 테스트 1주차·2주차: `docs/DB.md` "포인트 경제 확인" SQL로 설문 목표 달성률·이유별 포인트 보고 `point_rules` 조정 (2026-11-03)
 
 - [ ] 위 "임시로 둔 것" 표가 비어 있는지 확인

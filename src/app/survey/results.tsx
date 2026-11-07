@@ -12,6 +12,7 @@ import { formatTimeLeft } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
 import { type QuestionStats } from "@/components/results/QuestionResult";
+import ResultsActionBar from "@/components/results/ResultsActionBar";
 import ResultsView from "@/components/results/ResultsView";
 import { type RawResults, csvFileName, rawCsv, shareCsv } from "@/lib/csv";
 import { type FullResults } from "@/lib/hub";
@@ -148,60 +149,63 @@ export default function SurveyResults() {
   };
 
   return (
-    <ScrollView style={styles.screen} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
+    <View style={styles.screen}>
       <Stack.Screen options={{ title: "설문 결과" }} />
+      <ScrollView style={styles.screen} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
 
-      <Text style={styles.title}>{results.title}</Text>
+        <Text style={styles.title}>{results.title}</Text>
 
-      <View style={styles.summary}>
-        <Text style={styles.summaryMain}>
-          응답 {results.responseCount} / {results.target}명
-        </Text>
-        <Text style={styles.muted}>
-          {results.closed ? "마감됨" : formatTimeLeft(results.closesAt) || "진행 중"}
-        </Text>
-        {results.total > 0 && (
-          <Pressable style={styles.rawButton} onPress={downloadRaw}>
-            <Text style={styles.rawText}>원본 CSV 받기 (응답 한 명 = 한 줄)</Text>
-          </Pressable>
-        )}
-        {results.total > 0 && <Text style={styles.hint}>원본과 주관식 답은 등록자만 받을 수 있어요.</Text>}
-        {!results.closed && (
-          <Pressable style={styles.closeButton} onPress={closeNow} disabled={closing}>
-            <Text style={styles.closeText}>{closing ? "마감하는 중…" : "응답 마감하기"}</Text>
-          </Pressable>
-        )}
-      </View>
+        <View style={styles.summary}>
+          <Text style={styles.summaryMain}>
+            응답 {results.responseCount} / {results.target}명
+          </Text>
+          <Text style={styles.muted}>
+            {results.closed ? "마감됨" : formatTimeLeft(results.closesAt) || "진행 중"}
+          </Text>
+          {results.total > 0 && (
+            <Pressable style={styles.rawButton} onPress={downloadRaw}>
+              <Text style={styles.rawText}>원본 CSV 받기 (응답 한 명 = 한 줄)</Text>
+            </Pressable>
+          )}
+          {results.total > 0 && <Text style={styles.hint}>원본과 주관식 답은 등록자만 받을 수 있어요.</Text>}
+          {!results.closed && (
+            <Pressable style={styles.closeButton} onPress={closeNow} disabled={closing}>
+              <Text style={styles.closeText}>{closing ? "마감하는 중…" : "응답 마감하기"}</Text>
+            </Pressable>
+          )}
+        </View>
 
-      <View style={styles.summary}>
-        <Text style={styles.summaryMain}>결과 공개</Text>
-        <Chips
-          options={(["public", "campus", "private"] as const).map((v) => ({
-            value: v,
-            label: VISIBILITY_LABELS[v],
-            // TODO(임시): 단체는 테스트 기간 결과 공개 조건 (org_must_publish) · Q14 답이 오면 변경
-            disabled: results.isOrg && v === "private",
-          }))}
-          selected={results.visibility}
-          onSelect={changeVisibility}
+        <View style={styles.summary}>
+          <Text style={styles.summaryMain}>결과 공개</Text>
+          <Chips
+            options={(["public", "campus", "private"] as const).map((v) => ({
+              value: v,
+              label: VISIBILITY_LABELS[v],
+              // TODO(임시): 단체는 테스트 기간 결과 공개 조건 (org_must_publish) · Q14 답이 오면 변경
+              disabled: results.isOrg && v === "private",
+            }))}
+            selected={results.visibility}
+            onSelect={changeVisibility}
+          />
+          <Text style={styles.hint}>
+            {results.visibility === "private"
+              ? "결과는 나만 봐요. 이미 열람한 사람은 계속 볼 수 있어요."
+              : "마감 후 응답이 5개 이상이면 데이터 허브에 공개돼요. 주관식 답은 공개되지 않아요."}
+          </Text>
+        </View>
+
+        <ResultsView
+          surveyId={surveyId}
+          full={results.full}
+          title={results.title}
+          questions={results.questions}
+          showEarnings={!results.isOrg}
         />
-        <Text style={styles.hint}>
-          {results.visibility === "private"
-            ? "결과는 나만 봐요. 이미 열람한 사람은 계속 볼 수 있어요."
-            : "마감 후 응답이 5개 이상이면 데이터 허브에 공개돼요. 주관식 답은 공개되지 않아요."}
-        </Text>
-      </View>
+      </ScrollView>
 
-      <ResultsView
-        surveyId={surveyId}
-        full={results.full}
-        title={results.title}
-        host={results.host}
-        questions={results.questions}
-        showEarnings={!results.isOrg}
-      />
-
-    </ScrollView>
+      {/* 출처 복사 · 집계 CSV (화면 아래 고정, 2026-11-07) */}
+      <ResultsActionBar full={results.full} title={results.title} host={results.host} />
+    </View>
   );
 }
 

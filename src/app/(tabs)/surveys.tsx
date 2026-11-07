@@ -4,9 +4,9 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
 import SurveyListCard from "@/components/SurveyListCard";
-import Button from "@/components/ui/Button";
 import Chip from "@/components/ui/Chip";
 import EmptyState from "@/components/ui/EmptyState";
+import Fab from "@/components/ui/Fab";
 import SelectButton from "@/components/ui/SelectButton";
 import { Text } from "@/components/ui/Text";
 import TextTabs from "@/components/ui/TextTabs";
@@ -85,50 +85,54 @@ export default function Surveys() {
         );
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} colors={[colors.primary]} />
-      }
-    >
-      {/* 카테고리: 글자 탭 / 정렬 · 소요시간 · 우리 학교만: 한 줄 (2026-11-02 정리) */}
-      <TextTabs
-        options={[{ value: "all", label: "전체" }, ...categories.map((c) => ({ value: c.key, label: c.name }))]}
-        value={category}
-        onChange={setCategory}
-      />
-      <View style={styles.filters}>
-        <SelectButton title="정렬" options={SORT_OPTIONS} value={sort} onChange={setSort} />
-        <SelectButton
-          title="소요시간"
-          options={DURATION_OPTIONS}
-          value={duration}
-          onChange={setDuration}
-          defaultValue="all"
-          placeholder="소요시간"
+    <View style={styles.screen}>
+      <ScrollView
+        style={styles.screen}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} colors={[colors.primary]} />
+        }
+      >
+        {/* 카테고리: 글자 탭 / 정렬 · 소요시간 · 우리 학교만: 한 줄 (2026-11-02 정리) */}
+        <TextTabs
+          options={[{ value: "all", label: "전체" }, ...categories.map((c) => ({ value: c.key, label: c.name }))]}
+          value={category}
+          onChange={setCategory}
         />
-        <Chip
-          label="우리 학교만"
-          selected={scope === "campus"}
-          onPress={() => setScope(scope === "campus" ? "all" : "campus")}
-        />
-      </View>
+        <View style={styles.filters}>
+          <SelectButton title="정렬" options={SORT_OPTIONS} value={sort} onChange={setSort} />
+          <SelectButton
+            title="소요시간"
+            options={DURATION_OPTIONS}
+            value={duration}
+            onChange={setDuration}
+            defaultValue="all"
+            placeholder="소요시간"
+          />
+          <Chip
+            label="우리 학교만"
+            selected={scope === "campus"}
+            onPress={() => setScope(scope === "campus" ? "all" : "campus")}
+          />
+        </View>
 
-      <View style={styles.countRow}>
-        <Text style={styles.count}>{surveys === null ? "" : `설문 ${visible.length}개`}</Text>
-        <Button title="+ 설문 등록" variant="soft" small onPress={() => router.push("/create")} />
-      </View>
+        <View style={styles.countRow}>
+          <Text style={styles.count}>{surveys === null ? "" : `설문 ${visible.length}개`}</Text>
+        </View>
 
-      {surveys === null ? (
-        <ActivityIndicator color={colors.primary} style={styles.loading} />
-      ) : visible.length === 0 ? (
-        <EmptyState title="조건에 맞는 설문이 없어요" message="필터를 바꿔 보세요." />
-      ) : (
-        visible.map((s) => <SurveyListCard key={s.id} survey={s} />)
-      )}
-    </ScrollView>
+        {surveys === null ? (
+          <ActivityIndicator color={colors.primary} style={styles.loading} />
+        ) : visible.length === 0 ? (
+          <EmptyState title="조건에 맞는 설문이 없어요" message="필터를 바꿔 보세요." />
+        ) : (
+          visible.map((s) => <SurveyListCard key={s.id} survey={s} />)
+        )}
+      </ScrollView>
+
+      {/* 설문 등록: 오른쪽 아래 둥근 버튼, 스크롤해도 고정 (2026-11-07 피드백) */}
+      <Fab onPress={() => router.push("/create")} accessibilityLabel="설문 등록" />
+    </View>
   );
 }
 
@@ -141,7 +145,8 @@ const styles = StyleSheet.create({
   container: {
     padding: spacing.md,
     gap: spacing.md,
-    paddingBottom: spacing.xl,
+    // 둥근 등록 버튼에 마지막 설문이 가리지 않게
+    paddingBottom: 96,
   },
   loading: {
     marginTop: spacing.lg,
