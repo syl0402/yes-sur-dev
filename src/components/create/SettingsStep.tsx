@@ -110,7 +110,7 @@ export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, bal
       {/* 보상 연락처: 기프티콘 등을 줄 때만. 응답자가 동의하고 남긴 휴대폰 번호를 작성자만 본다 */}
       <View style={formStyles.card}>
         <Text style={formStyles.label}>🎁 응답자 보상 (선택)</Text>
-        <Text style={formStyles.hint}>기프티콘 등 보상이 있을 때만 응답자에게 보여 줄 안내를 적어 주세요.</Text>
+        <Text style={formStyles.hint}>기프티콘 등 보상을 준다면 안내를 적어 주세요. 없으면 비워 두면 돼요.</Text>
         <TextInput
           style={[formStyles.input, formStyles.multiline]}
           value={draft.rewardNote ?? ""}

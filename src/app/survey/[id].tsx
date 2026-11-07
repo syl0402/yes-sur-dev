@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import Button from "@/components/ui/Button";
 import ReportLink from "@/components/ReportLink";
 import RewardNotice from "@/components/RewardNotice";
 import Badge from "@/components/ui/Badge";
@@ -162,7 +163,7 @@ export default function SurveyDetail() {
         )}
 
         <View style={styles.stats}>
-          <StatTile label="보상" value={`+${formatPoints(detail.reward_points)}`} />
+          <StatTile label="포인트" value={`+${formatPoints(detail.reward_points)}`} />
           <StatTile label="소요 시간" value={`약 ${detail.est_minutes}분`} />
           <StatTile label="남은 자리" value={`${spots}명`} />
         </View>
@@ -185,6 +186,15 @@ export default function SurveyDetail() {
       </ScrollView>
 
       <BottomBar>
+        {/* 내 진행 중 설문: 수정하기를 결과 보기 옆에 바로 (2026-11-08) */}
+        {detail.isOwner && !detail.closed && (
+          <Button
+            title="✏️ 수정하기"
+            variant="outline"
+            onPress={() => router.push({ pathname: "/survey/edit", params: { id: String(id) } })}
+            style={styles.side}
+          />
+        )}
         <View style={styles.action}>
           {detail.isOwner ? (
             <PrimaryButton
@@ -285,6 +295,9 @@ const styles = StyleSheet.create({
   action: {
     flex: 1,
     justifyContent: "center",
+  },
+  side: {
+    flex: 1,
   },
   muted: {
     fontSize: fontSize.body,

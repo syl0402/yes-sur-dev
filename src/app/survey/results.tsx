@@ -1,5 +1,5 @@
 // ys-121 내 설문 결과 · F-406
-import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { Stack, router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
@@ -171,6 +171,15 @@ export default function SurveyResults() {
             </Pressable>
           )}
           {results.total > 0 && <Text style={styles.hint}>원본과 주관식 답은 등록자만 받을 수 있어요.</Text>}
+          {/* 진행 중이면 설명·보상 안내만 고칠 수 있다 (2026-11-08) */}
+          {!results.closed && (
+            <Pressable
+              style={styles.rawButton}
+              onPress={() => router.push({ pathname: "/survey/edit", params: { id: String(surveyId) } })}
+            >
+              <Text style={styles.rawText}>✏️ 설명·보상 안내 수정</Text>
+            </Pressable>
+          )}
           {!results.closed && (
             <Pressable style={styles.closeButton} onPress={closeNow} disabled={closing}>
               <Text style={styles.closeText}>{closing ? "마감하는 중…" : "응답 마감하기"}</Text>

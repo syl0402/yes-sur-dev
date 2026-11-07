@@ -37,7 +37,7 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "recommended", label: "추천순" },
   { value: "latest", label: "최신순" },
   { value: "closing", label: "마감 임박순" },
-  { value: "reward", label: "보상 높은 순" },
+  { value: "reward", label: "포인트 높은 순" },
 ];
 
 export default function Surveys() {
