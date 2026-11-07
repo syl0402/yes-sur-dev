@@ -1,10 +1,12 @@
 // CSV 만들기·내보내기 (집계 = 열람자·등록자, 원본 = 등록자). 개인을 알 수 있는 정보는 넣지 않는다
-import { File, Paths } from "expo-file-system";
+import { Directory, File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { Platform } from "react-native";
 
 import { percent } from "@/components/results/QuestionResult";
+import { showActions } from "@/lib/confirm";
 import { type FullResults, GROUP_DIMS, sortGroups } from "@/lib/hub";
+import { showNotice } from "@/lib/notice";
 import { SCALE_LABELS, type QuestionType } from "@/lib/surveyDraft";
 
 // get_survey_raw: 응답 한 사람 = 한 줄 (그룹 이름은 서버가 5명 미만이면 가림)
@@ -66,8 +68,51 @@ export function rawCsv(raw: RawResults): string {
 
 // 파일 이름: "옛썰_설문제목_집계.csv" (파일 이름에 못 쓰는 글자는 _로)
 export function csvFileName(title: string, kind: "집계" | "원본"): string {
-  const safe = title.replace(/[\\/:*?"<>|\s]+/g, "_").slice(0, 30);
+  // 한글·영문·숫자만 남긴다. [ ] # % 같은 기호는 안드로이드 파일 주소를 깨뜨릴 수 있다 (2026-11-07 안드로이드 CSV 실패)
+  const safe = title
+    .replace(/[^0-9A-Za-z가-힣]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 30);
   return `옛썰_${safe}_${kind}.csv`;
+}
+
+// CSV 실패 안내 문구
+// TODO(임시): 오류 이유 한 줄을 같이 보여 줌 (안드로이드 CSV 실패 원인 확인용) · 원인이 확인되면 "잠시 후 다시 시도해 주세요."만 남기기 · docs/PROGRESS.md
+export function csvErrorMessage(e: unknown): string {
+  const detail = e instanceof Error ? e.message : String(e);
+  return `잠시 후 다시 시도해 주세요.\n(${detail.slice(0, 120)})`;
+}
+
+// CSV 받기 버튼 (집계·원본 공통). 실패 안내까지 여기서 한다
+// - 웹·아이폰: 바로 다운로드 / 공유 창
+// - 안드로이드: [폰에 저장]·[다른 앱으로 보내기] 고르기 (2026-11-07: 공유로 넘긴 파일을 카톡·메일·파일 앱이 못 받음)
+export function exportCsv(title: string, kind: "집계" | "원본", text: string) {
+  const fail = (e: unknown) => showNotice("파일을 만들지 못했어요", csvErrorMessage(e));
+  if (Platform.OS !== "android") {
+    shareCsv(csvFileName(title, kind), text).catch(fail);
+    return;
+  }
+  showActions("CSV 받기", [
+    { label: "폰에 저장 (폴더 고르기)", onPress: () => saveCsvToFolder(csvFileName(title, kind), text).catch(fail) },
+    // 받는 앱이 한글 이름을 못 읽는 경우가 있어 영문 이름으로
+    {
+      label: "다른 앱으로 보내기",
+      onPress: () => shareCsv(`yessur_${kind === "집계" ? "summary" : "raw"}.csv`, text).catch(fail),
+    },
+  ]);
+}
+
+// 안드로이드: 사용자가 고른 폴더(예: 다운로드)에 바로 저장. 고르기를 취소하면 아무 안내 없이 끝
+async function saveCsvToFolder(fileName: string, text: string): Promise<void> {
+  let dir: Directory;
+  try {
+    dir = await Directory.pickDirectoryAsync();
+  } catch {
+    return;
+  }
+  const file = dir.createFile(fileName, "text/csv");
+  file.write(text);
+  showNotice("저장했어요", `고른 폴더에 ${fileName} 파일로 저장했어요.`);
 }
 
 // 폰: 임시 파일로 저장 → 공유 창 (카톡·메일·드라이브·파일 앱). 웹(개발 확인용): 바로 다운로드

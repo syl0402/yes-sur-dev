@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 
 import Button from "@/components/ui/Button";
 import BottomBar from "@/components/ui/BottomBar";
-import { aggregateCsv, csvFileName, shareCsv } from "@/lib/csv";
+import { aggregateCsv, exportCsv } from "@/lib/csv";
 import { formatDate } from "@/lib/format";
 import type { FullResults } from "@/lib/hub";
 import { showNotice } from "@/lib/notice";
@@ -31,10 +31,7 @@ export default function ResultsActionBar({ full, title, host }: Props) {
   };
 
   // 집계 CSV (화면에 보이는 것과 같은 내용, 5명 미만 그룹은 숨김)
-  const downloadCsv = () =>
-    shareCsv(csvFileName(title, "집계"), aggregateCsv(full)).catch(() =>
-      showNotice("파일을 만들지 못했어요", "잠시 후 다시 시도해 주세요."),
-    );
+  const downloadCsv = () => exportCsv(title, "집계", aggregateCsv(full));
 
   return (
     <BottomBar>

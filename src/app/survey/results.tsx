@@ -14,7 +14,7 @@ import { supabase } from "@/lib/supabase";
 import { type QuestionStats } from "@/components/results/QuestionResult";
 import ResultsActionBar from "@/components/results/ResultsActionBar";
 import ResultsView from "@/components/results/ResultsView";
-import { type RawResults, csvFileName, rawCsv, shareCsv } from "@/lib/csv";
+import { type RawResults, exportCsv, rawCsv } from "@/lib/csv";
 import { type FullResults } from "@/lib/hub";
 import { type ResultVisibility, VISIBILITY_LABELS } from "@/lib/surveyDraft";
 import { formatHost } from "@/lib/surveys";
@@ -129,9 +129,7 @@ export default function SurveyResults() {
       showNotice("파일을 만들지 못했어요", errorMessage(error));
       return;
     }
-    await shareCsv(csvFileName(results.title, "원본"), rawCsv(data as RawResults)).catch(() =>
-      showNotice("파일을 만들지 못했어요", "잠시 후 다시 시도해 주세요."),
-    );
+    exportCsv(results.title, "원본", rawCsv(data as RawResults));
   };
 
   // 결과 공개 범위 바꾸기 (작성자만). 좁혀도 이미 열람한 사람은 계속 볼 수 있다
