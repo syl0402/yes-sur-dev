@@ -116,7 +116,7 @@ export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, bal
           value={draft.rewardNote ?? ""}
           onChangeText={(rewardNote) => onChange({ rewardNote })}
           placeholder={
-            "예) 응답해 주신 분 중 추첨으로 10분께 스타벅스 아메리카노 기프티콘을 드려요. 당첨자는 12월 1일에 문자로 보내 드릴게요."
+            "예) 응답해 주신 분들 중 10분을 추첨해 스타벅스 아메리카노 기프티콘을 드려요. 당첨자는 12월 1일에 문자로 개별 안내해 드릴게요."
           }
           maxLength={REWARD_NOTE_MAX}
           multiline
