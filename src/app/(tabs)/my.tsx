@@ -273,7 +273,19 @@ export default function My() {
             <Text style={styles.muted}>친구도 나도 포인트</Text>
           </Card>
         )}
+        {/* 제휴·광고 문의: 단체는 카드로, 학생은 아래 한 줄로 (2026-11-07) */}
+        {data.isOrg && (
+          <Card style={styles.shortcut} onPress={() => router.push("/partnership")}>
+            <Text style={styles.shortcutTitle}>🤝 제휴·광고 문의</Text>
+            <Text style={styles.muted}>홍보·이벤트 함께하기</Text>
+          </Card>
+        )}
       </View>
+      {!data.isOrg && (
+        <Pressable onPress={() => router.push("/partnership")} hitSlop={8}>
+          <Text style={styles.partnerLink}>🤝 제휴·광고 문의 ›</Text>
+        </Pressable>
+      )}
 
       {tabs.length > 0 ? (
         <Segmented options={tabs} value={current} onChange={setTab} />
@@ -533,6 +545,12 @@ const styles = StyleSheet.create({
     fontSize: fontSize.body,
     fontWeight: "700",
     color: colors.text,
+  },
+  partnerLink: {
+    fontSize: fontSize.small,
+    fontWeight: "600",
+    color: colors.textMuted,
+    paddingHorizontal: spacing.xs,
   },
   sectionTitle: {
     fontSize: fontSize.subtitle,

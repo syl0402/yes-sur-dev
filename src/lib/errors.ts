@@ -76,6 +76,13 @@ const MESSAGES: Record<string, string> = {
   already_answered: "오늘의 질문에 이미 답했어요.",
   invalid_feedback: "종류를 고르고 내용을 적어 주세요.",
   feedback_limit: "오늘은 의견을 충분히 보내 주셨어요. 내일 다시 보내 주세요.",
+
+  // 제휴·광고 문의 · 보상 연락처 (2026-11-07)
+  consent_required: "개인정보 수집·이용에 동의해 주세요.",
+  invalid_phone: "휴대폰 번호를 다시 확인해 주세요. (예: 010-1234-5678)",
+  invalid_email: "이메일 주소를 다시 확인해 주세요.",
+  invalid_inquiry: "필수 칸을 모두 채워 주세요.",
+  invalid_source: "옛썰을 알게 된 경로를 골라 주세요. '기타'는 직접 적어 주세요.",
   report_own_survey: "내 설문은 신고할 수 없어요.",
   already_reported: "이미 신고한 설문이에요. 운영자가 확인하고 있어요.",
   invalid_reason: "신고 사유를 골라 주세요.",
