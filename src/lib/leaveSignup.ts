@@ -1,6 +1,6 @@
 import { router } from "expo-router";
-import { Alert, Platform } from "react-native";
 
+import { showConfirm } from "@/lib/confirm";
 import { supabase } from "@/lib/supabase";
 
 // 가입 중간(인증 이후)에 그만두기: 확인 → 로그아웃 → 첫 화면.
@@ -11,16 +11,12 @@ export function confirmLeaveSignup() {
     router.replace("/");
   };
 
-  const title = "가입을 그만둘까요?";
-  const message = "입력한 내용은 저장되지 않아요.";
-
-  // 웹 미리보기에서는 Alert 버튼이 동작하지 않아 브라우저 확인 창을 쓴다
-  if (Platform.OS === "web") {
-    if (window.confirm(`${title}\n${message}`)) leave();
-    return;
-  }
-  Alert.alert(title, message, [
-    { text: "계속 가입하기", style: "cancel" },
-    { text: "나가기", style: "destructive", onPress: leave },
-  ]);
+  showConfirm({
+    title: "가입을 그만둘까요?",
+    message: "입력한 내용은 저장되지 않아요.",
+    okLabel: "나가기",
+    cancelLabel: "계속 가입하기",
+    destructive: true,
+    onOk: leave,
+  });
 }

@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 
+import AppDialog from "@/components/ui/AppDialog";
 import { colors, fontFamily } from "@/constants/theme";
 import { useResumeSignup } from "@/hooks/useResumeSignup";
 
@@ -35,19 +36,23 @@ export default function RootLayout() {
   if (!ready) return null;
 
   return (
-    <Stack
-      screenOptions={{
-        headerTintColor: colors.text,
-        headerTitleStyle: { color: colors.text, fontFamily, fontWeight: "700" },
-        headerStyle: { backgroundColor: colors.background },
-        headerShadowVisible: false,
-        contentStyle: { backgroundColor: colors.background },
-        // 뒤로 버튼은 화살표만 (이전 화면 이름이 "(tabs)" 같은 폴더 이름으로 나오지 않게)
-        headerBackButtonDisplayMode: "minimal",
-      }}
-    >
-      {/* 하단 탭은 각 탭이 제목줄을 가지므로 바깥 제목줄은 숨긴다 */}
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <>
+      <Stack
+        screenOptions={{
+          headerTintColor: colors.text,
+          headerTitleStyle: { color: colors.text, fontFamily, fontWeight: "700" },
+          headerStyle: { backgroundColor: colors.background },
+          headerShadowVisible: false,
+          contentStyle: { backgroundColor: colors.background },
+          // 뒤로 버튼은 화살표만 (이전 화면 이름이 "(tabs)" 같은 폴더 이름으로 나오지 않게)
+          headerBackButtonDisplayMode: "minimal",
+        }}
+      >
+        {/* 하단 탭은 각 탭이 제목줄을 가지므로 바깥 제목줄은 숨긴다 */}
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+      {/* 확인 창·메뉴·알림 (웹·안드로이드. 아이폰은 기본 창이라 아무것도 그리지 않음) */}
+      <AppDialog />
+    </>
   );
 }

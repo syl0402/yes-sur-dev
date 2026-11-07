@@ -1,4 +1,6 @@
-import { Alert, Platform } from "react-native";
+import { Alert } from "react-native";
+
+import { openAppDialog, USE_APP_DIALOG } from "@/lib/appDialog";
 
 type ConfirmOptions = {
   title: string;
@@ -15,11 +17,18 @@ type ConfirmOptions = {
 };
 
 // 버튼 두 개짜리 확인 창. 진행을 누를 때만 onOk가 실행된다.
-// 웹 미리보기에서는 Alert 버튼이 동작하지 않아 브라우저 확인 창을 쓴다
+// 웹·안드로이드는 앱 안 창(AppDialog), 아이폰은 기본 창
 export function showConfirm({ title, message, okLabel, cancelLabel, onOk, onCancel, destructive }: ConfirmOptions) {
-  if (Platform.OS === "web") {
-    if (window.confirm(`${title}\n${message}`)) onOk();
-    else onCancel?.();
+  if (USE_APP_DIALOG) {
+    openAppDialog({
+      title,
+      message,
+      layout: "row",
+      buttons: [
+        { label: cancelLabel, style: "cancel", onPress: onCancel },
+        { label: okLabel, style: destructive ? "destructive" : "primary", onPress: onOk },
+      ],
+    });
     return;
   }
   Alert.alert(title, message, [
@@ -41,11 +50,21 @@ type ChoiceOptions = {
 
 type Action = { label: string; onPress: () => void; destructive?: boolean };
 
-// 더보기(⋯) 메뉴: 할 일 여러 개 + 닫기. 웹 미리보기는 하나씩 브라우저 확인 창으로 묻는다
+// 더보기(⋯) 메뉴: 할 일 여러 개 + 닫기. 웹·안드로이드는 앱 안 창에 버튼 목록으로
 export function showActions(title: string, actions: Action[]) {
-  if (Platform.OS === "web") {
-    const picked = actions.find((a) => window.confirm(`${title}\n\n${a.label}?`));
-    picked?.onPress();
+  if (USE_APP_DIALOG) {
+    openAppDialog({
+      title,
+      layout: "column",
+      buttons: [
+        ...actions.map((a) => ({
+          label: a.label,
+          onPress: a.onPress,
+          style: a.destructive ? ("destructive" as const) : ("default" as const),
+        })),
+        { label: "닫기", style: "cancel" as const },
+      ],
+    });
     return;
   }
   Alert.alert(title, undefined, [
@@ -55,11 +74,19 @@ export function showActions(title: string, actions: Action[]) {
 }
 
 // 버튼 세 개짜리 선택 창 (권하는 것 · 되돌릴 수 없는 것 · 취소).
-// 웹 미리보기는 브라우저 확인 창을 두 번 띄워 대신한다
+// 웹·안드로이드는 앱 안 창에 세 버튼을 세로로
 export function showChoice({ title, message, primary, destructive, cancelLabel }: ChoiceOptions) {
-  if (Platform.OS === "web") {
-    if (window.confirm(`${title}\n${message}\n\n[확인] ${primary.label}`)) primary.onPress();
-    else if (window.confirm(`${destructive.label}?`)) destructive.onPress();
+  if (USE_APP_DIALOG) {
+    openAppDialog({
+      title,
+      message,
+      layout: "column",
+      buttons: [
+        { label: primary.label, style: "primary", onPress: primary.onPress },
+        { label: destructive.label, style: "destructive", onPress: destructive.onPress },
+        { label: cancelLabel, style: "cancel" },
+      ],
+    });
     return;
   }
   Alert.alert(title, message, [
