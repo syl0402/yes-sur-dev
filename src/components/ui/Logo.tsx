@@ -2,7 +2,7 @@
 import { Image } from "expo-image";
 import { StyleSheet } from "react-native";
 
-// 원본 비율 344 × 132
+// 원본 비율 1015 × 381
 const HEIGHT = 32;
 
 export default function Logo() {
@@ -19,6 +19,6 @@ export default function Logo() {
 const styles = StyleSheet.create({
   logo: {
     height: HEIGHT,
-    width: (HEIGHT * 344) / 132,
+    width: (HEIGHT * 1015) / 381,
   },
 });
