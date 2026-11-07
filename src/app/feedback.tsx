@@ -101,7 +101,7 @@ export default function Feedback() {
     >
       <Stack.Screen options={{ title: "의견 보내기" }} />
 
-      <Text style={styles.lead}>불편한 점, 오류, 바라는 기능을 알려 주세요. 옛썰을 고치는 데 바로 써요.</Text>
+      <Text style={styles.lead}>불편한 점, 오류, 바라는 기능을 알려 주세요. 더 나은 옛썰을 만드는 데 큰 힘이 돼요.</Text>
 
       <Text style={formStyles.label}>종류</Text>
       <Chips options={CATEGORIES} selected={category} onSelect={setCategory} />

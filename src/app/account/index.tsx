@@ -115,7 +115,7 @@ export default function AccountHome() {
             <Text style={styles.link}>⚠️ 성별·출생연도 입력하기 ›</Text>
           </Pressable>
         )}
-        <Text style={styles.hint}>회원정보를 고치려면 문의해 주세요.</Text>
+        <Text style={styles.hint}>회원정보를 고치려면 ‘의견 보내기’로 문의해 주세요.</Text>
       </View>
 
       <Text style={styles.sectionTitle}>계정</Text>

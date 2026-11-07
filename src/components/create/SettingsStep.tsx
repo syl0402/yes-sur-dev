@@ -62,7 +62,7 @@ export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, bal
             ? "단체는 결과 공개 조건으로 무료예요. 결과는 데이터 허브에서 ✓ 인증 단체로 표시돼요."
             : draft.resultVisibility === "private"
             ? "결과는 나만 봐요. 응답한 사람도 볼 수 없어요."
-            : "마감 후 응답이 5개 이상이면 데이터 허브에 공개돼요. 누가 열람하면 포인트 일부를 받아요. 주관식 답과 개인별 답은 공개되지 않아요."}
+            : "마감 후 응답이 5개 이상이면 데이터 허브에 공개돼요. 누군가 열람하면 포인트 일부를 받아요. 주관식 답과 개인별 답은 공개되지 않아요."}
         </Text>
       </View>
 
