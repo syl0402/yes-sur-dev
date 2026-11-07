@@ -25,6 +25,8 @@ export type SurveyDraft = {
   title: string;
   description: string;
   categoryId: number | null;
+  // 태그 (선택, 최대 survey_tag_max개. 2026-11-07, 예전 임시저장에는 없음)
+  tagIds?: number[];
   questions: DraftQuestion[];
   audience: "all" | "campus";
   // 결과 공개 범위: 전체 / 우리 학교만 / 비공개 (응답 대상과는 따로)
@@ -44,6 +46,7 @@ export const OPTION_TEXT_MAX = 100;
 
 // 작성 화면에서 읽는 point_rules 설정값
 export const CREATE_RULE_KEYS = [
+  "survey_tag_max",
   "survey_max_questions",
   "survey_max_options",
   "survey_min_target",

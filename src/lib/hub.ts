@@ -1,6 +1,7 @@
 // 데이터 허브 (ys-130·131). 서버 함수 모양은 docs/DB.md "데이터 허브"
 import type { QuestionStats } from "@/components/results/QuestionResult";
 import type { QuestionType } from "@/lib/surveyDraft";
+import type { Tag } from "@/lib/tags";
 
 export type HubSort = "popular" | "latest" | "responses";
 
@@ -26,6 +27,7 @@ export type HubItem = {
   free: boolean;
   trusted: boolean;
   low_count: boolean;
+  tags: Tag[];
 };
 
 // 나눠 보기 기준

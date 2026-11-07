@@ -1,5 +1,5 @@
 // ys-110 설문 목록 · F-202~204
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
@@ -12,6 +12,7 @@ import { Text } from "@/components/ui/Text";
 import TextTabs from "@/components/ui/TextTabs";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
+import { addTag, decodeTags, encodeTags, formatTag, matchesTags, type Tag } from "@/lib/tags";
 import {
   type DurationKey,
   type SortKey,
@@ -46,6 +47,10 @@ export default function Surveys() {
   const [duration, setDuration] = useState<DurationKey>("all");
   const [scope, setScope] = useState<Scope>("all");
   const [sort, setSort] = useState<SortKey>("recommended");
+  // 카드의 #태그를 누를 때마다 필터에 더한다 (모두 붙은 설문만). 주소의 ?tags= 가 곧 필터 (홈 카드에서 와도 같게)
+  const params = useLocalSearchParams<{ tags?: string }>();
+  const pickedTags = decodeTags(params.tags);
+  const setPickedTags = (next: Tag[]) => router.setParams({ tags: encodeTags(next) });
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
@@ -79,7 +84,8 @@ export default function Surveys() {
             (s) =>
               (category === "all" || s.category_key === category) &&
               matchesDuration(s, duration) &&
-              (scope === "all" || s.audience === "campus"),
+              (scope === "all" || s.audience === "campus") &&
+              matchesTags(s.tags, pickedTags),
           ),
           sort,
         );
@@ -117,6 +123,19 @@ export default function Surveys() {
           />
         </View>
 
+        {pickedTags.length > 0 && (
+          <View style={styles.tagFilter}>
+            {pickedTags.map((t) => (
+              <Chip
+                key={t.id}
+                label={`${formatTag(t.name)}  ✕`}
+                selected
+                onPress={() => setPickedTags(pickedTags.filter((p) => p.id !== t.id))}
+              />
+            ))}
+          </View>
+        )}
+
         <View style={styles.countRow}>
           <Text style={styles.count}>{surveys === null ? "" : `설문 ${visible.length}개`}</Text>
         </View>
@@ -126,7 +145,7 @@ export default function Surveys() {
         ) : visible.length === 0 ? (
           <EmptyState title="조건에 맞는 설문이 없어요" message="필터를 바꿔 보세요." />
         ) : (
-          visible.map((s) => <SurveyListCard key={s.id} survey={s} />)
+          visible.map((s) => <SurveyListCard key={s.id} survey={s} onTagPress={(t) => setPickedTags(addTag(pickedTags, t))} />)
         )}
       </ScrollView>
 
@@ -155,6 +174,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
+    gap: spacing.sm,
+  },
+  tagFilter: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.sm,
   },
   countRow: {

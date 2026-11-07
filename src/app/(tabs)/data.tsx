@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
+import TagRow from "@/components/TagRow";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import Chip from "@/components/ui/Chip";
@@ -17,6 +18,7 @@ import { HUB_SORT_OPTIONS, type HubItem, type HubSort } from "@/lib/hub";
 import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
 import { formatHost } from "@/lib/surveys";
+import { addTag, formatTag, matchesTags, type Tag } from "@/lib/tags";
 
 type Category = { key: string; name: string };
 
@@ -28,6 +30,8 @@ export default function Data() {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [savedOnly, setSavedOnly] = useState(false);
   const [search, setSearch] = useState("");
+  // 카드의 #태그를 누를 때마다 필터에 더한다 (모두 붙은 결과만, 2026-11-07)
+  const [pickedTags, setPickedTags] = useState<Tag[]>([]);
   // 내가 저장한 설문 번호
   const [saved, setSaved] = useState<number[]>([]);
   // 데이터 허브에 올라가는 최소 응답 수 (빈 화면 안내용, point_rules)
@@ -65,12 +69,13 @@ export default function Data() {
   // 내가 응답한 설문 결과 (내 답 비교는 무료)
   const answered = (items ?? []).filter((i) => i.answered);
   const q = search.trim();
-  const filtering = q !== "" || verifiedOnly || savedOnly;
+  const filtering = q !== "" || verifiedOnly || savedOnly || pickedTags.length > 0;
   const shown = (items ?? []).filter(
     (i) =>
       (!verifiedOnly || i.host_verified) &&
       (!savedOnly || saved.includes(i.id)) &&
-      (q === "" || i.title.toLowerCase().includes(q.toLowerCase())),
+      (q === "" || i.title.toLowerCase().includes(q.toLowerCase())) &&
+      matchesTags(i.tags ?? [], pickedTags),
   );
 
   return (
@@ -120,6 +125,18 @@ export default function Data() {
         <Chip label="✓ 인증 단체" selected={verifiedOnly} onPress={() => setVerifiedOnly(!verifiedOnly)} />
         <Chip label={`★ 저장 ${saved.length}`} selected={savedOnly} onPress={() => setSavedOnly(!savedOnly)} />
       </View>
+      {pickedTags.length > 0 && (
+        <View style={styles.filters}>
+          {pickedTags.map((t) => (
+            <Chip
+              key={t.id}
+              label={`${formatTag(t.name)}  ✕`}
+              selected
+              onPress={() => setPickedTags(pickedTags.filter((p) => p.id !== t.id))}
+            />
+          ))}
+        </View>
+      )}
 
       {items === null ? (
         <ActivityIndicator color={colors.primary} style={styles.loading} />
@@ -153,6 +170,7 @@ export default function Data() {
             <Text style={styles.title} numberOfLines={2}>
               {i.title}
             </Text>
+            <TagRow tags={i.tags ?? []} onPress={(t) => setPickedTags(addTag(pickedTags, t))} />
             <View style={styles.cardBottom}>
               <Text style={styles.meta} numberOfLines={1}>
                 {formatHost(i)} · 응답 {i.response_count} · 열람 {i.view_count} · {formatDate(i.ended_at)}

@@ -1,8 +1,9 @@
-// 설문 한 개 카드 (홈·설문 목록). 계열 뱃지 · 제목 · 시간·주최·마감 · 보상 (2026-10-31 디자인)
+// 설문 한 개 카드 (홈·설문 목록). 계열 뱃지 · 제목 · #태그 · 시간·주최·마감 · 보상 (2026-10-31 디자인, 태그 2026-11-07)
 import { router } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import AppIcon from "@/components/AppIcon";
+import TagRow from "@/components/TagRow";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import { Text } from "@/components/ui/Text";
@@ -10,9 +11,19 @@ import { homeIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { formatAgo, formatPoints, formatTimeLeft } from "@/lib/format";
 import { type SurveyCard, formatHost } from "@/lib/surveys";
+import { encodeTags, type Tag } from "@/lib/tags";
 
-export default function SurveyListCard({ survey: s }: { survey: SurveyCard }) {
+type Props = {
+  survey: SurveyCard;
+  // 태그를 눌렀을 때 (설문 탭: 그 자리에서 걸러 보기). 없으면 설문 탭으로 이동해서 걸러 보기 (홈)
+  onTagPress?: (tag: Tag) => void;
+};
+
+export default function SurveyListCard({ survey: s, onTagPress }: Props) {
   const timeLeft = formatTimeLeft(s.closes_at);
+  const pressTag =
+    onTagPress ??
+    ((t: Tag) => router.navigate({ pathname: "/surveys", params: { tags: encodeTags([t]) } }));
   return (
     <Card onPress={() => router.push({ pathname: "/survey/[id]", params: { id: String(s.id) } })}>
       <View style={styles.top}>
@@ -25,6 +36,7 @@ export default function SurveyListCard({ survey: s }: { survey: SurveyCard }) {
       <Text style={styles.title} numberOfLines={2}>
         {s.title}
       </Text>
+      <TagRow tags={s.tags} onPress={pressTag} />
       <View style={styles.bottom}>
         <View style={styles.meta}>
           <AppIcon name={homeIcons.time} size={14} color={colors.textMuted} />

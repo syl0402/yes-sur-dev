@@ -1,6 +1,7 @@
 // 설문 목록 불러오기·정렬·필터. 홈과 설문 탭이 같이 쓴다.
 import { timeBandOf } from "@/lib/pointBands";
 import { supabase } from "@/lib/supabase";
+import type { Tag } from "@/lib/tags";
 
 export type SurveyCard = {
   id: number;
@@ -16,6 +17,7 @@ export type SurveyCard = {
   category_name: string;
   host_name: string | null;
   host_verified: boolean;
+  tags: Tag[];
 };
 
 export type SortKey = "recommended" | "latest" | "closing" | "reward";
@@ -36,7 +38,7 @@ export async function fetchOpenSurveys(): Promise<SurveyCard[]> {
     supabase
       .from("surveys")
       .select(
-        "id, owner_id, title, est_minutes, reward_points, target_responses, response_count, audience, closes_at, created_at, host_name, host_verified, survey_categories(key, name)",
+        "id, owner_id, title, est_minutes, reward_points, target_responses, response_count, audience, closes_at, created_at, host_name, host_verified, survey_categories(key, name), survey_tags(tags(id, name))",
       )
       .eq("status", "open")
       .or(`closes_at.is.null,closes_at.gt.${new Date().toISOString()}`),
@@ -66,8 +68,16 @@ export async function fetchOpenSurveys(): Promise<SurveyCard[]> {
         category_name: category?.name ?? "",
         host_name: s.host_name,
         host_verified: s.host_verified,
+        tags: toTags(s.survey_tags),
       };
     });
+}
+
+// survey_tags(tags(id, name)) → Tag[] (연결 한 줄에 태그가 객체 또는 배열로 온다)
+function toTags(raw: unknown): Tag[] {
+  return ((raw as { tags: unknown }[] | null) ?? [])
+    .map((st) => (Array.isArray(st.tags) ? st.tags[0] : st.tags) as Tag | null)
+    .filter((t): t is Tag => !!t);
 }
 
 // 마감 시각 (없으면 맨 뒤로)

@@ -43,6 +43,8 @@
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 | `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
 | `20261031000001_too_fast.sql` | 너무 빠른 응답(문항 수 × `min_seconds_per_question`초 미만)은 확인 문항 오답과 같게 반려, `submit_response`에 `reason`(attention·too_fast) | 2026-10-31 |
+| `20261107000002_survey_tags_grant.sql` | 태그 표 읽기 허가 (`grant select … to authenticated`). **새 표는 grant가 따로 필요** — 빠지면 앱에서 빈 목록 | 2026-11-07 |
+| `20261107000001_survey_tags.sql` | 설문 태그: `tags`(운영자 목록) · `survey_tags`(설문↔태그, 기본 키로 중복 방지), `set_survey_tags()`, `survey_tag_max` 3, `get_hub_list`에 `tags`, 첫 태그 20개(임시) | 2026-11-07 |
 | `20261103000004_too_fast_off.sql` | 너무 빠른 응답 검사 끄기: `min_time_ratio` 0 (팀 결정, 값만 올리면 다시 켜짐) | 2026-11-03 |
 | `20261103000003_point_bands.sql` | 포인트 구간 정리: 1문항·3분 이내·3~7분·7~15분·15분 이상 (10·30·60·100·200 / 등록비 절반), `calc_survey_reward`·`calc_survey_price` 교체, `streak_bonus` 20·`community_daily_cap` 10, `submit_response` 너무 빠름 = 예상 시간 × `min_time_ratio` 미만 | 2026-11-03 |
 | `20261103000002_community_anon_reply.sql` | 익명 번호·대댓글: `posts.anonymous`·`comments.anonymous`(기본 true, 학생만)·`comments.parent_id`(한 단계), `create_post`·`create_comment`에 `p_anonymous`(+`p_parent_id`), `get_comments` 이름 익명N·익명(글쓴이) + `replies`, 베스트 `best_comment_min`(3) | 2026-11-03 |
@@ -120,6 +122,9 @@
 ### survey_categories — 설문 카테고리 (2026-10-29)
 2026-11-02부터 8개: study 학업 · career 진로·취업 · life 생활 · consume 소비·브랜드 · taste 취향·문화 · relation 연애·관계 · society 사회·이슈 · community **기타** (key는 예전 그대로, 이름만 "기타"). `sort_order` 순서로 칩에 나온다. 바꿀 때는 이 표만 고친다 (앱 코드는 표에서 읽음).
 
+### tags · survey_tags — 설문 태그 (2026-11-07)
+카테고리(큰 분류 1개)와 따로 세부 주제를 최대 `survey_tag_max`(3)개. `tags`는 운영자가 정한 목록(`name` 고유, `sort_order`, `active`=false면 숨김). `survey_tags`는 (survey_id, tag_id) 기본 키. 앱은 `set_survey_tags`로만 붙인다. 태그 추가는 대시보드에서 `insert into public.tags (name, sort_order) values (...)`
+
 ### surveys — 설문 (2026-10-29)
 | 칸 | 설명 |
 | --- | --- |
@@ -183,6 +188,8 @@
 | organizations | 본인 단체만 | 불가 (서버 함수로만, 승인은 대시보드) |
 | major_fields | 로그인한 사람 모두 | 불가 |
 | survey_categories | 로그인한 사람 모두 | 불가 |
+| tags | 로그인한 사람 모두 (active만) | 불가 |
+| survey_tags | 그 설문을 볼 수 있는 사람 | 불가 (`set_survey_tags`로만) |
 | surveys | 응답 대상(전체 / 같은 학교) + 작성자 본인 | 불가 (서버 함수로만) |
 | questions, question_options | 그 설문을 볼 수 있는 사람 | 불가 |
 | responses, answers | 본인 것만 | 불가 (`submit_response`로만) |
@@ -197,6 +204,7 @@
 | 함수 | 하는 일 | 누가 |
 | --- | --- | --- |
 | `get_my_balance()` | 본인 잔액 (confirmed 합계) | 로그인한 사람 |
+| `set_survey_tags(p_survey_id, p_tag_ids)` | 내 설문의 태그를 통째로 바꿈 (중복 제거, 최대 `survey_tag_max`, 쓰는 태그만). 오류 `not_survey_owner`·`too_many_tags`·`tag_not_found` (2026-11-07) | 설문 작성자 |
 | `update_my_demographics(p_gender, p_birth_year)` | 본인 성별·출생연도 **한 번만** 입력 (기존 회원용, 비어 있는 칸만 채움. 둘 다 있으면 `demographics_locked`). 고치려면 운영자가 대시보드에서 (2026-10-30) | 학생 |
 | `complete_signup(p_nickname, p_major_field_id, p_admission_year, p_degree_type, p_terms_agreed, p_gender, p_birth_year)` | 학교 도메인 검사 → 학생 회원정보 저장 → 웰컴 포인트 지급. 이미 가입했으면 아무것도 안 함 | 로그인한 사람 (이메일 인증 완료) |
 | `request_org_signup(...)` | 단체 신청·재신청 → 승인 대기. 포인트 없음 | 로그인한 사람 (이메일 인증 완료) |

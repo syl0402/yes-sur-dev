@@ -288,6 +288,12 @@ const { data: questions } = await supabase
   .order("sort_order");
 ```
 
+### 설문 태그 (2026-11-07)
+- `src/lib/tags.ts`: `Tag` 타입, `fetchTags()`(고를 수 있는 태그), `formatTag(name)` → `#이름`
+- 붙이기: 설문 등록 성공 뒤 `supabase.rpc("set_survey_tags", { p_survey_id, p_tag_ids })` (`src/app/create.tsx`)
+- 카드 표시: `src/components/TagRow.tsx` (`onPress`로 누른 태그를 넘김). 설문 탭은 주소 `?tagId=&tagName=`이 필터, 데이터 탭은 화면 상태
+- 목록: `fetchOpenSurveys`는 `survey_tags(tags(id, name))`, 데이터 탭은 `get_hub_list` 결과의 `tags`
+
 ### 학교 목록 (로그인 전에도 가능)
 ```ts
 const { data } = await supabase.from("universities").select("id, name, email_domain").order("name");

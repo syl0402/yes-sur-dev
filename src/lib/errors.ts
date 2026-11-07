@@ -36,6 +36,11 @@ const MESSAGES: Record<string, string> = {
   invalid_title: "제목은 2~60자로 입력해 주세요.",
   invalid_description: "설명은 500자까지 쓸 수 있어요.",
   invalid_category: "카테고리를 선택해 주세요.",
+
+  // 설문 태그 (set_survey_tags)
+  not_survey_owner: "내가 올린 설문만 바꿀 수 있어요.",
+  too_many_tags: "태그를 너무 많이 골랐어요. 몇 개를 빼 주세요.",
+  tag_not_found: "지금은 쓸 수 없는 태그예요. 다시 골라 주세요.",
   invalid_audience: "응답 대상을 다시 선택해 주세요.",
   invalid_target: "목표 인원을 다시 확인해 주세요.",
   invalid_days: "마감 기간을 다시 확인해 주세요.",
@@ -49,7 +54,7 @@ const MESSAGES: Record<string, string> = {
   // 응답자 정보 (complete_signup, update_my_demographics)
   invalid_gender: "성별을 선택해 주세요.",
   invalid_birth_year: "출생연도를 선택해 주세요.",
-  demographics_locked: "이미 입력한 정보예요. 고치려면 문의해 주세요.",
+  demographics_locked: "이미 입력한 정보예요. 고치려면 ‘의견 보내기’로 문의해 주세요.",
   invalid_choice: "보기 중 하나를 골라 주세요.",
   invalid_post: "질문과 보기를 확인해 주세요. 보기는 서로 달라야 해요.",
   post_limit: "오늘은 글을 충분히 만들었어요. 내일 다시 만들어 주세요.",

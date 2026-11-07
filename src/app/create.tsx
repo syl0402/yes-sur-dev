@@ -34,6 +34,7 @@ import {
   settingsValid,
   toRpcQuestions,
 } from "@/lib/surveyDraft";
+import { fetchTags, formatTag, type Tag } from "@/lib/tags";
 
 const STEP_COUNT = 4;
 
@@ -42,6 +43,7 @@ type Setup = {
   userId: string;
   rules: Record<string, number>;
   categories: { id: number; name: string }[];
+  tags: Tag[];
   isOrg: boolean;
   // 작성자로 표시될 단체 이름 (학생은 null)
   orgName: string | null;
@@ -55,10 +57,11 @@ type Setup = {
 
 // 작성에 필요한 것: 설정값·카테고리·내 계정 종류·학교·잔액 (모두 본인 것만 읽힌다)
 async function fetchSetup(): Promise<Setup> {
-  const [{ data: auth }, rules, { data: categories }, { data: profile }, { data: balance }, { data: org }] = await Promise.all([
+  const [{ data: auth }, rules, { data: categories }, tags, { data: profile }, { data: balance }, { data: org }] = await Promise.all([
     supabase.auth.getUser(),
     fetchRules(CREATE_RULE_KEYS),
     supabase.from("survey_categories").select("id, name").order("sort_order"),
+    fetchTags(),
     supabase.from("profiles").select("account_type, university_id, nickname").maybeSingle(),
     supabase.rpc("get_my_balance"),
     supabase.from("organizations").select("name, kind, universities(name)").maybeSingle(),
@@ -74,6 +77,7 @@ async function fetchSetup(): Promise<Setup> {
     userId: auth.user?.id ?? "",
     rules,
     categories: categories ?? [],
+    tags,
     isOrg,
     orgName: isOrg ? orgName : null,
     nickname: isOrg ? null : (profile?.nickname ?? null),
@@ -211,6 +215,14 @@ export default function CreateSurvey() {
       return;
     }
 
+    // 태그 붙이기 (실패해도 설문은 등록됨 → 안내 문구에 덧붙임)
+    const tagIds = draft.tagIds ?? [];
+    let tagFailed = false;
+    if (tagIds.length > 0) {
+      const { error: tagError } = await supabase.rpc("set_survey_tags", { p_survey_id: surveyId, p_tag_ids: tagIds });
+      tagFailed = tagError !== null;
+    }
+
     // 닉네임 공개를 골랐으면 작성자 이름을 닉네임으로 (실패해도 설문은 등록됨 → "옛썰러"로 보임)
     if (!setup.isOrg && draft.showNickname) {
       await supabase.rpc("set_survey_show_nickname", { p_survey_id: surveyId, p_show: true });
@@ -220,7 +232,10 @@ export default function CreateSurvey() {
     deleteDraft(setup.userId, draftId);
     allowLeave();
     router.replace({ pathname: "/survey/[id]", params: { id: String(surveyId) } });
-    showNotice("등록했어요", "응답이 모이면 마이 탭 '내가 올린 설문'에서 볼 수 있어요.");
+    showNotice(
+      "등록했어요",
+      "응답이 모이면 마이 탭 '내가 올린 설문'에서 볼 수 있어요." + (tagFailed ? "\n태그는 붙이지 못했어요." : ""),
+    );
   };
 
   const goNext = () => {
@@ -237,7 +252,11 @@ export default function CreateSurvey() {
     });
   };
 
-  const categoryName = setup.categories.find((c) => c.id === draft.categoryId)?.name ?? "";
+  // 확인 단계에 보일 "카테고리 · #태그"
+  const tagNames = setup.tags.filter((t) => (draft.tagIds ?? []).includes(t.id)).map((t) => formatTag(t.name));
+  const categoryName = [setup.categories.find((c) => c.id === draft.categoryId)?.name ?? "", ...tagNames]
+    .filter(Boolean)
+    .join(" · ");
 
   // 오른쪽 위 [임시저장]: 지금 내용을 이 폰 임시저장함에 저장
   const canSave = !isBlankDraft(draft) && !sending;
@@ -273,7 +292,15 @@ export default function CreateSurvey() {
           {["기본 정보", "문항 만들기", "대상 · 인원 · 마감", "확인하고 등록"][step - 1]}
         </Text>
 
-        {step === 1 && <BasicsStep draft={draft} categories={setup.categories} onChange={update} />}
+        {step === 1 && (
+          <BasicsStep
+            draft={draft}
+            categories={setup.categories}
+            tags={setup.tags}
+            tagMax={rules.survey_tag_max ?? 0}
+            onChange={update}
+          />
+        )}
         {step === 2 && <QuestionsStep draft={draft} rules={rules} onChange={update} />}
         {step === 3 && (
           <SettingsStep
