@@ -30,6 +30,7 @@ export default function SurveyListCard({ survey: s, onTagPress }: Props) {
         <View style={styles.badges}>
           <Badge label={s.category_name} />
           {s.audience === "campus" && <Badge label="우리 학교" tone="accent" />}
+          {s.has_reward && <Badge label="🎁 보상" tone="hot" />}
         </View>
         {timeLeft ? <Text style={styles.timeLeft}>{timeLeft}</Text> : null}
       </View>

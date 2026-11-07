@@ -5,6 +5,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import ReportLink from "@/components/ReportLink";
+import RewardNotice from "@/components/RewardNotice";
 import Badge from "@/components/ui/Badge";
 import BottomBar from "@/components/ui/BottomBar";
 import Card from "@/components/ui/Card";
@@ -12,6 +13,7 @@ import StatTile from "@/components/ui/StatTile";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { formatAgo, formatPoints, formatTimeLeft } from "@/lib/format";
+import { fetchSurveyReward } from "@/lib/rewards";
 import { supabase } from "@/lib/supabase";
 import { formatHost, remainingSpots } from "@/lib/surveys";
 
@@ -101,11 +103,14 @@ export default function SurveyDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   // undefined = 불러오는 중, null = 찾을 수 없음
   const [detail, setDetail] = useState<Detail | null | undefined>(undefined);
+  // 보상 안내 (보상 연락처를 받는 설문만, 2026-11-07)
+  const [reward, setReward] = useState<string | null>(null);
 
   // 화면에 돌아올 때마다 새로 불러온다 (응답 화면에서 나왔을 때 마감·참여 상태가 바로 바뀌게)
   useFocusEffect(
     useCallback(() => {
       fetchDetail(Number(id)).then(setDetail);
+      fetchSurveyReward(Number(id)).then(setReward);
     }, [id]),
   );
 
@@ -148,6 +153,13 @@ export default function SurveyDetail() {
             {detail.host_verified ? `${formatHost(detail)} 인증 단체` : `작성 · ${formatHost(detail)}`} · 등록 {formatAgo(detail.createdAt)}
           </Text>
         </Card>
+
+        {reward && (
+          <RewardNotice
+            note={reward}
+            hint={detail.isOwner ? undefined : "응답을 마치면 보상 받을 연락처를 남길 수 있어요. (선택)"}
+          />
+        )}
 
         <View style={styles.stats}>
           <StatTile label="보상" value={`+${formatPoints(detail.reward_points)}`} />

@@ -18,6 +18,8 @@ export type SurveyCard = {
   host_name: string | null;
   host_verified: boolean;
   tags: Tag[];
+  // 보상 이벤트(보상 연락처 받기)가 있는 설문 (2026-11-07)
+  has_reward: boolean;
 };
 
 export type SortKey = "recommended" | "latest" | "closing" | "reward";
@@ -38,7 +40,7 @@ export async function fetchOpenSurveys(): Promise<SurveyCard[]> {
     supabase
       .from("surveys")
       .select(
-        "id, owner_id, title, est_minutes, reward_points, target_responses, response_count, audience, closes_at, created_at, host_name, host_verified, survey_categories(key, name), survey_tags(tags(id, name))",
+        "id, owner_id, title, est_minutes, reward_points, target_responses, response_count, audience, closes_at, created_at, host_name, host_verified, survey_categories(key, name), survey_tags(tags(id, name)), survey_rewards(survey_id)",
       )
       .eq("status", "open")
       .or(`closes_at.is.null,closes_at.gt.${new Date().toISOString()}`),
@@ -69,6 +71,8 @@ export async function fetchOpenSurveys(): Promise<SurveyCard[]> {
         host_name: s.host_name,
         host_verified: s.host_verified,
         tags: toTags(s.survey_tags),
+        // 한 설문에 하나라 객체로 오지만, 배열로 올 때도 처리
+        has_reward: Array.isArray(s.survey_rewards) ? s.survey_rewards.length > 0 : !!s.survey_rewards,
       };
     });
 }

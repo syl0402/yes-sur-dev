@@ -26,6 +26,7 @@ import {
   deleteDraft,
   emptyDraft,
   getDraft,
+  hasReward,
   isBlankDraft,
   makeRequestId,
   questionsValid,
@@ -223,6 +224,16 @@ export default function CreateSurvey() {
       tagFailed = tagError !== null;
     }
 
+    // 보상 연락처 받기 (실패해도 설문은 등록됨 → 안내 문구에 덧붙임)
+    let rewardFailed = false;
+    if (hasReward(draft)) {
+      const { error: rewardError } = await supabase.rpc("set_survey_reward", {
+        p_survey_id: surveyId,
+        p_note: (draft.rewardNote ?? "").trim(),
+      });
+      rewardFailed = rewardError !== null;
+    }
+
     // 닉네임 공개를 골랐으면 작성자 이름을 닉네임으로 (실패해도 설문은 등록됨 → "옛썰러"로 보임)
     if (!setup.isOrg && draft.showNickname) {
       await supabase.rpc("set_survey_show_nickname", { p_survey_id: surveyId, p_show: true });
@@ -234,7 +245,8 @@ export default function CreateSurvey() {
     router.replace({ pathname: "/survey/[id]", params: { id: String(surveyId) } });
     showNotice(
       "등록했어요",
-      "응답이 모이면 마이 탭 '내가 올린 설문'에서 볼 수 있어요." + (tagFailed ? "\n태그는 붙이지 못했어요." : ""),
+      "응답이 모이면 마이 탭 '내가 올린 설문'에서 볼 수 있어요." + (tagFailed ? "\n태그는 붙이지 못했어요." : "") +
+        (rewardFailed ? "\n보상 안내는 저장하지 못했어요." : ""),
     );
   };
 

@@ -2,9 +2,10 @@ import { View } from "react-native";
 
 import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
+import CheckRow from "@/components/ui/CheckRow";
 import { Text, TextInput } from "@/components/ui/Text";
 import { formatPoints } from "@/lib/format";
-import { type SurveyDraft, VISIBILITY_LABELS, estimate } from "@/lib/surveyDraft";
+import { REWARD_NOTE_MAX, type SurveyDraft, VISIBILITY_LABELS, estimate, hasReward } from "@/lib/surveyDraft";
 
 type Props = {
   draft: SurveyDraft;
@@ -18,7 +19,7 @@ type Props = {
   onChange: (patch: Partial<SurveyDraft>) => void;
 };
 
-// 작성 ③ 응답 대상 · 목표 인원 · 마감
+// 작성 ③ 응답 대상 · 목표 인원 · 마감 · 보상 연락처(선택, 2026-11-07)
 export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, balance, onChange }: Props) {
   const { price } = estimate(draft, rules);
   const target = Number(draft.target);
@@ -105,6 +106,36 @@ export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, bal
           1~{rules.survey_max_days}일. 등록한 때부터 세요.
         </Text>
       </View>
+
+      {/* 보상 연락처: 기프티콘 등을 줄 때만. 응답자가 동의하고 남긴 휴대폰 번호를 작성자만 본다 */}
+      <View style={formStyles.card}>
+        <Text style={formStyles.label}>🎁 응답자 보상 (선택)</Text>
+        <Text style={formStyles.hint}>기프티콘 등 보상이 있을 때만 응답자에게 보여 줄 안내를 적어 주세요.</Text>
+        <TextInput
+          style={[formStyles.input, formStyles.multiline]}
+          value={draft.rewardNote ?? ""}
+          onChangeText={(rewardNote) => onChange({ rewardNote })}
+          placeholder={
+            "예) 응답해 주신 분 중 추첨으로 10분께 스타벅스 아메리카노 기프티콘을 드려요. 당첨자는 12월 1일에 문자로 보내 드릴게요."
+          }
+          maxLength={REWARD_NOTE_MAX}
+          multiline
+        />
+        {hasReward(draft) && (
+          <>
+            <Text style={formStyles.hint}>
+              {(draft.rewardNote ?? "").length} / {REWARD_NOTE_MAX}자 · 응답자가 원하면 휴대폰 번호를 남겨요. 번호는 나만 볼
+              수 있어요.
+            </Text>
+            <CheckRow
+              label="[필수] 받은 연락처는 보상 지급에만 쓰고, 지급 후 지울게요."
+              checked={draft.rewardAgreed === true}
+              onPress={() => onChange({ rewardAgreed: !draft.rewardAgreed })}
+            />
+          </>
+        )}
+      </View>
     </>
   );
 }
+

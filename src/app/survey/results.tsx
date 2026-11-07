@@ -10,9 +10,11 @@ import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
 import { formatTimeLeft } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
+import { fetchSurveyReward } from "@/lib/rewards";
 import { supabase } from "@/lib/supabase";
 import { type QuestionStats } from "@/components/results/QuestionResult";
 import ResultsActionBar from "@/components/results/ResultsActionBar";
+import RewardContactsBox from "@/components/results/RewardContactsBox";
 import ResultsView from "@/components/results/ResultsView";
 import { type RawResults, exportCsv, rawCsv } from "@/lib/csv";
 import { type FullResults } from "@/lib/hub";
@@ -77,9 +79,12 @@ export default function SurveyResults() {
   // undefined = 불러오는 중, string = 오류 문구
   const [results, setResults] = useState<Results | string | undefined>(undefined);
   const [closing, setClosing] = useState(false);
+  // 보상 안내 (보상 연락처를 받는 설문만, 2026-11-07)
+  const [rewardNote, setRewardNote] = useState<string | null>(null);
 
   const load = useCallback(() => {
     fetchResults(surveyId).then(setResults);
+    fetchSurveyReward(surveyId).then(setRewardNote);
   }, [surveyId]);
 
   // 화면에 올 때마다 새로 불러온다 (응답이 늘었으면 바로 반영)
@@ -172,6 +177,8 @@ export default function SurveyResults() {
             </Pressable>
           )}
         </View>
+
+        {rewardNote && <RewardContactsBox surveyId={surveyId} note={rewardNote} />}
 
         <View style={styles.summary}>
           <Text style={styles.summaryMain}>결과 공개</Text>

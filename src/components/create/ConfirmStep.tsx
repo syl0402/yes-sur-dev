@@ -5,7 +5,7 @@ import { formStyles } from "@/components/create/formStyles";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
-import { type SurveyDraft, VISIBILITY_LABELS, estimate } from "@/lib/surveyDraft";
+import { type SurveyDraft, VISIBILITY_LABELS, estimate, hasReward } from "@/lib/surveyDraft";
 import { ANONYMOUS_HOST, formatHost } from "@/lib/surveys";
 
 type Props = {
@@ -37,6 +37,7 @@ export default function ConfirmStep({ draft, rules, categoryName, cost, balance,
     <>
       <Text style={styles.title}>{draft.title.trim()}</Text>
       <Text style={formStyles.hint}>{categoryName}</Text>
+      {hasReward(draft) && <Text style={formStyles.hint}>🎁 보상: {(draft.rewardNote ?? "").trim()}</Text>}
 
       {!isOrg && (
         <View style={styles.box}>

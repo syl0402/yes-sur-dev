@@ -46,6 +46,8 @@ export default function Surveys() {
   const [category, setCategory] = useState("all");
   const [duration, setDuration] = useState<DurationKey>("all");
   const [scope, setScope] = useState<Scope>("all");
+  // 보상 이벤트 있는 설문만 (2026-11-07)
+  const [rewardOnly, setRewardOnly] = useState(false);
   const [sort, setSort] = useState<SortKey>("recommended");
   // 카드의 #태그를 누를 때마다 필터에 더한다 (모두 붙은 설문만). 주소의 ?tags= 가 곧 필터 (홈 카드에서 와도 같게)
   const params = useLocalSearchParams<{ tags?: string }>();
@@ -85,7 +87,8 @@ export default function Surveys() {
               (category === "all" || s.category_key === category) &&
               matchesDuration(s, duration) &&
               (scope === "all" || s.audience === "campus") &&
-              matchesTags(s.tags, pickedTags),
+              matchesTags(s.tags, pickedTags) &&
+              (!rewardOnly || s.has_reward),
           ),
           sort,
         );
@@ -121,6 +124,7 @@ export default function Surveys() {
             selected={scope === "campus"}
             onPress={() => setScope(scope === "campus" ? "all" : "campus")}
           />
+          <Chip label="🎁 보상" selected={rewardOnly} onPress={() => setRewardOnly(!rewardOnly)} />
         </View>
 
         {pickedTags.length > 0 && (

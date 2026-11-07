@@ -2,13 +2,15 @@
 // TODO(임시): 가운데 그림은 이모지 · 디자인팀 마스코트(옛썰이 "마일리지 적립!"·"궁금해요!") PNG를 받으면 교체 · docs/PROGRESS.md
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 
+import RewardContactForm from "@/components/RewardContactForm";
 import BottomBar from "@/components/ui/BottomBar";
 import Button from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
+import { fetchSurveyReward } from "@/lib/rewards";
 import { supabase } from "@/lib/supabase";
 
 export default function SurveyDone() {
@@ -16,10 +18,13 @@ export default function SurveyDone() {
   // reason: attention(확인 문항 오답) / too_fast(너무 빨리 응답)
   const { id, reward, passed, reason } = useLocalSearchParams<{ id: string; reward: string; passed: string; reason?: string }>();
   const [balance, setBalance] = useState<number | null>(null);
+  // 보상 안내 (보상 연락처를 받는 설문이면, 2026-11-07)
+  const [rewardNote, setRewardNote] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.rpc("get_my_balance").then(({ data }) => setBalance(typeof data === "number" ? data : 0));
-  }, []);
+    fetchSurveyReward(Number(id)).then(setRewardNote);
+  }, [id]);
 
   // 쌓인 설문 화면을 모두 닫고 탭으로
   const goTab = (tab: "/surveys" | "/home") => {
@@ -48,7 +53,12 @@ export default function SurveyDone() {
           <Text style={styles.message}>다시 응답하면 포인트를 받을 수 있어요.</Text>
         </View>
       ) : (
-        <View style={styles.body}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.body}
+          automaticallyAdjustKeyboardInsets
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.circle}>
             <Text style={styles.emoji}>🎉</Text>
           </View>
@@ -61,7 +71,8 @@ export default function SurveyDone() {
             <Text style={styles.balanceLabel}>내 포인트</Text>
             <Text style={styles.balanceValue}>{balance === null ? "…" : formatPoints(balance)}</Text>
           </View>
-        </View>
+          {rewardNote && <RewardContactForm surveyId={Number(id)} note={rewardNote} />}
+        </ScrollView>
       )}
 
       <BottomBar>
@@ -90,8 +101,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  body: {
+  scroll: {
     flex: 1,
+  },
+  body: {
+    flexGrow: 1,
     alignItems: "center",
     justifyContent: "center",
     gap: spacing.sm,

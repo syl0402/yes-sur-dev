@@ -288,6 +288,16 @@ const { data: questions } = await supabase
   .order("sort_order");
 ```
 
+### 설문 보상 연락처 (2026-11-07)
+- `src/lib/rewards.ts` `fetchSurveyReward(id)` → 보상 안내 글 또는 null
+- 작성: `SurveyDraft.rewardNote`(적으면 보상 설문, `hasReward`·`rewardValid`) + `rewardAgreed` → 등록 뒤 `set_survey_reward`
+- 보기: `RewardNotice`(안내 상자, 링크 확인 후 열림) · 응답 완료 `RewardContactForm`(번호 + 제3자 제공 동의) · 작성자 `results/RewardContactsBox`(번호 보기·복사·모두 지우기)
+- 목록: `SurveyCard.has_reward` → 카드 🎁 뱃지, 설문 탭 🎁 보상 칩
+- 작은 동의 체크: `src/components/ui/CheckRow.tsx`
+
+### 제휴·광고 문의 (2026-11-07)
+- 화면 `src/app/partnership.tsx` → `send_partnership_inquiry(...)`. 내가 보낸 문의는 `partnership_inquiries` 표를 바로 읽음(RLS 본인만)
+
 ### 설문 태그 (2026-11-07)
 - `src/lib/tags.ts`: `Tag` 타입, `fetchTags()`(고를 수 있는 태그), `formatTag(name)` → `#이름`
 - 붙이기: 설문 등록 성공 뒤 `supabase.rpc("set_survey_tags", { p_survey_id, p_tag_ids })` (`src/app/create.tsx`)

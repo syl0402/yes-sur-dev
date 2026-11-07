@@ -36,6 +36,9 @@ export type SurveyDraft = {
   days: string;
   // 학생 설문 작성자 표시: true = 닉네임 공개, false·없음 = "옛썰러" (2026-11-02, 예전 임시저장에는 없음)
   showNickname?: boolean;
+  // 응답자 보상 안내 (2026-11-07, 예전 임시저장에는 없음): 적으면 보상 연락처를 받는 설문 → 2~300자 + 작성자 유의사항 동의 필요
+  rewardNote?: string;
+  rewardAgreed?: boolean;
 };
 
 export const TITLE_MIN = 2;
@@ -43,6 +46,8 @@ export const TITLE_MAX = 60;
 export const DESCRIPTION_MAX = 500;
 export const QUESTION_TEXT_MAX = 200;
 export const OPTION_TEXT_MAX = 100;
+export const REWARD_NOTE_MIN = 2;
+export const REWARD_NOTE_MAX = 300;
 
 // 작성 화면에서 읽는 point_rules 설정값
 export const CREATE_RULE_KEYS = [
@@ -204,8 +209,21 @@ export function settingsValid(d: SurveyDraft, rules: Record<string, number>, has
     target <= rules.survey_max_target &&
     Number.isInteger(days) &&
     days >= 1 &&
-    days <= rules.survey_max_days
+    days <= rules.survey_max_days &&
+    rewardValid(d)
   );
+}
+
+// 보상 안내를 적었는지 (비우면 보상 없는 설문)
+export function hasReward(d: SurveyDraft): boolean {
+  return (d.rewardNote ?? "").trim() !== "";
+}
+
+// 보상: 안 적으면 통과, 적으면 2자 이상 + 작성자 동의
+export function rewardValid(d: SurveyDraft): boolean {
+  if (!hasReward(d)) return true;
+  const note = (d.rewardNote ?? "").trim().length;
+  return note >= REWARD_NOTE_MIN && note <= REWARD_NOTE_MAX && d.rewardAgreed === true;
 }
 
 // 예상 소요시간·응답자 보상 (화면 표시용. 서버 create_survey·calc_survey_reward와 같은 계산)
