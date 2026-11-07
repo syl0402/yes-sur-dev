@@ -103,7 +103,14 @@ export default function Onboarding() {
               <Text style={styles.emoji}>{s.emoji}</Text>
             </View>
             <Text style={styles.title}>{s.title}</Text>
-            <Text style={styles.body}>{s.body}</Text>
+            {/* 문단(빈 줄로 나눔) 사이는 반 줄만 띄운다 (2026-11-07) */}
+            <View style={styles.paragraphs}>
+              {s.body.split("\n\n").map((p) => (
+                <Text key={p} style={styles.body}>
+                  {p}
+                </Text>
+              ))}
+            </View>
           </View>
         ))}
       </ScrollView>
@@ -168,6 +175,10 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: colors.text,
     textAlign: "center",
+  },
+  // 줄 높이(24)의 반
+  paragraphs: {
+    gap: 12,
   },
   body: {
     fontSize: fontSize.body,
