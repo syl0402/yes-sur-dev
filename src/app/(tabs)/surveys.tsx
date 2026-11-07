@@ -86,7 +86,7 @@ export default function Surveys() {
             (s) =>
               (category === "all" || s.category_key === category) &&
               matchesDuration(s, duration) &&
-              (scope === "all" || s.audience === "campus") &&
+              (scope === "all" || s.from_my_school) &&
               matchesTags(s.tags, pickedTags) &&
               (!rewardOnly || s.has_reward),
           ),
@@ -103,7 +103,7 @@ export default function Surveys() {
           <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
-        {/* 카테고리: 글자 탭 / 정렬 · 소요시간 · 우리 학교만: 한 줄 (2026-11-02 정리) */}
+        {/* 카테고리: 글자 탭 / 정렬 · 소요시간 · 우리 학교 · 보상: 한 줄 (2026-11-02 정리, 11-08 우리 학교 = 작성자 학교) */}
         <TextTabs
           options={[{ value: "all", label: "전체" }, ...categories.map((c) => ({ value: c.key, label: c.name }))]}
           value={category}
@@ -120,7 +120,7 @@ export default function Surveys() {
             placeholder="소요시간"
           />
           <Chip
-            label="우리 학교만"
+            label="우리 학교"
             selected={scope === "campus"}
             onPress={() => setScope(scope === "campus" ? "all" : "campus")}
           />

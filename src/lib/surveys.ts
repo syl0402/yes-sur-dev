@@ -20,6 +20,8 @@ export type SurveyCard = {
   tags: Tag[];
   // 보상 이벤트(보상 연락처 받기)가 있는 설문 (2026-11-07)
   has_reward: boolean;
+  // 작성자가 우리 학교(학생·교내 단체)인 설문 → "우리 학교" 칩 (2026-11-08)
+  from_my_school: boolean;
 };
 
 export type SortKey = "recommended" | "latest" | "closing" | "reward";
@@ -36,17 +38,20 @@ export async function fetchOpenSurveys(): Promise<SurveyCard[]> {
   const { data: auth } = await supabase.auth.getUser();
   const myId = auth.user?.id;
 
-  const [{ data: surveys }, { data: responses }] = await Promise.all([
+  const [{ data: surveys }, { data: responses }, { data: me }] = await Promise.all([
     supabase
       .from("surveys")
       .select(
-        "id, owner_id, title, est_minutes, reward_points, target_responses, response_count, audience, closes_at, created_at, host_name, host_verified, survey_categories(key, name), survey_tags(tags(id, name)), survey_rewards(survey_id)",
+        "id, owner_id, title, est_minutes, reward_points, target_responses, response_count, audience, closes_at, created_at, host_name, host_verified, host_university_id, survey_categories(key, name), survey_tags(tags(id, name)), survey_rewards(survey_id)",
       )
       .eq("status", "open")
       .or(`closes_at.is.null,closes_at.gt.${new Date().toISOString()}`),
     // 확인 문항을 틀려 반려된 응답은 다시 응답할 수 있으니 목록에 남긴다
     supabase.from("responses").select("survey_id").eq("status", "confirmed"),
+    // 내 학교 (본인 행만 읽힌다)
+    supabase.from("profiles").select("university_id").maybeSingle(),
   ]);
+  const mySchool = me?.university_id ?? null;
 
   const answered = new Set((responses ?? []).map((r) => r.survey_id));
 
@@ -73,6 +78,7 @@ export async function fetchOpenSurveys(): Promise<SurveyCard[]> {
         tags: toTags(s.survey_tags),
         // 한 설문에 하나라 객체로 오지만, 배열로 올 때도 처리
         has_reward: Array.isArray(s.survey_rewards) ? s.survey_rewards.length > 0 : !!s.survey_rewards,
+        from_my_school: mySchool !== null && s.host_university_id === mySchool,
       };
     });
 }
@@ -102,8 +108,8 @@ export function sortSurveys(list: SurveyCard[], key: SortKey): SurveyCard[] {
     case "recommended":
       return copy.sort(
         (a, b) =>
-          // 응답 목록에 보이는 우리 학교 설문은 모두 내 학교 설문이다
-          Number(b.audience === "campus") - Number(a.audience === "campus") ||
+          // 우리 학교 사람·단체가 올린 설문 먼저 ("우리 학교" 칩과 같은 기준, 2026-11-08)
+          Number(b.from_my_school) - Number(a.from_my_school) ||
           closingTime(a) - closingTime(b) ||
           remainingSpots(a) - remainingSpots(b),
       );
