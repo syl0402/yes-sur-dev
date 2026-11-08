@@ -1,7 +1,7 @@
 // ys-120 설문 작성 · F-401~405
 import { Stack, router, useLocalSearchParams, usePreventRemove } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import BasicsStep from "@/components/create/BasicsStep";
 import ConfirmStep from "@/components/create/ConfirmStep";
@@ -284,7 +284,8 @@ export default function CreateSurvey() {
         options={{
           title: "설문 등록",
           headerRight: () => (
-            <Pressable onPress={saveNow} disabled={!canSave} hitSlop={8}>
+            // 웹은 제목줄 오른쪽 여백이 없어 버튼이 끝에 붙는다 (2026-11-09 피드백)
+            <Pressable onPress={saveNow} disabled={!canSave} hitSlop={8} style={styles.headerAction}>
               <Text style={[styles.headerButton, !canSave && styles.headerButtonDisabled]}>임시저장</Text>
             </Pressable>
           ),
@@ -400,6 +401,9 @@ const styles = StyleSheet.create({
   },
   prevButton: {
     flex: 1,
+  },
+  headerAction: {
+    marginRight: Platform.OS === "web" ? spacing.md : 0,
   },
   headerButton: {
     fontSize: fontSize.body,

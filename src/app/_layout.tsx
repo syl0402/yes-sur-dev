@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import AppDialog from "@/components/ui/AppDialog";
 import { colors, fontFamily } from "@/constants/theme";
+import { useRequireLogin } from "@/hooks/useRequireLogin";
 import { useResumeSignup } from "@/hooks/useResumeSignup";
 
 // 글꼴을 다 불러올 때까지 시작 화면을 유지한다 (기본 글꼴로 잠깐 보였다 바뀌지 않게)
@@ -13,6 +14,8 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   // 인증만 하고 가입을 마치지 않은 사람은 가입을 이어서 하게 한다
   useResumeSignup();
+  // 로그인 안 된 상태로 다른 화면에 들어오면 첫 화면으로
+  useRequireLogin();
 
   // 앱 글꼴 Pretendard: 한 이름 아래 굵기 4종 → 화면에서는 fontWeight로 고른다
   const [fontsLoaded, fontError] = useFonts([
