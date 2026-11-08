@@ -228,9 +228,10 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.text,
   },
+  // 카드 높이를 가장 긴 제목에 맞춘다 (2026-11-09 피드백)
   row: {
     gap: spacing.sm,
-    alignItems: "center",
+    alignItems: "stretch",
   },
   filters: {
     flexDirection: "row",
@@ -240,6 +241,7 @@ const styles = StyleSheet.create({
   },
   stripCard: {
     width: 180,
+    justifyContent: "space-between",
     borderColor: colors.primarySoft,
   },
   stripTitle: {
