@@ -7,7 +7,7 @@ delete from public.survey_tags
  where survey_id in (select id from public.surveys where title like '[예시]%');
 
 -- 설문마다 태그를 섞어서 고르고(설문 번호로 정해지는 순서), 1~3개만 남긴다.
--- 걸러 보기가 잘 보이게 앞쪽 태그 6개(연애·MBTI·학식·과제·팀플·시험·진로)에서만 고른다 → 같은 태그 설문이 여러 개 생김
+-- 걸러 보기가 잘 보이게 앞쪽 태그 6개(2026-11-08 확정 목록: 과제·팀플·시험·성적·수강신청·대외활동·인턴·자격증·자취·기숙사)에서만 고른다 → 같은 태그 설문이 여러 개 생김
 insert into public.survey_tags (survey_id, tag_id)
 select survey_id, tag_id
   from (

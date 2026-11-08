@@ -43,6 +43,9 @@
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 | `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
 | `20261031000001_too_fast.sql` | 너무 빠른 응답(문항 수 × `min_seconds_per_question`초 미만)은 확인 문항 오답과 같게 반려, `submit_response`에 `reason`(attention·too_fast) | 2026-10-31 |
+| `20261108000003_tags_final.sql` | 태그 확정 21개 (기획팀): 같은 뜻은 이름만 변경(연결 유지) · 빠진 6개 숨김·연결 삭제 · 새 7개 추가 · 순서 | 2026-11-08 |
+| `20261108000002_survey_host_school.sql` | `surveys.host_university_id` = 작성자 학교 (트리거로 채움) → 설문 탭 "우리 학교" 칩·추천순 | 2026-11-08 |
+| `20261108000001_survey_edit.sql` | `update_survey_texts`: 작성자·마감 전 설명·보상 안내 수정, `set_survey_reward` 금칙어 검사 | 2026-11-08 |
 | `20261107000007_purge_cron.sql` | `pg_cron` 켜고 매일 한국 새벽 4시 `purge_expired_personal_data()` (작업 이름 `purge-expired-personal-data`) | 2026-11-07 |
 | `20261107000006_reward_contacts.sql` | 설문 보상 연락처: `survey_rewards`(작성자 보상 안내 2~300자 + 동의 시각) · `reward_contacts`(휴대폰, (설문, 회원) 기본 키, **앱 직접 접근 불가**) · `set_survey_reward`·`submit_reward_contact`(confirmed 응답자만, 동의 필수)·`has_my_reward_contact`·`get_reward_contacts`(작성자만, 번호만 무작위 순서)·`clear_reward_contacts`, `reward_contact_keep_days` 30 | 2026-11-07 |
 | `20261107000003~05_partnership*.sql` | 제휴·광고 문의: `partnership_inquiries`(담당자 정보, 본인만 읽기) · `send_partnership_inquiry` · 알게 된 경로 필수(store·friend·sns·community·search·school·other, 기타는 직접 입력) · `partnership_keep_days` 365 · `purge_expired_personal_data()` | 2026-11-07 |
