@@ -12,17 +12,19 @@ import Fab from "@/components/ui/Fab";
 import SelectButton from "@/components/ui/SelectButton";
 import TextTabs from "@/components/ui/TextTabs";
 import { colors, spacing } from "@/constants/theme";
-import { fetchHot, type HotItem, KIND_LABELS, POST_SORT_OPTIONS, type Post, type PostKind, type PostSort } from "@/lib/community";
+import { fetchHot, type HotItem, POST_SORT_OPTIONS, type Post, type PostSort } from "@/lib/community";
 import { supabase } from "@/lib/supabase";
 import type { WorldcupItem } from "@/lib/worldcup";
 
-// 글 종류 + 월드컵 (월드컵은 글이 아니라 따로 불러온다)
-type KindFilter = "all" | PostKind | "worldcup";
+// 분류 4개 (2026-11-09 팀 피드백: 6개는 많아 보임). 투표 = 밸런스·나만 그래?·골라 줘 (종류는 글 쓸 때 고르고 카드에 표시)
+// 월드컵은 글이 아니라 따로 불러온다
+type KindFilter = "all" | "vote" | "worldcup" | "promo";
 
 const KIND_FILTERS: { value: KindFilter; label: string }[] = [
   { value: "all", label: "전체" },
+  { value: "vote", label: "투표" },
   { value: "worldcup", label: "월드컵" },
-  ...(Object.keys(KIND_LABELS) as PostKind[]).map((k) => ({ value: k as KindFilter, label: KIND_LABELS[k] })),
+  { value: "promo", label: "설문 홍보" },
 ];
 
 // HOT은 탭에 있을 때만 30초마다 새로
@@ -44,8 +46,10 @@ export default function Community() {
       setWorldcups((data as WorldcupItem[] | null) ?? []);
       return;
     }
-    const { data } = await supabase.rpc("get_feed", { p_kind: kind === "all" ? null : kind, p_sort: sort });
-    setPosts((data as Post[] | null) ?? []);
+    // 투표는 세 종류를 한 번에 불러와 설문 홍보만 뺀다
+    const { data } = await supabase.rpc("get_feed", { p_kind: kind === "promo" ? "promo" : null, p_sort: sort });
+    const list = (data as Post[] | null) ?? [];
+    setPosts(kind === "vote" ? list.filter((p) => p.kind !== "promo") : list);
   }, [kind, sort]);
 
   // HOT 목록 (롤링 줄·펼친 목록·카드 뱃지가 같이 쓴다). 오류면 조용히 숨김 (보조 정보라서)
@@ -115,7 +119,11 @@ export default function Community() {
         ) : posts === null ? (
           <ActivityIndicator color={colors.primary} style={styles.loading} />
         ) : posts.length === 0 ? (
-          <EmptyState title="아직 글이 없어요" message="첫 글을 만들어 보세요!" emoji="🗳️" />
+          <EmptyState
+            title={kind === "promo" ? "아직 설문 홍보 글이 없어요" : kind === "vote" ? "아직 투표가 없어요" : "아직 글이 없어요"}
+            message={kind === "promo" ? "내 설문을 홍보해 응답을 더 모아 보세요!" : "첫 투표를 만들어 보세요!"}
+            emoji={kind === "promo" ? "📣" : "🗳️"}
+          />
         ) : (
           posts.map((p) => (
             <PostCard

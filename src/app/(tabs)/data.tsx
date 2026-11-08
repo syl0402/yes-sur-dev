@@ -142,11 +142,7 @@ export default function Data() {
         <ActivityIndicator color={colors.primary} style={styles.loading} />
       ) : shown.length === 0 ? (
         filtering ? (
-          <EmptyState
-            title={savedOnly ? "저장한 결과가 없어요" : "찾는 결과가 없어요"}
-            message={savedOnly ? "결과 화면 오른쪽 위 ☆를 누르면 여기에 모여요." : "다른 말로 찾거나 필터를 바꿔 보세요."}
-            emoji={savedOnly ? "⭐" : "🔍"}
-          />
+          <EmptyState {...emptyFilterMessage(savedOnly, verifiedOnly, pickedTags.length > 0, q !== "")} />
         ) : (
           <View style={styles.emptyBox}>
             <EmptyState
@@ -186,6 +182,20 @@ export default function Data() {
       )}
     </ScrollView>
   );
+}
+
+// 필터를 걸었는데 결과가 없을 때: 어떤 필터인지에 맞춰 안내 (2026-11-09 팀 피드백: 숨기지 말고 상황 안내)
+function emptyFilterMessage(saved: boolean, verified: boolean, tagged: boolean, searched: boolean) {
+  if (saved) return { title: "저장한 결과가 없어요", message: "결과 화면에서 ☆를 누르면 여기에 모아 볼 수 있어요.", emoji: "⭐" };
+  if (searched) return { title: "검색 결과가 없어요", message: "다른 단어로 검색해 보세요.", emoji: "🔍" };
+  if (verified && !tagged)
+    return {
+      title: "아직 인증 단체 설문 결과가 없어요",
+      message: "인증 단체가 올린 설문이 마감되면 여기에서 볼 수 있어요.",
+      emoji: "🏫",
+    };
+  if (tagged) return { title: "이 태그가 붙은 결과가 아직 없어요", message: "다른 태그로 찾아보세요.", emoji: "🏷️" };
+  return { title: "조건에 맞는 결과가 없어요", message: "필터를 바꿔 보세요.", emoji: "🔍" };
 }
 
 const styles = StyleSheet.create({
