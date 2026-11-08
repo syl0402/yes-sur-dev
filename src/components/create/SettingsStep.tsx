@@ -1,9 +1,12 @@
-import { View } from "react-native";
+import { router } from "expo-router";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
+import CostReceipt from "@/components/create/CostReceipt";
 import CheckRow from "@/components/ui/CheckRow";
 import { Text, TextInput } from "@/components/ui/Text";
+import { colors, fontSize } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
 import { REWARD_NOTE_MAX, type SurveyDraft, VISIBILITY_LABELS, estimate, hasReward } from "@/lib/surveyDraft";
 
@@ -21,8 +24,10 @@ type Props = {
 
 // 작성 ③ 응답 대상 · 목표 인원 · 마감 · 보상 연락처(선택, 2026-11-07)
 export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, balance, onChange }: Props) {
-  const { price } = estimate(draft, rules);
   const target = Number(draft.target);
+  // 지금 포인트로 받을 수 있는 최대 인원 (1명당 등록비는 설문 길이로 정해진다)
+  const { price } = estimate(draft, rules);
+  const maxByBalance = price > 0 ? Math.min(Math.floor(balance / price), rules.survey_max_target) : 0;
   const days = Number(draft.days);
   const targetBad =
     draft.target !== "" &&
@@ -77,19 +82,29 @@ export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, bal
           maxLength={4}
         />
         <Text style={targetBad ? formStyles.error : formStyles.hint}>
-          {rules.survey_min_target}~{rules.survey_max_target}명. 목표에 닿으면 자동으로 마감돼요.
+          {rules.survey_min_target}~{rules.survey_max_target}명 · 목표에 닿으면 자동으로 마감돼요
         </Text>
-        {/* 등록비 바로 계산: 인원을 바꾸면 바로 바뀐다 */}
         {isOrg ? (
           <Text style={formStyles.hint}>단체 계정은 테스트 기간 동안 등록비가 없어요.</Text>
         ) : (
-          !targetBad &&
-          draft.target !== "" && (
-            <Text style={cost > balance ? formStyles.error : formStyles.label}>
-              등록비: 응답 1명당 {formatPoints(price)} × {target}명 = {formatPoints(cost)}
-              {cost > balance ? ` (내 포인트 ${formatPoints(balance)} · 인원을 줄여 주세요)` : ""}
+          <>
+            {/* 몇 명으로 할지 감 잡기: 지금 포인트로 받을 수 있는 최대 인원 (2026-11-09) */}
+            <Text style={formStyles.hint}>
+              {maxByBalance >= rules.survey_min_target
+                ? `💡 내 포인트(${formatPoints(balance)})로 최대 ${maxByBalance}명까지 받을 수 있어요`
+                : `💡 내 포인트(${formatPoints(balance)})로는 최소 조건(${rules.survey_min_target}명)에 모자라요`}
             </Text>
-          )
+            {/* 등록비 계산표: 인원을 바꾸면 바로 바뀐다 */}
+            {!targetBad && draft.target !== "" && (
+              <CostReceipt draft={draft} rules={rules} target={target} balance={balance} />
+            )}
+          </>
+        )}
+        {/* 1명당 값이 설문 길이로 정해지는 걸 알려 준다 (포인트 안내 화면의 구간표) */}
+        {!isOrg && (
+          <Pressable onPress={() => router.push("/points")} hitSlop={8}>
+            <Text style={styles.ruleLink}>등록비는 어떻게 정해지나요? ›</Text>
+          </Pressable>
         )}
       </View>
 
@@ -139,3 +154,10 @@ export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, bal
   );
 }
 
+const styles = StyleSheet.create({
+  ruleLink: {
+    fontSize: fontSize.small,
+    color: colors.textMuted,
+    textDecorationLine: "underline",
+  },
+});

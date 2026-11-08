@@ -5,6 +5,7 @@ import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, View } 
 
 import BasicsStep from "@/components/create/BasicsStep";
 import ConfirmStep from "@/components/create/ConfirmStep";
+import LengthSummary from "@/components/create/LengthSummary";
 import QuestionsStep from "@/components/create/QuestionsStep";
 import SettingsStep from "@/components/create/SettingsStep";
 import PrimaryButton from "@/components/PrimaryButton";
@@ -315,6 +316,8 @@ export default function CreateSurvey() {
           />
         )}
         {step === 2 && <QuestionsStep draft={draft} rules={rules} onChange={update} />}
+        {/* 문항을 넣고 빼면 바로 바뀌는 길이·구간·포인트 요약 (2026-11-09) */}
+        {step === 2 && <LengthSummary draft={draft} rules={rules} isOrg={setup.isOrg} variant="questions" />}
         {step === 3 && (
           <SettingsStep
             draft={draft}
