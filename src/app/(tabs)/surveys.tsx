@@ -48,6 +48,8 @@ export default function Surveys() {
   const [scope, setScope] = useState<Scope>("all");
   // 보상 이벤트 있는 설문만 (2026-11-07)
   const [rewardOnly, setRewardOnly] = useState(false);
+  // 내가 올린 진행 중 설문만 (2026-11-09 개인 피드백 11번)
+  const [mineOnly, setMineOnly] = useState(false);
   const [sort, setSort] = useState<SortKey>("recommended");
   // 카드의 #태그를 누를 때마다 필터에 더한다 (모두 붙은 설문만). 주소의 ?tags= 가 곧 필터 (홈 카드에서 와도 같게)
   const params = useLocalSearchParams<{ tags?: string }>();
@@ -88,7 +90,8 @@ export default function Surveys() {
               matchesDuration(s, duration) &&
               (scope === "all" || s.from_my_school) &&
               matchesTags(s.tags, pickedTags) &&
-              (!rewardOnly || s.has_reward),
+              (!rewardOnly || s.has_reward) &&
+              (!mineOnly || s.mine),
           ),
           sort,
         );
@@ -103,7 +106,7 @@ export default function Surveys() {
           <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
-        {/* 카테고리: 글자 탭 / 정렬 · 소요시간 · 우리 학교 · 보상: 한 줄 (2026-11-02 정리, 11-08 우리 학교 = 작성자 학교) */}
+        {/* 카테고리: 글자 탭 / 정렬 · 소요시간 · 우리 학교 · 보상 · 내 설문: 한 줄 (2026-11-02 정리, 11-08 우리 학교 = 작성자 학교, 11-09 내 설문) */}
         <TextTabs
           options={[{ value: "all", label: "전체" }, ...categories.map((c) => ({ value: c.key, label: c.name }))]}
           value={category}
@@ -125,6 +128,7 @@ export default function Surveys() {
             onPress={() => setScope(scope === "campus" ? "all" : "campus")}
           />
           <Chip label="🎁 보상" selected={rewardOnly} onPress={() => setRewardOnly(!rewardOnly)} />
+          <Chip label="내 설문" selected={mineOnly} onPress={() => setMineOnly(!mineOnly)} />
         </View>
 
         {pickedTags.length > 0 && (
@@ -147,7 +151,16 @@ export default function Surveys() {
         {surveys === null ? (
           <ActivityIndicator color={colors.primary} style={styles.loading} />
         ) : visible.length === 0 ? (
-          <EmptyState title="조건에 맞는 설문이 없어요" message="필터를 바꿔 보세요." />
+          mineOnly ? (
+            // 설문 탭은 진행 중 설문만 보여서, 마감된 내 설문은 마이 탭으로 안내
+            <EmptyState
+              title="진행 중인 내 설문이 없어요"
+              message={"마감된 설문은 마이 탭 \"내 설문 관리\"에서 볼 수 있어요.\n오른쪽 아래 + 버튼으로 새 설문을 올려 보세요."}
+              emoji="📣"
+            />
+          ) : (
+            <EmptyState title="조건에 맞는 설문이 없어요" message="필터를 바꿔 보세요." />
+          )
         ) : (
           visible.map((s) => <SurveyListCard key={s.id} survey={s} onTagPress={(t) => setPickedTags(addTag(pickedTags, t))} />)
         )}
