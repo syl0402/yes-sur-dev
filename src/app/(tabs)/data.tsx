@@ -1,4 +1,4 @@
-// ys-130 데이터 목록 · F-501 (2026-11-01: 검색 · 스크랩 · 카드 정리)
+// ys-130 데이터 목록 · F-501 (2026-11-01: 검색 · 스크랩 · 카드 정리, 2026-11-09 "내가 응답한 결과" 줄 → 마이 탭 내 데이터)
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
@@ -68,8 +68,6 @@ export default function Data() {
   };
 
   const open = (id: number) => router.push({ pathname: "/data/[id]", params: { id: String(id) } });
-  // 내가 응답한 설문 결과 (내 답 비교는 무료)
-  const answered = (items ?? []).filter((i) => i.answered);
   const q = search.trim();
   const filtering = q !== "" || verifiedOnly || savedOnly || pickedTags.length > 0;
   const shown = (items ?? []).filter(
@@ -99,22 +97,6 @@ export default function Data() {
         returnKeyType="search"
         autoCorrect={false}
       />
-
-      {answered.length > 0 && q === "" && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>내가 응답한 설문 결과</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
-            {answered.map((i) => (
-              <Card key={i.id} style={styles.stripCard} onPress={() => open(i.id)}>
-                <Text style={styles.stripTitle} numberOfLines={2}>
-                  {i.title}
-                </Text>
-                <Text style={styles.stripLink}>{i.viewed ? "결과 보기 ›" : "내 답 비교 보기 ›"}</Text>
-              </Card>
-            ))}
-          </ScrollView>
-        </View>
-      )}
 
       {/* 카테고리: 글자 탭 / 정렬 · 인증 단체 · 스크랩: 한 줄 (2026-11-02 정리) */}
       <TextTabs
@@ -235,39 +217,11 @@ const styles = StyleSheet.create({
     fontSize: fontSize.body,
     color: colors.text,
   },
-  section: {
-    gap: spacing.sm,
-  },
-  sectionTitle: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  // 카드 높이를 가장 긴 제목에 맞춘다 (2026-11-09 피드백)
-  row: {
-    gap: spacing.sm,
-    alignItems: "stretch",
-  },
   filters: {
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
     gap: spacing.sm,
-  },
-  stripCard: {
-    width: 180,
-    justifyContent: "space-between",
-    borderColor: colors.primarySoft,
-  },
-  stripTitle: {
-    fontSize: fontSize.small,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  stripLink: {
-    fontSize: fontSize.small,
-    fontWeight: "600",
-    color: colors.primary,
   },
   emptyBox: {
     gap: spacing.md,

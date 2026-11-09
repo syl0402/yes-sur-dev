@@ -1,8 +1,9 @@
-// ys-150 마일리지 지갑 · F-701 (2026-10-31 디자인: 프로필 · 포인트 카드 · 탭 전환 [내 설문 | 포인트 내역 | 열람한 결과])
+// ys-150 마일리지 지갑 · F-701 (2026-10-31 디자인: 프로필 · 포인트 카드 · 탭 전환 [내 설문 | 포인트 내역 | 내 데이터], 2026-11-09 열람한 결과 → 내 데이터)
 import { type Href, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
+import MyDataPanel from "@/components/MyDataPanel";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -46,7 +47,7 @@ const REASON_LABELS: Record<string, string> = {
   invite: "친구 초대",
 };
 
-type Tab = "surveys" | "ledger" | "views";
+type Tab = "surveys" | "ledger" | "data";
 
 type LedgerItem = {
   id: number;
@@ -67,14 +68,6 @@ type MySurvey = {
   visibility: ResultVisibility;
 };
 
-// get_my_views 한 줄 (내가 열람한 결과)
-type MyView = {
-  survey_id: number;
-  title: string;
-  viewed_at: string;
-  paid: number;
-};
-
 type MyData = {
   userId: string;
   isOrg: boolean;
@@ -84,7 +77,6 @@ type MyData = {
   balance: number;
   ledger: LedgerItem[];
   surveys: MySurvey[];
-  views: MyView[];
   // 이 폰에 임시저장한 설문 (서버에는 없음)
   drafts: SavedDraft[];
   // 운영자 계정이면 처리 대기 건수, 아니면 null
@@ -117,7 +109,7 @@ async function fetchMy(): Promise<MyData> {
   const { data: auth } = await supabase.auth.getUser();
   const userId = auth.user?.id ?? "";
 
-  const [{ data: profile }, { data: org }, { data: balance }, { data: rows }, surveys, { data: views }, admin] = await Promise.all([
+  const [{ data: profile }, { data: org }, { data: balance }, { data: rows }, surveys, admin] = await Promise.all([
     supabase.from("profiles").select("nickname, account_type, gender, birth_year").maybeSingle(),
     supabase.from("organizations").select("name").maybeSingle(),
     supabase.rpc("get_my_balance"),
@@ -128,7 +120,6 @@ async function fetchMy(): Promise<MyData> {
       .order("created_at", { ascending: false })
       .limit(LEDGER_LIMIT),
     fetchMySurveys(userId),
-    supabase.rpc("get_my_views"),
     fetchAdminCounts(),
   ]);
 
@@ -163,7 +154,6 @@ async function fetchMy(): Promise<MyData> {
       };
     }),
     surveys,
-    views: (views as MyView[] | null) ?? [],
     drafts: userId ? listDrafts(userId) : [],
     admin,
   };
@@ -210,13 +200,13 @@ export default function My() {
     );
   }
 
-  // 단체는 포인트·열람이 없어서 탭 전환 없이 내 설문만
+  // 단체는 포인트·열람이 없어서 탭 전환 없이 내 설문만. 열람한 결과는 "내 데이터" 탭(응답한·스크랩·열람한)으로 (2026-11-09)
   const tabs: { value: Tab; label: string }[] = data.isOrg
     ? []
     : [
         { value: "surveys", label: "내 설문" },
         { value: "ledger", label: "포인트 내역" },
-        { value: "views", label: "열람한 결과" },
+        { value: "data", label: "내 데이터" },
       ];
   const current: Tab = data.isOrg ? "surveys" : tab;
 
@@ -389,31 +379,9 @@ export default function My() {
           </Card>
         ))}
 
-      {/* 열람한 결과: 포인트를 내고(또는 무료로) 본 결과를 다시 찾기 */}
-      {current === "views" &&
-        (data.views.length === 0 ? (
-          <EmptyState title="열람한 결과가 없어요" message="데이터 탭에서 다른 설문 결과를 볼 수 있어요." emoji="📊" />
-        ) : (
-          <Card>
-            {data.views.map((v, i) => (
-              <Pressable
-                key={v.survey_id}
-                style={[styles.row, i > 0 && styles.rowDivider]}
-                onPress={() => router.push({ pathname: "/data/[id]", params: { id: String(v.survey_id) } })}
-              >
-                <View style={styles.rowMain}>
-                  <Text style={styles.rowLabel} numberOfLines={1}>
-                    {v.title}
-                  </Text>
-                  <Text style={styles.muted}>
-                    {formatDate(v.viewed_at)} 열람 · {v.paid > 0 ? formatPoints(v.paid) : "무료"}
-                  </Text>
-                </View>
-                <Text style={styles.arrow}>›</Text>
-              </Pressable>
-            ))}
-          </Card>
-        ))}
+
+      {/* 응답한·스크랩·열람한 결과를 한 곳에 (2026-11-09) */}
+      {current === "data" && <MyDataPanel />}
     </ScrollView>
   );
 }
