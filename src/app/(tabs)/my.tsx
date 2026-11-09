@@ -3,20 +3,22 @@ import { type Href, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
+import AppIcon from "@/components/AppIcon";
+import { listCardStyles as list } from "@/components/listCardStyles";
 import MyDataPanel from "@/components/MyDataPanel";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import ProgressBar from "@/components/ui/ProgressBar";
-import Segmented from "@/components/ui/Segmented";
-import StatTile from "@/components/ui/StatTile";
 import { Text } from "@/components/ui/Text";
+import Segmented from "@/components/ui/Segmented";
 import TextTabs from "@/components/ui/TextTabs";
+import { type IconName, myIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { type AdminCounts, fetchAdminCounts, totalPending } from "@/lib/admin";
 import { showConfirm } from "@/lib/confirm";
-import { formatDate, formatPoints } from "@/lib/format";
+import { formatDate, formatPoints, formatShortDate } from "@/lib/format";
 import type { HubItem } from "@/lib/hub";
 import { supabase } from "@/lib/supabase";
 import { type ResultVisibility, type SavedDraft, VISIBILITY_LABELS, deleteDraft, listDrafts } from "@/lib/surveyDraft";
@@ -241,80 +243,70 @@ export default function My() {
         </Card>
       )}
 
-      {/* 이름을 누르면 내 정보 (회원정보·비밀번호 변경·로그아웃) */}
-      <Card onPress={() => router.push(ACCOUNT_HREF)} style={styles.profile}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{data.name.slice(0, 1) || "옛"}</Text>
-        </View>
-        <View style={styles.profileMain}>
-          <Text style={styles.name}>{data.name ? `${data.name}님` : "내 정보"}</Text>
-          <Text style={styles.muted}>내 정보 · 계정 설정</Text>
-          {data.needsDemographics && <Text style={styles.warn}>⚠️ 성별·출생연도를 입력해 주세요</Text>}
-        </View>
-        <Text style={styles.arrow}>›</Text>
-      </Card>
-
-      {/* 내 포인트 (단체는 포인트를 쓰지 않음) */}
-      {!data.isOrg && (
-        <View style={styles.pointCard}>
-          <View style={styles.pointRing} />
-          <Text style={styles.pointLabel}>내 포인트</Text>
-          <Text style={styles.pointValue}>{formatPoints(data.balance)}</Text>
-          <Pressable onPress={() => router.push("/points")} hitSlop={8}>
-            <Text style={styles.pointLink}>포인트는 어떻게 모으고 쓰나요? ›</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {/* 의견 보내기(테스트 기간 피드백) · 친구 초대(학생만: 포인트를 쓰는 계정) */}
-      <View style={styles.shortcuts}>
-        <Card
-          style={styles.shortcut}
-          onPress={() => router.push({ pathname: "/feedback", params: { from: "마이 탭" } })}
-        >
-          <Text style={styles.shortcutTitle}>💬 의견 보내기</Text>
-          <Text style={styles.muted}>불편한 점·바라는 기능</Text>
-        </Card>
-        {!data.isOrg && (
-          <Card style={styles.shortcut} onPress={() => router.push("/invite")}>
-            <Text style={styles.shortcutTitle}>🎁 친구 초대</Text>
-            <Text style={styles.muted}>친구도 나도 포인트</Text>
-          </Card>
-        )}
-        {/* 제휴·광고 문의: 단체는 카드로, 학생은 아래 한 줄로 (2026-11-07) */}
-        {data.isOrg && (
-          <Card style={styles.shortcut} onPress={() => router.push("/partnership")}>
-            <Text style={styles.shortcutTitle}>🤝 제휴·광고 문의</Text>
-            <Text style={styles.muted}>홍보·이벤트 함께하기</Text>
-          </Card>
-        )}
-      </View>
-      {/* 내가 쓴 커뮤니티 글·댓글 (2026-11-10) */}
-      <Pressable onPress={() => router.push(MY_POSTS_HREF)} hitSlop={8}>
-        <Text style={styles.partnerLink}>✏️ 내가 쓴 글·댓글 ›</Text>
-      </Pressable>
-      {!data.isOrg && (
-        <Pressable onPress={() => router.push("/partnership")} hitSlop={8}>
-          <Text style={styles.partnerLink}>🤝 제휴·광고 문의 ›</Text>
+      {/* 프로필 · 포인트 · 바로가기 · 탭 (2026-11-10 디자인 정리: 피그마 C안 + A안 + 기존 포인트 카드) */}
+      <View style={styles.section}>
+        {/* 이름을 누르면 내 정보 (회원정보·비밀번호 변경·로그아웃) */}
+        <Pressable onPress={() => router.push(ACCOUNT_HREF)} style={styles.profile}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{data.name.slice(0, 1) || "옛"}</Text>
+          </View>
+          <View style={styles.profileMain}>
+            <Text style={styles.name}>{data.name ? `${data.name}님` : "내 정보"}</Text>
+            <Text style={styles.muted}>내 정보 · 계정 설정</Text>
+            {data.needsDemographics && <Text style={styles.warn}>⚠️ 성별·출생연도를 입력해 주세요</Text>}
+          </View>
+          <AppIcon name={myIcons.forward} size={20} color={colors.textSubtle} />
         </Pressable>
-      )}
 
-      {tabs.length > 0 ? (
-        <Segmented options={tabs} value={current} onChange={setTab} />
-      ) : (
-        <Text style={styles.sectionTitle}>내 설문 관리</Text>
-      )}
+        {/* 내 포인트 (단체는 포인트를 쓰지 않음) */}
+        {!data.isOrg && (
+          <View style={styles.pointCard}>
+            <View style={styles.pointRing} />
+            <Text style={styles.pointLabel}>내 포인트</Text>
+            <Text style={styles.pointValue}>{formatPoints(data.balance)}</Text>
+            <Pressable onPress={() => router.push("/points")} hitSlop={8}>
+              <Text style={styles.pointLink}>포인트는 어떻게 모으고 쓰나요? ›</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {/* 바로가기 아이콘 한 줄: 의견 보내기 · 친구 초대(학생) · 내가 쓴 글 · 제휴 문의 */}
+        <View style={styles.shortcuts}>
+          <Shortcut
+            icon={myIcons.feedback}
+           
+            label="의견 보내기"
+            onPress={() => router.push({ pathname: "/feedback", params: { from: "마이 탭" } })}
+          />
+          {!data.isOrg && <Shortcut icon={myIcons.invite} label="친구 초대" onPress={() => router.push("/invite")} />}
+          <Shortcut icon={myIcons.posts} label="내가 쓴 글" onPress={() => router.push(MY_POSTS_HREF)} />
+          <Shortcut icon={myIcons.partner} label="제휴 문의" onPress={() => router.push("/partnership")} />
+        </View>
+
+        {tabs.length > 0 ? (
+          <Segmented options={tabs} value={current} onChange={setTab} />
+        ) : (
+          <Text style={styles.sectionTitle}>내 설문 관리</Text>
+        )}
 
       {current === "surveys" && (
         <>
+          {/* 운영 중 · 받은 응답: 연파랑 한 줄 */}
           <View style={styles.stats}>
-            <StatTile label="운영 중인 설문" value={String(openCount)} />
-            <StatTile label="받은 응답" value={`${totalResponses}명`} />
+            <View style={styles.statHalf}>
+              <Text style={styles.statLabel}>운영 중</Text>
+              <Text style={styles.statValue}>{openCount}개</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statHalf}>
+              <Text style={styles.statLabel}>받은 응답</Text>
+              <Text style={styles.statValue}>{totalResponses}명</Text>
+            </View>
           </View>
 
           {/* 임시저장함: 이 폰에만 있고, 있을 때만 보인다 */}
           {data.drafts.length > 0 && (
-            <Card>
+            <Card style={list.card}>
               <Text style={styles.cardTitle}>임시저장한 설문</Text>
               {data.drafts.map((d) => (
                 <Pressable
@@ -350,6 +342,7 @@ export default function My() {
                 ]}
                 value={surveyFilter}
                 onChange={setSurveyFilter}
+                fill
               />
               {shownSurveys.length === 0 ? (
                 <Text style={styles.muted}>
@@ -369,7 +362,7 @@ export default function My() {
         (data.ledger.length === 0 ? (
           <EmptyState title="아직 포인트 내역이 없어요" message="설문에 답하면 여기에 쌓여요." emoji="🪙" />
         ) : (
-          <Card>
+          <Card style={list.card}>
             {data.ledger.map((item, i) => (
               <View key={item.id} style={[styles.row, i > 0 && styles.rowDivider]}>
                 <View style={styles.rowMain}>
@@ -387,43 +380,55 @@ export default function My() {
           </Card>
         ))}
 
-
       {/* 응답한·스크랩·열람한 결과를 한 곳에 (2026-11-09) */}
       {current === "data" && <MyDataPanel />}
+      </View>
     </ScrollView>
+  );
+}
+
+// 바로가기 하나: 회색 둥근 네모 안 파란 아이콘 + 아래 이름
+function Shortcut({ icon, label, onPress }: { icon: IconName; label: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.shortcut, pressed && styles.pressed]}>
+      <View style={styles.shortcutIcon}>
+        <AppIcon name={icon} size={22} color={colors.primary} />
+      </View>
+      <Text style={styles.shortcutLabel}>{label}</Text>
+    </Pressable>
   );
 }
 
 // 내가 올린 설문 한 개: 상태 뱃지 · 등록일 · 제목 · 응답 진행률 · 결과 공개 · [결과 보기]
 function MySurveyCard({ survey: s }: { survey: MySurvey }) {
   const pct = s.target > 0 ? Math.min(100, Math.round((s.responseCount / s.target) * 100)) : 0;
+  // 설문·데이터 탭 카드와 같은 파스텔 표시 (진행 중 = 연두, 마감 = 회색, 검토 중 = 빨강)
   const status = s.moderated
     ? { label: "검토 중", tone: "danger" as const }
     : s.closed
-      ? { label: "마감", tone: "accent" as const }
-      : { label: "진행 중", tone: "primary" as const };
+      ? { label: "마감", tone: "muted" as const }
+      : { label: "진행 중", tone: "lime" as const };
 
   return (
-    <Card onPress={() => router.push({ pathname: "/survey/[id]", params: { id: String(s.id) } })}>
-      <View style={styles.cardTop}>
-        <Badge label={status.label} tone={status.tone} />
-        <Text style={styles.muted}>등록일 {formatDate(s.createdAt)}</Text>
-      </View>
-      <Text style={styles.surveyTitle} numberOfLines={2}>
-        {s.title}
-      </Text>
-
-      <View style={styles.progressTop}>
-        <Text style={styles.muted}>응답 진행률</Text>
-        <Text style={styles.muted}>
-          <Text style={styles.count}>{s.responseCount}</Text> / {s.target}명
+    <Card onPress={() => router.push({ pathname: "/survey/[id]", params: { id: String(s.id) } })} style={list.card}>
+      <View style={list.head}>
+        <View style={list.top}>
+          <Badge label={status.label} tone={status.tone} />
+          <Text style={list.sub}>등록 {formatShortDate(s.createdAt)}</Text>
+        </View>
+        <Text style={list.title} numberOfLines={2}>
+          {s.title}
         </Text>
       </View>
-      <View style={styles.progressRow}>
-        <View style={styles.progressBar}>
-          <ProgressBar value={pct / 100} />
+
+      <View style={styles.progress}>
+        <View style={list.top}>
+          <Text style={list.sub}>응답 진행률</Text>
+          <Text style={styles.progressNum}>
+            {s.responseCount} / {s.target}명 · {pct}%
+          </Text>
         </View>
-        <Text style={styles.pct}>{pct}%</Text>
+        <ProgressBar value={pct / 100} height={6} />
       </View>
 
       {/* 데이터 탭에 공개된 결과: 남들이 얼마나 봤는지 + 데이터 탭 화면으로 (결과 보기는 계속 등록자 화면) */}
@@ -438,14 +443,16 @@ function MySurveyCard({ survey: s }: { survey: MySurvey }) {
         </Pressable>
       )}
 
+      {/* 아래: 결과 공개 범위 · 오른쪽 파란 알약 (목록 카드의 포인트 알약과 같은 모양) */}
       <View style={styles.cardBottom}>
-        <Text style={styles.muted}>결과 공개 · {VISIBILITY_LABELS[s.visibility]}</Text>
-        <Button
-          title="결과 보기"
-          variant="soft"
-          small
+        <Text style={list.sub}>결과 공개 · {VISIBILITY_LABELS[s.visibility]}</Text>
+        <Pressable
+          style={({ pressed }) => [list.pill, pressed && styles.pressed]}
           onPress={() => router.push({ pathname: "/survey/results", params: { id: String(s.id) } })}
-        />
+          hitSlop={6}
+        >
+          <Text style={list.pillText}>결과 보기</Text>
+        </Pressable>
       </View>
     </Card>
   );
@@ -463,9 +470,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
+    paddingBottom: spacing.xl,
+  },
+  section: {
     padding: spacing.md,
     gap: spacing.md,
-    paddingBottom: spacing.xl,
   },
   adminCard: {
     borderColor: colors.primary,
@@ -479,18 +488,18 @@ const styles = StyleSheet.create({
   profile: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.md,
+    gap: 12,
   },
   avatar: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.primarySoft,
   },
   avatarText: {
-    fontSize: fontSize.subtitle,
+    fontSize: 22,
     fontWeight: "800",
     color: colors.primary,
   },
@@ -499,7 +508,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   name: {
-    fontSize: fontSize.subtitle,
+    fontSize: 19,
     fontWeight: "700",
     color: colors.text,
   },
@@ -508,10 +517,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     fontWeight: "600",
     color: colors.primary,
-  },
-  arrow: {
-    fontSize: fontSize.subtitle,
-    color: colors.textSubtle,
   },
   muted: {
     fontSize: fontSize.small,
@@ -532,7 +537,7 @@ const styles = StyleSheet.create({
     height: 160,
     borderRadius: 80,
     borderWidth: 24,
-    borderColor: "rgba(255, 255, 255, 0.12)",
+    borderColor: colors.onPrimarySoft,
   },
   pointLabel: {
     fontSize: fontSize.body,
@@ -553,22 +558,28 @@ const styles = StyleSheet.create({
   },
   shortcuts: {
     flexDirection: "row",
-    gap: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   shortcut: {
     flex: 1,
-    gap: spacing.xs,
+    alignItems: "center",
+    gap: 6,
   },
-  shortcutTitle: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
+  shortcutIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceMuted,
+  },
+  shortcutLabel: {
+    fontSize: fontSize.caption,
+    fontWeight: "500",
     color: colors.text,
   },
-  partnerLink: {
-    fontSize: fontSize.small,
-    fontWeight: "600",
-    color: colors.textMuted,
-    paddingHorizontal: spacing.xs,
+  pressed: {
+    opacity: 0.7,
   },
   sectionTitle: {
     fontSize: fontSize.subtitle,
@@ -577,7 +588,31 @@ const styles = StyleSheet.create({
   },
   stats: {
     flexDirection: "row",
-    gap: spacing.sm,
+    alignItems: "center",
+    paddingVertical: 12,
+    borderRadius: radius.md,
+    backgroundColor: colors.primarySoft,
+  },
+  statHalf: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  statLabel: {
+    fontSize: fontSize.small,
+    color: colors.textMuted,
+  },
+  statValue: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: colors.primary,
+  },
+  statDivider: {
+    width: 1,
+    height: 14,
+    backgroundColor: colors.primaryMuted,
   },
   cardTitle: {
     fontSize: fontSize.body,
@@ -614,40 +649,13 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     color: colors.danger,
   },
-  cardTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  surveyTitle: {
-    fontSize: fontSize.subtitle,
-    fontWeight: "700",
-    color: colors.text,
-    lineHeight: 25,
-  },
-  progressTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "baseline",
-    marginTop: spacing.xs,
-  },
-  count: {
-    fontSize: fontSize.subtitle,
-    fontWeight: "800",
-    color: colors.primary,
-  },
-  progressRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  progress: {
     gap: spacing.sm,
   },
-  progressBar: {
-    flex: 1,
-  },
-  pct: {
-    fontSize: fontSize.small,
-    fontWeight: "700",
-    color: colors.primary,
+  progressNum: {
+    fontSize: fontSize.caption,
+    fontWeight: "600",
+    color: colors.cardTitle,
   },
   hubRow: {
     flexDirection: "row",
@@ -675,9 +683,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.sm,
-    marginTop: spacing.xs,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
   },
 });

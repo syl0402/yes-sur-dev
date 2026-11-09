@@ -4,6 +4,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 
+import { listCardStyles as list } from "@/components/listCardStyles";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import { Text } from "@/components/ui/Text";
@@ -85,7 +86,7 @@ export default function MyDataPanel() {
       {shown.length === 0 ? (
         <EmptyState {...EMPTY[tab]} />
       ) : (
-        <Card>
+        <Card style={list.card}>
           {shown.map((r, i) => (
             <Pressable
               key={r.id}

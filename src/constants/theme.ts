@@ -40,6 +40,8 @@ export const colors = {
   pastelPeach: "#FFE2D6", // 보상
   disabled: "#C5CAD6",
   onPrimary: "#FFFFFF",
+  // 파란 카드 위 흐린 흰색 (마이 포인트 카드 원 장식, 2026-11-10)
+  onPrimarySoft: "rgba(255, 255, 255, 0.12)",
   // 목록 창 뒤를 어둡게 덮는 색
   overlay: "rgba(23, 35, 60, 0.4)",
 };

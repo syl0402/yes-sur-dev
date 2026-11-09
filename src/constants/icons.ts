@@ -37,6 +37,15 @@ export const headerIcons = {
   back: "arrow-back",
 } satisfies Record<string, IconName>;
 
+// 마이 탭 바로가기 (2026-11-10, 이모지 → 아이콘)
+export const myIcons = {
+  feedback: "chatbubble-ellipses-outline",
+  invite: "gift-outline",
+  posts: "pencil-outline",
+  partner: "briefcase-outline",
+  forward: "chevron-forward",
+} satisfies Record<string, IconName>;
+
 // 데이터 결과 스크랩 (2026-11-10, ★ 저장 → 스크랩)
 export const bookmarkIcons = {
   on: "bookmark",
