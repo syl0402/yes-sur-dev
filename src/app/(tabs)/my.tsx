@@ -11,6 +11,7 @@ import ProgressBar from "@/components/ui/ProgressBar";
 import Segmented from "@/components/ui/Segmented";
 import StatTile from "@/components/ui/StatTile";
 import { Text } from "@/components/ui/Text";
+import TextTabs from "@/components/ui/TextTabs";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { type AdminCounts, fetchAdminCounts, totalPending } from "@/lib/admin";
 import { showConfirm } from "@/lib/confirm";
@@ -174,6 +175,8 @@ function surveyIdOf(refId: string | null): number | null {
 export default function My() {
   const [data, setData] = useState<MyData | null>(null);
   const [tab, setTab] = useState<Tab>("surveys");
+  // 내 설문: 진행 중 / 마감 (2026-11-10, 쌓인 설문 정리)
+  const [surveyFilter, setSurveyFilter] = useState<"open" | "closed">("open");
 
   // 탭에 돌아올 때마다 새로 불러온다 (응답 후 내역이 바로 보이게)
   useFocusEffect(
@@ -216,6 +219,10 @@ export default function My() {
 
   const openCount = data.surveys.filter((s) => !s.closed && !s.moderated).length;
   const totalResponses = data.surveys.reduce((sum, s) => sum + s.responseCount, 0);
+  // 검토 중인 설문은 마감 전이면 진행 중 칸에 둔다
+  const openSurveys = data.surveys.filter((s) => !s.closed);
+  const closedSurveys = data.surveys.filter((s) => s.closed);
+  const shownSurveys = surveyFilter === "open" ? openSurveys : closedSurveys;
 
   return (
     <ScrollView
@@ -330,7 +337,23 @@ export default function My() {
           {data.surveys.length === 0 ? (
             <EmptyState title="아직 올린 설문이 없어요" message="궁금한 걸 대학생들에게 물어보세요." emoji="📣" />
           ) : (
-            data.surveys.map((s) => <MySurveyCard key={s.id} survey={s} />)
+            <>
+              <TextTabs
+                options={[
+                  { value: "open", label: `진행 중 ${openSurveys.length}` },
+                  { value: "closed", label: `마감 ${closedSurveys.length}` },
+                ]}
+                value={surveyFilter}
+                onChange={setSurveyFilter}
+              />
+              {shownSurveys.length === 0 ? (
+                <Text style={styles.muted}>
+                  {surveyFilter === "open" ? "진행 중인 설문이 없어요." : "마감된 설문이 없어요."}
+                </Text>
+              ) : (
+                shownSurveys.map((s) => <MySurveyCard key={s.id} survey={s} />)
+              )}
+            </>
           )}
 
           <Button title="+ 새 설문 등록" variant="soft" onPress={() => router.push("/create")} />
