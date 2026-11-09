@@ -3,6 +3,7 @@ import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
+import AppIcon from "@/components/AppIcon";
 import PrimaryButton from "@/components/PrimaryButton";
 import ReportLink from "@/components/ReportLink";
 import CompositionChart from "@/components/results/CompositionChart";
@@ -13,6 +14,7 @@ import Badge from "@/components/ui/Badge";
 import BottomBar from "@/components/ui/BottomBar";
 import Card from "@/components/ui/Card";
 import { Text } from "@/components/ui/Text";
+import { bookmarkIcons } from "@/constants/icons";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
@@ -33,7 +35,7 @@ type Loaded = {
   preview: HubPreview;
   // 열람 전 미리보는 인사이트 1개
   teaser: HubTeaser | null;
-  // 내가 저장(☆)한 결과인지
+  // 내가 스크랩한 결과인지
   saved: boolean;
   comparison: Comparison[] | null;
   full: FullResults | null;
@@ -89,13 +91,13 @@ export default function HubResult() {
 
   const { preview: p, comparison, full, teaser, saved } = loaded;
 
-  // 저장 ↔ 해제 (먼저 화면을 바꾸고, 실패하면 되돌린다)
+  // 스크랩 ↔ 해제 (먼저 화면을 바꾸고, 실패하면 되돌린다)
   const toggleSaved = async () => {
     setLoaded({ ...loaded, saved: !saved });
     const { data, error } = await supabase.rpc("toggle_bookmark", { p_survey_id: surveyId });
     if (error) {
       setLoaded({ ...loaded, saved });
-      showNotice("저장하지 못했어요", errorMessage(error));
+      showNotice("스크랩하지 못했어요", errorMessage(error));
       return;
     }
     setLoaded({ ...loaded, saved: data === true });
@@ -131,7 +133,7 @@ export default function HubResult() {
           title: "설문 결과",
           headerRight: () => (
             <Pressable onPress={toggleSaved} hitSlop={10}>
-              <Text style={styles.star}>{saved ? "★" : "☆"}</Text>
+              <AppIcon name={saved ? bookmarkIcons.on : bookmarkIcons.off} size={24} color={colors.primary} />
             </Pressable>
           ),
         }}
@@ -320,10 +322,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     color: colors.primary,
     fontWeight: "600",
-  },
-  star: {
-    fontSize: 24,
-    color: colors.primary,
   },
   viewBox: {
     flex: 1,

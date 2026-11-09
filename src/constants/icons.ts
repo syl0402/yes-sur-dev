@@ -34,3 +34,9 @@ export const passwordIcons = {
 export const headerIcons = {
   back: "arrow-back",
 } satisfies Record<string, IconName>;
+
+// 데이터 결과 스크랩 (2026-11-10, ★ 저장 → 스크랩)
+export const bookmarkIcons = {
+  on: "bookmark",
+  off: "bookmark-outline",
+} satisfies Record<string, IconName>;

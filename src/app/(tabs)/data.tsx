@@ -1,4 +1,4 @@
-// ys-130 데이터 목록 · F-501 (2026-11-01: 검색 · 저장한 결과 · 카드 정리)
+// ys-130 데이터 목록 · F-501 (2026-11-01: 검색 · 스크랩 · 카드 정리)
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
@@ -12,6 +12,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import SelectButton from "@/components/ui/SelectButton";
 import { Text, TextInput } from "@/components/ui/Text";
 import TextTabs from "@/components/ui/TextTabs";
+import { bookmarkIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { formatDate } from "@/lib/format";
 import { HUB_SORT_OPTIONS, type HubItem, type HubSort } from "@/lib/hub";
@@ -32,7 +33,7 @@ export default function Data() {
   const [search, setSearch] = useState("");
   // 카드의 #태그를 누를 때마다 필터에 더한다 (모두 붙은 결과만, 2026-11-07)
   const [pickedTags, setPickedTags] = useState<Tag[]>([]);
-  // 내가 저장한 설문 번호
+  // 내가 스크랩한 설문 번호
   const [saved, setSaved] = useState<number[]>([]);
   // 데이터 허브에 올라가는 최소 응답 수 (빈 화면 안내용, point_rules)
   const [minCount, setMinCount] = useState<number | null>(null);
@@ -51,7 +52,7 @@ export default function Data() {
     setItems((data as HubItem[] | null) ?? []);
   }, [category, sort]);
 
-  // 탭에 돌아올 때·필터를 바꿀 때마다 새로 불러온다 (열람함·저장 표시가 바로 바뀌게)
+  // 탭에 돌아올 때·필터를 바꿀 때마다 새로 불러온다 (열람함·스크랩 표시가 바로 바뀌게)
   useFocusEffect(
     useCallback(() => {
       load();
@@ -114,7 +115,7 @@ export default function Data() {
         </View>
       )}
 
-      {/* 카테고리: 글자 탭 / 정렬 · 인증 단체 · 저장한 결과: 한 줄 (2026-11-02 정리) */}
+      {/* 카테고리: 글자 탭 / 정렬 · 인증 단체 · 스크랩: 한 줄 (2026-11-02 정리) */}
       <TextTabs
         options={[{ value: "all", label: "전체" }, ...categories.map((c) => ({ value: c.key, label: c.name }))]}
         value={category}
@@ -123,7 +124,7 @@ export default function Data() {
       <View style={styles.filters}>
         <SelectButton title="정렬" options={HUB_SORT_OPTIONS} value={sort} onChange={setSort} />
         <Chip label="✓ 인증 단체" selected={verifiedOnly} onPress={() => setVerifiedOnly(!verifiedOnly)} />
-        <Chip label={`★ 저장 ${saved.length}`} selected={savedOnly} onPress={() => setSavedOnly(!savedOnly)} />
+        <Chip icon={bookmarkIcons.on} label={`스크랩 ${saved.length}`} selected={savedOnly} onPress={() => setSavedOnly(!savedOnly)} />
       </View>
       {pickedTags.length > 0 && (
         <View style={styles.filters}>
@@ -161,7 +162,6 @@ export default function Data() {
                 <Badge label={i.category_name} />
                 {i.trusted && <Badge label="✓ 신뢰도 높음" tone="accent" />}
               </View>
-              {saved.includes(i.id) && <Text style={styles.star}>★</Text>}
             </View>
             <Text style={styles.title} numberOfLines={2}>
               {i.title}
@@ -186,7 +186,7 @@ export default function Data() {
 
 // 필터를 걸었는데 결과가 없을 때: 어떤 필터인지에 맞춰 안내 (2026-11-09 팀 피드백: 숨기지 말고 상황 안내)
 function emptyFilterMessage(saved: boolean, verified: boolean, tagged: boolean, searched: boolean) {
-  if (saved) return { title: "저장한 결과가 없어요", message: "결과 화면에서 ☆를 누르면 여기에 모아 볼 수 있어요.", emoji: "⭐" };
+  if (saved) return { title: "스크랩한 결과가 없어요", message: "결과 화면 오른쪽 위 책갈피를 누르면 여기에 모아 볼 수 있어요.", emoji: "🔖" };
   if (searched) return { title: "검색 결과가 없어요", message: "다른 단어로 검색해 보세요.", emoji: "🔍" };
   if (verified && !tagged)
     return {
@@ -265,10 +265,6 @@ const styles = StyleSheet.create({
   badges: {
     flexDirection: "row",
     gap: spacing.xs,
-  },
-  star: {
-    fontSize: fontSize.subtitle,
-    color: colors.primary,
   },
   title: {
     fontSize: fontSize.subtitle,
