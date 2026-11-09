@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
+import BalanceBar from "@/components/community/BalanceBar";
 import LinkedText from "@/components/LinkedText";
 import { percent } from "@/components/results/QuestionResult";
 import Badge from "@/components/ui/Badge";
@@ -31,6 +32,8 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
   const [earned, setEarned] = useState<number | null>(null);
   const showResult = post.counts !== null;
   const total = (post.counts ?? []).reduce((a, b) => a + b, 0);
+  // 보기 2개짜리 맞대결 (밸런스 · 나만 그래?)은 한 줄 막대로
+  const isDuel = (post.kind === "balance" || post.kind === "relate") && post.options.length === 2;
 
   const vote = async (choice: number) => {
     if (sending) return;
@@ -69,6 +72,18 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
 
       {post.kind === "promo" && post.survey ? (
         <PromoBox survey={post.survey} mine={post.mine} />
+      ) : showResult && isDuel ? (
+        // 밸런스 · 나만 그래?: 한 줄 A vs B 막대 (방금 투표했으면 커튼 열리듯)
+        <View style={styles.results}>
+          <BalanceBar
+            labels={[post.options[0], post.options[1]]}
+            pcts={duelPcts(post.counts ?? [], total)}
+            myChoice={post.my_choice}
+            animate={earned !== null}
+          />
+          {post.mine && post.my_choice === null && <Text style={styles.meta}>내 글이라 결과를 먼저 볼 수 있어요.</Text>}
+          {earned !== null && earned > 0 && <Text style={styles.earned}>+{formatPoints(earned)} 받았어요</Text>}
+        </View>
       ) : showResult ? (
         <View style={styles.results}>
           {post.options.map((label, i) => {
@@ -116,6 +131,13 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
       )}
     </Pressable>
   );
+}
+
+// 맞대결 비율: 합이 꼭 100이 되게 (A는 반올림, B는 나머지). 아무도 안 했으면 50:50
+function duelPcts(counts: number[], total: number): [number, number] {
+  if (total === 0) return [50, 50];
+  const a = Math.round(((counts[0] ?? 0) / total) * 100);
+  return [a, 100 - a];
 }
 
 // 설문 홍보글: 설문 요약 + [응답하러 가기]
