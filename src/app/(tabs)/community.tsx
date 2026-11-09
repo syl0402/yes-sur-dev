@@ -101,7 +101,7 @@ export default function Community() {
         {kind === "all" && <TrendingTicker items={hot} />}
 
         {/* 종류: 글자 탭 / 정렬: 선택 버튼 (2026-11-02 정리) */}
-        <TextTabs options={KIND_FILTERS} value={kind} onChange={setKind} />
+        <TextTabs options={KIND_FILTERS} value={kind} onChange={setKind} fill />
         {kind !== "worldcup" && (
           <View style={styles.filters}>
             <SelectButton title="정렬" options={POST_SORT_OPTIONS} value={sort} onChange={setSort} />
