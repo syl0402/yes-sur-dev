@@ -22,6 +22,8 @@ export type SurveyCard = {
   has_reward: boolean;
   // 작성자가 우리 학교(학생·교내 단체)인 설문 → "우리 학교" 칩 (2026-11-08)
   from_my_school: boolean;
+  // 내가 올린 설문 (2026-11-10 팀 피드백: 설문 탭에도 "내 설문" 표시로 보여 준다. 홈에서는 뺀다)
+  mine: boolean;
 };
 
 export type SortKey = "recommended" | "latest" | "closing" | "reward";
@@ -56,7 +58,8 @@ export async function fetchOpenSurveys(): Promise<SurveyCard[]> {
   const answered = new Set((responses ?? []).map((r) => r.survey_id));
 
   return (surveys ?? [])
-    .filter((s) => !answered.has(s.id) && s.owner_id !== myId && s.response_count < s.target_responses)
+    // 내 설문은 응답할 수 없지만 "내 설문" 표시로 함께 보여 준다
+    .filter((s) => s.owner_id === myId || (!answered.has(s.id) && s.response_count < s.target_responses))
     .map((s) => {
       // 카테고리는 설문 하나에 하나 (배열로 올 때와 객체로 올 때 모두 처리)
       const raw = s.survey_categories as unknown;
@@ -79,6 +82,7 @@ export async function fetchOpenSurveys(): Promise<SurveyCard[]> {
         // 한 설문에 하나라 객체로 오지만, 배열로 올 때도 처리
         has_reward: Array.isArray(s.survey_rewards) ? s.survey_rewards.length > 0 : !!s.survey_rewards,
         from_my_school: mySchool !== null && s.host_university_id === mySchool,
+        mine: s.owner_id === myId,
       };
     });
 }

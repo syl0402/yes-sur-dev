@@ -5,7 +5,7 @@ import { StyleSheet, View } from "react-native";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 
-export type BadgeTone = "primary" | "accent" | "muted" | "danger" | "hot";
+export type BadgeTone = "primary" | "accent" | "muted" | "danger" | "hot" | "solid";
 
 const tones: Record<BadgeTone, { bg: string; fg: string }> = {
   primary: { bg: colors.primarySoft, fg: colors.primary },
@@ -13,6 +13,8 @@ const tones: Record<BadgeTone, { bg: string; fg: string }> = {
   muted: { bg: colors.surfaceMuted, fg: colors.textMuted },
   danger: { bg: colors.dangerSoft, fg: colors.danger },
   hot: { bg: colors.hotSoft, fg: colors.hot },
+  // 진한 파랑 바탕 + 흰 글자 ("내 설문"처럼 눈에 띄어야 할 때, 2026-11-10)
+  solid: { bg: colors.primary, fg: colors.onPrimary },
 };
 
 export default function Badge({ label, tone = "primary" }: { label: string; tone?: BadgeTone }) {

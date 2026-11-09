@@ -55,7 +55,8 @@ async function fetchHome(): Promise<HomeData> {
     isOrg: profile?.account_type === "org",
     balance: typeof balance === "number" ? balance : 0,
     weekEarned: (earned ?? []).reduce((sum, r) => sum + r.amount, 0),
-    surveys: sortSurveys(surveys, "closing").slice(0, HOME_SURVEY_COUNT),
+    // 홈은 "지금 참여할 설문"이라 내 설문은 뺀다
+    surveys: sortSurveys(surveys.filter((s) => !s.mine), "closing").slice(0, HOME_SURVEY_COUNT),
   };
 }
 

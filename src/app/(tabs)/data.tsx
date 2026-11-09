@@ -156,7 +156,7 @@ export default function Data() {
         )
       ) : (
         shown.map((i) => (
-          <Card key={i.id} onPress={() => open(i.id)}>
+          <Card key={i.id} onPress={() => open(i.id)} style={i.mine && styles.mineCard}>
             <View style={styles.cardTop}>
               <View style={styles.badges}>
                 <Badge label={i.category_name} />
@@ -172,7 +172,7 @@ export default function Data() {
                 {formatHost(i)} · 응답 {i.response_count} · 열람 {i.view_count} · {formatDate(i.ended_at)}
               </Text>
               {i.mine ? (
-                <Badge label="내 설문" tone="primary" />
+                <Badge label="내 설문" tone="solid" />
               ) : i.viewed ? (
                 <Badge label="열람함" tone="muted" />
               ) : i.free ? (
@@ -201,6 +201,11 @@ function emptyFilterMessage(saved: boolean, verified: boolean, tagged: boolean, 
 }
 
 const styles = StyleSheet.create({
+  // 내 설문: 파란 테두리 + 아주 옅은 파랑 바탕 (설문 탭 카드와 같게, 2026-11-10)
+  mineCard: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySoft,
+  },
   screen: {
     flex: 1,
     backgroundColor: colors.background,
