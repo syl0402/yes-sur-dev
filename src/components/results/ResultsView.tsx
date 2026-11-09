@@ -381,7 +381,8 @@ const styles = StyleSheet.create({
     gap: 6,
     padding: spacing.sm,
     borderRadius: radius.md,
-    backgroundColor: colors.background,
+    // 카드 안 옅은 상자 (화면 바탕이 흰색이 되어 회색 상자 색으로, 2026-11-09)
+    backgroundColor: colors.surfaceMuted,
   },
   groupTitle: {
     fontSize: fontSize.small,

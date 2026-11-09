@@ -32,6 +32,13 @@ export function formatCommentTime(iso: string): string {
   return d.getFullYear() === new Date().getFullYear() ? day : `${d.getFullYear()}/${day}`;
 }
 
+// 짧은 날짜: 올해면 "11.7", 지난해면 "2025.11.7" (목록 카드 "등록 11.7", 2026-11-09)
+export function formatShortDate(iso: string): string {
+  const d = new Date(iso);
+  const md = `${d.getMonth() + 1}.${d.getDate()}`;
+  return d.getFullYear() === new Date().getFullYear() ? md : `${d.getFullYear()}.${md}`;
+}
+
 // 날짜: "2026-10-29T..." → "2026.10.29"
 export function formatDate(iso: string): string {
   const d = new Date(iso);

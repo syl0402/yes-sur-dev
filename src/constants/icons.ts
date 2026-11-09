@@ -21,6 +21,8 @@ export const homeIcons = {
   create: "add",
   data: "bar-chart-outline",
   time: "time-outline",
+  // 목록 카드 소요 시간 (꽉 찬 시계, 2026-11-09 피그마)
+  timeFill: "time",
   sparkle: "sparkles",
 } satisfies Record<string, IconName>;
 

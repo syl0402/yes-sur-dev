@@ -3,6 +3,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
+import { listCardStyles as card } from "@/components/listCardStyles";
 import PrimaryButton from "@/components/PrimaryButton";
 import TagRow from "@/components/TagRow";
 import Badge from "@/components/ui/Badge";
@@ -14,7 +15,7 @@ import { Text, TextInput } from "@/components/ui/Text";
 import TextTabs from "@/components/ui/TextTabs";
 import { bookmarkIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
-import { formatDate } from "@/lib/format";
+import { formatShortDate } from "@/lib/format";
 import { HUB_SORT_OPTIONS, type HubItem, type HubSort } from "@/lib/hub";
 import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
@@ -156,27 +157,39 @@ export default function Data() {
         )
       ) : (
         shown.map((i) => (
-          <Card key={i.id} onPress={() => open(i.id)} style={i.mine && styles.mineCard}>
-            <View style={styles.cardTop}>
-              <View style={styles.badges}>
-                <Badge label={i.category_name} />
-                {i.trusted && <Badge label="✓ 신뢰도 높음" tone="accent" />}
+          <Card key={i.id} onPress={() => open(i.id)} style={[card.card, i.mine && card.mineCard]}>
+            {/* 설문 탭 카드와 같은 모양 (2026-11-09 피그마): 주최·마감일 / 제목 / #태그 / 표시·숫자 + 상태 */}
+            <View style={card.head}>
+              <View style={card.top}>
+                <Text style={card.host} numberOfLines={1}>
+                  {formatHost(i)}
+                </Text>
+                <Text style={card.sub}>{formatShortDate(i.ended_at)} 마감</Text>
               </View>
-            </View>
-            <Text style={styles.title} numberOfLines={2}>
-              {i.title}
-            </Text>
-            <TagRow tags={i.tags ?? []} onPress={(t) => setPickedTags(addTag(pickedTags, t))} />
-            <View style={styles.cardBottom}>
-              <Text style={styles.meta} numberOfLines={1}>
-                {formatHost(i)} · 응답 {i.response_count} · 열람 {i.view_count} · {formatDate(i.ended_at)}
+              <Text style={card.title} numberOfLines={2}>
+                {i.title}
               </Text>
-              {i.mine ? (
-                <Badge label="내 설문" tone="solid" />
-              ) : i.viewed ? (
+              <TagRow tags={i.tags ?? []} onPress={(t) => setPickedTags(addTag(pickedTags, t))} />
+            </View>
+            <View style={card.bottom}>
+              <View style={card.bottomLeft}>
+                <View style={card.badges}>
+                  {i.mine && <Badge label="내 설문" tone="solid" />}
+                  <Badge label={i.category_name} tone="blue" />
+                  {i.trusted && <Badge label="신뢰도 높음" tone="lime" />}
+                </View>
+                <View style={card.meta}>
+                  <Text style={card.sub}>응답 {i.response_count}명</Text>
+                  <Text style={card.sub}>열람 {i.view_count}회</Text>
+                </View>
+              </View>
+              {/* 오른쪽 알약: 처음 보는 무료 결과는 파란 알약, 이미 본 결과는 회색 표시 */}
+              {i.mine ? null : i.viewed ? (
                 <Badge label="열람함" tone="muted" />
               ) : i.free ? (
-                <Badge label="무료" tone="accent" />
+                <View style={card.pill}>
+                  <Text style={card.pillText}>무료</Text>
+                </View>
               ) : null}
             </View>
           </Card>
@@ -201,11 +214,6 @@ function emptyFilterMessage(saved: boolean, verified: boolean, tagged: boolean, 
 }
 
 const styles = StyleSheet.create({
-  // 내 설문: 파란 테두리 + 아주 옅은 파랑 바탕 (설문 탭 카드와 같게, 2026-11-10)
-  mineCard: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primarySoft,
-  },
   screen: {
     flex: 1,
     backgroundColor: colors.background,
@@ -263,31 +271,5 @@ const styles = StyleSheet.create({
   },
   emptyBox: {
     gap: spacing.md,
-  },
-  cardTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  badges: {
-    flexDirection: "row",
-    gap: spacing.xs,
-  },
-  title: {
-    fontSize: fontSize.subtitle,
-    fontWeight: "700",
-    color: colors.text,
-    lineHeight: 25,
-  },
-  cardBottom: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.sm,
-  },
-  meta: {
-    flex: 1,
-    fontSize: fontSize.small,
-    color: colors.textMuted,
   },
 });

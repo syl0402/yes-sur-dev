@@ -118,6 +118,7 @@ import { Text, TextInput } from "@/components/ui/Text";
 | `Logo` | 제목줄 로고 |
 
 설문 한 개 카드는 `src/components/SurveyListCard.tsx` (홈·설문 목록 공용).
+목록 카드 모양(여백·글씨·포인트 알약)은 `src/components/listCardStyles.ts` 한 곳에서 설문 탭·데이터 탭이 같이 쓴다 (2026-11-09 피그마 116:329).
 
 ### 내가 쓴 글 (`src/app/my-posts.tsx`, 2026-11-10)
 - `supabase.rpc("get_my_posts")` → 내 글 `[{ id, kind, question, moderation, created_at, votes, comment_count }]`, `supabase.rpc("get_my_comments")` → 내 댓글 `[{ id, body, moderation, created_at, target_type, target_id, target_title, today }]`. 본인 것만, 내가 지운 것 제외

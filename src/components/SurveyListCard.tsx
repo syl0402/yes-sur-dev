@@ -1,15 +1,16 @@
-// 설문 한 개 카드 (홈·설문 목록). 계열 뱃지 · 제목 · #태그 · 시간·주최·마감 · 보상 (2026-10-31 디자인, 태그 2026-11-07, 내 설문 표시 2026-11-10)
+// 설문 한 개 카드 (홈·설문 목록). 주최·남은 시간 / 제목 / #태그 / 표시·시간 + 포인트 (2026-10-31 디자인, 태그 2026-11-07, 내 설문 표시 2026-11-10, 피그마 카드 2026-11-09)
 import { router } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 
 import AppIcon from "@/components/AppIcon";
+import { listCardStyles as styles } from "@/components/listCardStyles";
 import TagRow from "@/components/TagRow";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import { Text } from "@/components/ui/Text";
 import { homeIcons } from "@/constants/icons";
-import { colors, fontSize, radius, spacing } from "@/constants/theme";
-import { formatAgo, formatPoints, formatTimeLeft } from "@/lib/format";
+import { colors } from "@/constants/theme";
+import { formatAgo, formatPoints, formatShortDate, formatTimeLeft } from "@/lib/format";
 import { type SurveyCard, formatHost } from "@/lib/surveys";
 import { encodeTags, type Tag } from "@/lib/tags";
 
@@ -21,33 +22,47 @@ type Props = {
 
 export default function SurveyListCard({ survey: s, onTagPress }: Props) {
   const timeLeft = formatTimeLeft(s.closes_at);
+  const created = formatShortDate(s.created_at);
+  const ago = formatAgo(s.created_at);
   const pressTag =
     onTagPress ??
     ((t: Tag) => router.navigate({ pathname: "/surveys", params: { tags: encodeTags([t]) } }));
   return (
     <Card
       onPress={() => router.push({ pathname: "/survey/[id]", params: { id: String(s.id) } })}
-      style={s.mine && styles.mineCard}
+      style={[styles.card, s.mine && styles.mineCard]}
     >
-      <View style={styles.top}>
-        <View style={styles.badges}>
-          {s.mine && <Badge label="내 설문" tone="solid" />}
-          <Badge label={s.category_name} />
-          {s.audience === "campus" && <Badge label="우리 학교" tone="accent" />}
-          {s.has_reward && <Badge label="🎁 보상" tone="hot" />}
-        </View>
-        {timeLeft ? <Text style={styles.timeLeft}>{timeLeft}</Text> : null}
-      </View>
-      <Text style={styles.title} numberOfLines={2}>
-        {s.title}
-      </Text>
-      <TagRow tags={s.tags} onPress={pressTag} />
-      <View style={styles.bottom}>
-        <View style={styles.meta}>
-          <AppIcon name={homeIcons.time} size={14} color={colors.textMuted} />
-          <Text style={styles.metaText} numberOfLines={1}>
-            {[`약 ${s.est_minutes}분`, formatHost(s), formatAgo(s.created_at)].filter(Boolean).join(" · ")}
+      {/* 주최(파란 글씨) · 남은 시간 / 제목 / #태그 */}
+      <View style={styles.head}>
+        <View style={styles.top}>
+          <Text style={styles.host} numberOfLines={1}>
+            {formatHost(s)}
           </Text>
+          {timeLeft ? <Text style={styles.sub}>{timeLeft}</Text> : null}
+        </View>
+        <Text style={styles.title} numberOfLines={2}>
+          {s.title}
+        </Text>
+        <TagRow tags={s.tags} onPress={pressTag} />
+      </View>
+      <View style={styles.bottom}>
+        <View style={styles.bottomLeft}>
+          {/* 파스텔 표시: 카테고리 · 우리 학교 · 보상 */}
+          <View style={styles.badges}>
+            {s.mine && <Badge label="내 설문" tone="solid" />}
+            <Badge label={s.category_name} tone="blue" />
+            {s.audience === "campus" && <Badge label="우리 학교" tone="lime" />}
+            {s.has_reward && <Badge label="보상" tone="peach" />}
+          </View>
+          {/* 소요 시간 · 등록일 · 얼마 전 (등록일과 같으면 한 번만) */}
+          <View style={styles.meta}>
+            <View style={styles.metaIcon}>
+              <AppIcon name={homeIcons.timeFill} size={11} color={colors.cardSub} />
+              <Text style={styles.sub}>약 {s.est_minutes}분</Text>
+            </View>
+            <Text style={styles.sub}>등록 {created}</Text>
+            {ago !== created ? <Text style={styles.sub}>{ago}</Text> : null}
+          </View>
         </View>
         {/* 내 설문은 내가 받을 보상이 아니라 모인 응답 수 */}
         {s.mine ? (
@@ -55,71 +70,11 @@ export default function SurveyListCard({ survey: s, onTagPress }: Props) {
             응답 {s.response_count}/{s.target_responses}명
           </Text>
         ) : (
-          <View style={styles.reward}>
-            <Text style={styles.rewardText}>+{formatPoints(s.reward_points)}</Text>
+          <View style={styles.pill}>
+            <Text style={styles.pillText}>{formatPoints(s.reward_points)}</Text>
           </View>
         )}
       </View>
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  // 내 설문: 파란 테두리 + 아주 옅은 파랑 바탕 (2026-11-10)
-  mineCard: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primarySoft,
-  },
-  top: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  badges: {
-    flexDirection: "row",
-    gap: spacing.xs,
-  },
-  timeLeft: {
-    fontSize: fontSize.caption,
-    color: colors.textMuted,
-  },
-  title: {
-    fontSize: fontSize.subtitle,
-    fontWeight: "700",
-    color: colors.text,
-    lineHeight: 25,
-  },
-  bottom: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  meta: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  metaText: {
-    flexShrink: 1,
-    fontSize: fontSize.small,
-    color: colors.textMuted,
-  },
-  // 보상: 연연두 알약 (브랜드 라임)
-  reward: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: 10,
-    borderRadius: radius.pill,
-    backgroundColor: colors.accentSoft,
-  },
-  rewardText: {
-    fontSize: fontSize.small,
-    fontWeight: "800",
-    color: colors.onAccentSoft,
-  },
-  progressText: {
-    fontSize: fontSize.small,
-    fontWeight: "700",
-    color: colors.primary,
-  },
-});

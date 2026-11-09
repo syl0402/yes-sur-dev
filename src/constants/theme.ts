@@ -1,5 +1,5 @@
 // 앱 전체 색·글꼴·글자 크기·간격·둥글기·그림자. 화면에서는 여기 값만 쓴다 (디자인이 바뀌면 이 파일만 고친다).
-// 2026-10-31 디자인 시안(로고·마스코트·화면 시안) 반영: 메인 블루 #3157D5 · 서브 라임 #B7E65A · 텍스트 네이비 #17233C · 배경 #F5F7FF
+// 2026-10-31 디자인 시안(로고·마스코트·화면 시안) 반영: 메인 블루 #3157D5 · 서브 라임 #B7E65A · 텍스트 네이비 #17233C · 배경 #F5F7FF (2026-11-09 흰색으로 변경)
 
 export const colors = {
   // 브랜드
@@ -21,7 +21,7 @@ export const colors = {
   textSubtle: "#A0A7B6",
 
   // 바탕
-  background: "#F5F7FF", // 화면 바탕
+  background: "#FFFFFF", // 화면 바탕 (2026-11-09 연파랑 #F5F7FF → 흰색)
   surface: "#FFFFFF", // 카드·입력칸·하단 탭
   surfaceMuted: "#F2F4F8", // 카드 안 회색 상자·꺼진 칩
   border: "#E3E7F0",
@@ -32,6 +32,12 @@ export const colors = {
   // 커뮤니티 HOT 표시 (롤링 줄 제목·🔥 HOT 뱃지, 2026-11-03)
   hot: "#E5484D",
   hotSoft: "#FDECEC",
+  // 목록 카드 (2026-11-09 피그마 카드 디자인 116:329): 제목 진회색 · 보조 글씨 회색 · 표시 바탕 파스텔 3색
+  cardTitle: "#2F3133",
+  cardSub: "#757B80",
+  pastelBlue: "#ECF0FB", // 카테고리
+  pastelLime: "#F2F9E3", // 우리 학교 · 신뢰도 높음
+  pastelPeach: "#FFE2D6", // 보상
   disabled: "#C5CAD6",
   onPrimary: "#FFFFFF",
   // 목록 창 뒤를 어둡게 덮는 색
@@ -63,6 +69,7 @@ export const radius = {
   sm: 8, // 작은 상자·뱃지
   md: 12, // 버튼·입력칸
   lg: 16, // 카드
+  xl: 20, // 설문·데이터 목록 카드 (2026-11-09 피그마)
   pill: 999, // 칩·알약 모양
 };
 
@@ -74,5 +81,11 @@ export const shadow = {
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
+  },
+  // 설문·데이터 목록 카드: 테두리 없이 그림자만 (2026-11-09 피그마: 아래로 2 · 흐림 5 · 검정 20%)
+  listCard: {
+    shadowOpacity: 0,
+    elevation: 0,
+    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
   },
 };
