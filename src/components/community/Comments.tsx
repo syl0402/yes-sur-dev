@@ -10,7 +10,7 @@ import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { type Comment, COMMENT_MAX, type CommentTarget, fetchCanAnonymous } from "@/lib/community";
 import { showActions, showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
-import { formatDateTime } from "@/lib/format";
+import { formatCommentTime } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
 
@@ -151,7 +151,7 @@ export default function Comments({ type, id, onChanged }: { type: CommentTarget;
           {c.body}
         </LinkedText>
         <View style={styles.foot}>
-          <Text style={styles.date}>{formatDateTime(c.created_at)}</Text>
+          <Text style={styles.date}>{formatCommentTime(c.created_at)}</Text>
           {c.likes > 0 && <Text style={[styles.likes, c.liked && styles.likesOn]}>👍 {c.likes}</Text>}
         </View>
       </View>

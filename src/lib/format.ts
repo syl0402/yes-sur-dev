@@ -21,9 +21,12 @@ export function formatAgo(iso: string): string {
   return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
 }
 
-// 날짜와 시각: "11/01 20:37" (올해) · "2025/11/01 20:37" (2026-11-03, 댓글·글 상세)
-export function formatDateTime(iso: string): string {
+// 댓글 시각 (에브리타임 방식): 1시간 안은 방금 · n분 전, 그 뒤는 "11/01 20:37" (올해) · "2025/11/01 20:37" (2026-11-10)
+export function formatCommentTime(iso: string): string {
   const d = new Date(iso);
+  const min = Math.floor((Date.now() - d.getTime()) / 60000);
+  if (min < 1) return "방금";
+  if (min < 60) return `${min}분 전`;
   const pad = (n: number) => String(n).padStart(2, "0");
   const day = `${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   return d.getFullYear() === new Date().getFullYear() ? day : `${d.getFullYear()}/${day}`;
