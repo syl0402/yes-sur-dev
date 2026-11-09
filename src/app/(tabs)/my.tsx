@@ -23,6 +23,8 @@ import { type ResultVisibility, type SavedDraft, VISIBILITY_LABELS, deleteDraft,
 const ACCOUNT_HREF = "/account" as Href;
 // 운영자 화면 (admin/index.tsx). 같은 이유로 Href로 고정
 const ADMIN_HREF = "/admin" as Href;
+// 내가 쓴 글 (my-posts.tsx, 2026-11-10). 같은 이유로 Href로 고정
+const MY_POSTS_HREF = "/my-posts" as Href;
 
 // TODO(임시): 포인트 내역은 최근 50개만 · 내역이 많아지면 아래로 내릴 때 더 불러오기 · docs/PROGRESS.md
 const LEDGER_LIMIT = 50;
@@ -289,6 +291,10 @@ export default function My() {
           </Card>
         )}
       </View>
+      {/* 내가 쓴 커뮤니티 글·댓글 (2026-11-10) */}
+      <Pressable onPress={() => router.push(MY_POSTS_HREF)} hitSlop={8}>
+        <Text style={styles.partnerLink}>✏️ 내가 쓴 글·댓글 ›</Text>
+      </Pressable>
       {!data.isOrg && (
         <Pressable onPress={() => router.push("/partnership")} hitSlop={8}>
           <Text style={styles.partnerLink}>🤝 제휴·광고 문의 ›</Text>

@@ -119,6 +119,9 @@ import { Text, TextInput } from "@/components/ui/Text";
 
 설문 한 개 카드는 `src/components/SurveyListCard.tsx` (홈·설문 목록 공용).
 
+### 내가 쓴 글 (`src/app/my-posts.tsx`, 2026-11-10)
+- `supabase.rpc("get_my_posts")` → 내 글 `[{ id, kind, question, moderation, created_at, votes, comment_count }]`, `supabase.rpc("get_my_comments")` → 내 댓글 `[{ id, body, moderation, created_at, target_type, target_id, target_title, today }]`. 본인 것만, 내가 지운 것 제외
+
 ### 운영자 화면 (`src/app/admin/`, `src/lib/admin.ts`, 2026-10-31)
 팀 운영자 계정(`profiles.role = 'admin'`)만. 마이 탭 맨 위 🛠 운영 카드(`fetchAdminCounts`가 운영자가 아니면 null) → `admin/index.tsx` [신고 | 의견 | 단체]. 답변은 `admin/reply.tsx`, 단체 거절 사유는 `admin/reject.tsx`. 서버 함수는 모두 함수 안에서 운영자인지 다시 확인한다 (docs/DB.md `admin_*`).
 
