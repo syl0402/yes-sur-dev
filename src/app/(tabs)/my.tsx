@@ -17,6 +17,7 @@ import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { type AdminCounts, fetchAdminCounts, totalPending } from "@/lib/admin";
 import { showConfirm } from "@/lib/confirm";
 import { formatDate, formatPoints } from "@/lib/format";
+import type { HubItem } from "@/lib/hub";
 import { supabase } from "@/lib/supabase";
 import { type ResultVisibility, type SavedDraft, VISIBILITY_LABELS, deleteDraft, listDrafts } from "@/lib/surveyDraft";
 
@@ -64,6 +65,8 @@ type MySurvey = {
   closed: boolean;
   // 신고로 숨겨짐(운영자 확인 중) 또는 운영자가 삭제
   moderated: boolean;
+  // 데이터 탭에 공개된 결과면 열람 수, 아니면 null (2026-11-09 개인 피드백 12번)
+  hubViews: number | null;
   createdAt: string;
   visibility: ResultVisibility;
 };
@@ -83,14 +86,18 @@ type MyData = {
   admin: AdminCounts | null;
 };
 
-// 내가 올린 설문 (최신순)
+// 내가 올린 설문 (최신순) + 데이터 탭에 공개됐는지 (데이터 탭과 같은 get_hub_list에서 mine인 것)
 async function fetchMySurveys(userId: string): Promise<MySurvey[]> {
   if (!userId) return [];
-  const { data } = await supabase
-    .from("surveys")
-    .select("id, title, response_count, target_responses, status, closes_at, moderation, created_at, result_visibility")
-    .eq("owner_id", userId)
-    .order("created_at", { ascending: false });
+  const [{ data }, { data: hub }] = await Promise.all([
+    supabase
+      .from("surveys")
+      .select("id, title, response_count, target_responses, status, closes_at, moderation, created_at, result_visibility")
+      .eq("owner_id", userId)
+      .order("created_at", { ascending: false }),
+    supabase.rpc("get_hub_list", { p_category: null, p_sort: "latest" }),
+  ]);
+  const hubViews = new Map(((hub as HubItem[] | null) ?? []).filter((h) => h.mine).map((h) => [h.id, h.view_count]));
   const now = Date.now();
   return (data ?? []).map((s) => ({
     id: s.id,
@@ -101,6 +108,7 @@ async function fetchMySurveys(userId: string): Promise<MySurvey[]> {
     moderated: s.moderation !== "visible",
     createdAt: s.created_at,
     visibility: s.result_visibility,
+    hubViews: hubViews.get(s.id) ?? null,
   }));
 }
 
@@ -418,6 +426,18 @@ function MySurveyCard({ survey: s }: { survey: MySurvey }) {
         <Text style={styles.pct}>{pct}%</Text>
       </View>
 
+      {/* 데이터 탭에 공개된 결과: 남들이 얼마나 봤는지 + 데이터 탭 화면으로 (결과 보기는 계속 등록자 화면) */}
+      {s.hubViews !== null && (
+        <Pressable
+          style={styles.hubRow}
+          onPress={() => router.push({ pathname: "/data/[id]", params: { id: String(s.id) } })}
+          hitSlop={6}
+        >
+          <Text style={styles.hubText}>📊 데이터 탭 공개 중 · 열람 {s.hubViews}회</Text>
+          <Text style={styles.hubLink}>데이터 탭에서 보기 ›</Text>
+        </Pressable>
+      )}
+
       <View style={styles.cardBottom}>
         <Text style={styles.muted}>결과 공개 · {VISIBILITY_LABELS[s.visibility]}</Text>
         <Button
@@ -625,6 +645,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pct: {
+    fontSize: fontSize.small,
+    fontWeight: "700",
+    color: colors.primary,
+  },
+  hubRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.primarySoft,
+  },
+  hubText: {
+    flexShrink: 1,
+    fontSize: fontSize.small,
+    fontWeight: "600",
+    color: colors.text,
+  },
+  hubLink: {
     fontSize: fontSize.small,
     fontWeight: "700",
     color: colors.primary,
