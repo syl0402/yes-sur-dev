@@ -77,28 +77,26 @@ export function csvFileName(title: string, kind: "집계" | "원본"): string {
 }
 
 // CSV 실패 안내 문구
-// TODO(임시): 오류 이유 한 줄을 같이 보여 줌 (안드로이드 CSV 실패 원인 확인용) · 원인이 확인되면 "잠시 후 다시 시도해 주세요."만 남기기 · docs/PROGRESS.md
-export function csvErrorMessage(e: unknown): string {
-  const detail = e instanceof Error ? e.message : String(e);
-  return `잠시 후 다시 시도해 주세요.\n(${detail.slice(0, 120)})`;
-}
+const CSV_FAIL_MESSAGE = "잠시 후 다시 시도해 주세요.";
+
+// 안드로이드 공유 때 알려 주는 파일 종류. text/csv면 카톡이 글자 공유로 받아 파일이 안 붙는다
+// (2026-11-10 효정님 폰 실험: 엑셀 파일 ⭕ · 일반 파일 ⭕ · */* ❌ → 시트·엑셀이 바로 알아보는 엑셀 파일로)
+const ANDROID_SHARE_MIME = "application/vnd.ms-excel";
 
 // CSV 받기 버튼 (집계·원본 공통). 실패 안내까지 여기서 한다
 // - 웹·아이폰: 바로 다운로드 / 공유 창
-// - 안드로이드: [폰에 저장]·[다른 앱으로 보내기] 고르기 (2026-11-07: 공유로 넘긴 파일을 카톡·메일·파일 앱이 못 받음)
+// - 안드로이드: [폰에 저장]·[다른 앱으로 보내기] 고르기
 export function exportCsv(title: string, kind: "집계" | "원본", text: string) {
-  const fail = (e: unknown) => showNotice("파일을 만들지 못했어요", csvErrorMessage(e));
+  const fail = () => showNotice("파일을 만들지 못했어요", CSV_FAIL_MESSAGE);
   if (Platform.OS !== "android") {
     shareCsv(csvFileName(title, kind), text).catch(fail);
     return;
   }
+  // 받는 앱이 한글 이름을 못 읽는 경우가 있어 영문 이름으로
+  const shareName = `yessur_${kind === "집계" ? "summary" : "raw"}.csv`;
   showActions("CSV 받기", [
     { label: "폰에 저장 (폴더 고르기)", onPress: () => saveCsvToFolder(csvFileName(title, kind), text).catch(fail) },
-    // 받는 앱이 한글 이름을 못 읽는 경우가 있어 영문 이름으로
-    {
-      label: "다른 앱으로 보내기",
-      onPress: () => shareCsv(`yessur_${kind === "집계" ? "summary" : "raw"}.csv`, text).catch(fail),
-    },
+    { label: "다른 앱으로 보내기 (카톡·메일)", onPress: () => shareCsv(shareName, text, ANDROID_SHARE_MIME).catch(fail) },
   ]);
 }
 
@@ -116,7 +114,8 @@ async function saveCsvToFolder(fileName: string, text: string): Promise<void> {
 }
 
 // 폰: 임시 파일로 저장 → 공유 창 (카톡·메일·드라이브·파일 앱). 웹(개발 확인용): 바로 다운로드
-export async function shareCsv(fileName: string, text: string): Promise<void> {
+// mimeType: 받는 앱에 알려 주는 파일 종류 (기본 text/csv, 안드로이드는 ANDROID_SHARE_MIME)
+export async function shareCsv(fileName: string, text: string, mimeType = "text/csv"): Promise<void> {
   if (Platform.OS === "web") {
     const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
@@ -132,7 +131,7 @@ export async function shareCsv(fileName: string, text: string): Promise<void> {
   file.create();
   file.write(text);
   await Sharing.shareAsync(file.uri, {
-    mimeType: "text/csv",
+    mimeType,
     UTI: "public.comma-separated-values-text",
     dialogTitle: fileName,
   });
