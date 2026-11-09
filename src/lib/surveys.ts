@@ -99,7 +99,7 @@ function closingTime(s: SurveyCard): number {
   return s.closes_at ? new Date(s.closes_at).getTime() : Number.MAX_SAFE_INTEGER;
 }
 
-// 정렬. 추천순 = 우리 학교 설문 먼저 → 마감 임박 → 남은 자리 적은 순 (2026-10-29 결정)
+// 정렬. 추천순 = 우리 학교 설문 먼저 → 마감 임박 → 남은 자리 적은 순 (2026-10-29 결정), 내 설문은 맨 아래 (2026-11-10)
 export function sortSurveys(list: SurveyCard[], key: SortKey): SurveyCard[] {
   const copy = [...list];
   switch (key) {
@@ -112,6 +112,8 @@ export function sortSurveys(list: SurveyCard[], key: SortKey): SurveyCard[] {
     case "recommended":
       return copy.sort(
         (a, b) =>
+          // 내 설문은 응답할 수 없으니 맨 아래 (2026-11-10)
+          Number(a.mine) - Number(b.mine) ||
           // 우리 학교 사람·단체가 올린 설문 먼저 ("우리 학교" 칩과 같은 기준, 2026-11-08)
           Number(b.from_my_school) - Number(a.from_my_school) ||
           closingTime(a) - closingTime(b) ||

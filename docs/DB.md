@@ -43,6 +43,12 @@
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 | `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
 | `20261031000001_too_fast.sql` | 너무 빠른 응답(문항 수 × `min_seconds_per_question`초 미만)은 확인 문항 오답과 같게 반려, `submit_response`에 `reason`(attention·too_fast) | 2026-10-31 |
+| `20261110000006_question_options.sql` | 문항 옵션: `questions.is_required`(주관식만 false)·`shuffle_options`, `question_options.kind`(normal·none·other, 문항마다 특별 보기 1개씩). `create_survey` 문항에 required·shuffle·none·other, `submit_response` 선택 주관식 건너뛰기·기타 글(`other_text` 1~100자 → `text_value`)·해당 없음 단독, `get_survey_results` `other_texts`·보기 `kind`, `get_survey_raw` "기타 (직접 입력): 글", `get_survey_for_copy` 옵션 포함 | 2026-11-10 |
+| `20261110000005_tags_hobby.sql` | 태그 2개 추가: 취미(숨김 → 다시 켬)·여가시간(새로). '여행' 뒤, 트렌드·밈은 맨 뒤 → 23개 | 2026-11-10 |
+| `20261110000004_my_posts.sql` | `get_my_posts`·`get_my_comments`: 마이 "내가 쓴 글" (본인 것만, 내가 지운 것 제외) | 2026-11-10 |
+| `20261110000003_survey_delete_confirmed.sql` | `delete_survey`: 정상 응답 0명이면 삭제 (확인 문항 오답 응답은 함께 지움) | 2026-11-10 |
+| `20261110000002_survey_delete.sql` | `delete_survey`(등록비 − 받은 환불만큼 `survey_delete`로 환불)·`get_survey_for_copy`(다시 고치기용, 확인 문항 제외) | 2026-11-10 |
+| `20261110000001_hub_show_mine.sql` | `get_hub_list`: 남에게 보이는 조건을 갖춘 내 설문도 목록에 + `mine` | 2026-11-10 |
 | `20261108000003_tags_final.sql` | 태그 확정 21개 (기획팀): 같은 뜻은 이름만 변경(연결 유지) · 빠진 6개 숨김·연결 삭제 · 새 7개 추가 · 순서 | 2026-11-08 |
 | `20261108000002_survey_host_school.sql` | `surveys.host_university_id` = 작성자 학교 (트리거로 채움) → 설문 탭 "우리 학교" 칩·추천순 | 2026-11-08 |
 | `20261108000001_survey_edit.sql` | `update_survey_texts`: 작성자·마감 전 설명·보상 안내 수정, `set_survey_reward` 금칙어 검사 | 2026-11-08 |

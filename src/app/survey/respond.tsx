@@ -1,4 +1,4 @@
-// ys-112 설문 응답 · F-301~302 (2026-10-31 디자인: 진행 카드 · 질문 카드 · 선택지 카드 · 아래 이전/다음)
+// ys-112 설문 응답 · F-301~302 (2026-10-31 디자인: 진행 카드 · 질문 카드 · 선택지 카드 · 아래 이전/다음 · 2026-11-10 선택 주관식·기타·해당 없음·섞기)
 import { Stack, router, useLocalSearchParams, usePreventRemove } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
@@ -19,12 +19,13 @@ import { formatPoints } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
-import { type QuestionType, SCALE_LABELS } from "@/lib/surveyDraft";
+import { OTHER_TEXT_MAX, type OptionKind, type QuestionType, SCALE_LABELS } from "@/lib/surveyDraft";
 
-type Option = { id: number; sort_order: number; text: string };
-type Question = { id: number; type: QuestionType; text: string; options: Option[] };
-// 문항 하나의 답: 고르기는 optionIds, 척도는 scale(1~5), 주관식은 text
-type Answer = { optionIds?: number[]; scale?: number; text?: string };
+type Option = { id: number; sort_order: number; text: string; kind: OptionKind };
+// required: false면 비워도 되는 주관식 (2026-11-10)
+type Question = { id: number; type: QuestionType; text: string; required: boolean; options: Option[] };
+// 문항 하나의 답: 고르기는 optionIds(+ 기타를 골랐으면 otherText), 척도는 scale(1~5), 주관식은 text
+type Answer = { optionIds?: number[]; otherText?: string; scale?: number; text?: string };
 // 화면 위에 보여 줄 설문 정보 (제목·예상 시간·보상)
 type SurveyInfo = { title: string; est_minutes: number; reward_points: number };
 
@@ -42,19 +43,41 @@ const TYPE_HINT: Record<QuestionType, string> = {
 const CANNOT_CONTINUE = ["already_responded", "survey_closed", "survey_full", "not_target", "survey_not_found"];
 
 // 문항과 보기를 순서대로 (응답 대상이 아니면 DB 권한 때문에 안 읽힌다 → 빈 목록)
+// 섞기를 켠 문항은 여기서 한 번만 섞는다 (이전·다음을 오가도 순서가 그대로). 해당 없음·기타는 맨 아래
 async function fetchQuestions(surveyId: number): Promise<Question[]> {
   const { data } = await supabase
     .from("questions")
-    .select("id, sort_order, type, text, question_options(id, sort_order, text)")
+    .select("id, sort_order, type, text, is_required, shuffle_options, question_options(id, sort_order, text, kind)")
     .eq("survey_id", surveyId)
     .order("sort_order");
 
-  return (data ?? []).map((q) => ({
-    id: q.id,
-    type: q.type as QuestionType,
-    text: q.text,
-    options: [...(q.question_options ?? [])].sort((a, b) => a.sort_order - b.sort_order),
-  }));
+  return (data ?? []).map((q) => {
+    const options = [...((q.question_options ?? []) as Option[])].sort((a, b) => a.sort_order - b.sort_order);
+    const normal = options.filter((o) => o.kind === "normal");
+    const special = options.filter((o) => o.kind !== "normal");
+    return {
+      id: q.id,
+      type: q.type as QuestionType,
+      text: q.text,
+      required: q.is_required !== false,
+      options: [...(q.shuffle_options ? shuffled(normal) : normal), ...special],
+    };
+  });
+}
+
+// 무작위 순서 (원본은 그대로)
+function shuffled<T>(list: T[]): T[] {
+  const copy = [...list];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+// 고른 보기 중에 기타가 있는지
+function pickedOther(q: Question, a: Answer | undefined): boolean {
+  return q.options.some((o) => o.kind === "other" && (a?.optionIds ?? []).includes(o.id));
 }
 
 async function fetchSurveyInfo(surveyId: number): Promise<SurveyInfo | null> {
@@ -67,19 +90,24 @@ async function fetchSurveyInfo(surveyId: number): Promise<SurveyInfo | null> {
 }
 
 // 이 문항에 답을 다 했는지 ([다음] 버튼 활성 조건)
+// 선택 주관식은 비워도 된다. 기타를 골랐으면 글을 적어야 한다
 function isAnswered(q: Question, a: Answer | undefined): boolean {
+  if (q.type === "text" && !q.required) return true;
   if (!a) return false;
+  if (pickedOther(q, a) && (a.otherText ?? "").trim().length < 1) return false;
   if (q.type === "single") return a.optionIds?.length === 1;
   if (q.type === "multi") return (a.optionIds?.length ?? 0) >= 1;
   if (q.type === "scale") return a.scale !== undefined;
   return (a.text ?? "").trim().length >= 1;
 }
 
-// submit_response에 보낼 형식 (docs/DB.md "submit_response 답 형식")
-function toRpcAnswer(q: Question, a: Answer) {
-  if (q.type === "scale") return { question_id: q.id, scale_value: a.scale };
-  if (q.type === "text") return { question_id: q.id, text_value: (a.text ?? "").trim() };
-  return { question_id: q.id, option_ids: a.optionIds };
+// submit_response에 보낼 형식 (docs/DB.md "submit_response 답 형식"). 비운 선택 주관식은 text_value ""
+function toRpcAnswer(q: Question, a: Answer | undefined) {
+  if (q.type === "scale") return { question_id: q.id, scale_value: a?.scale };
+  if (q.type === "text") return { question_id: q.id, text_value: (a?.text ?? "").trim() };
+  return pickedOther(q, a)
+    ? { question_id: q.id, option_ids: a?.optionIds, other_text: (a?.otherText ?? "").trim() }
+    : { question_id: q.id, option_ids: a?.optionIds };
 }
 
 export default function SurveyRespond() {
@@ -153,15 +181,21 @@ export default function SurveyRespond() {
 
   const setAnswer = (next: Answer) => setAnswers((prev) => ({ ...prev, [question.id]: next }));
 
+  // 기타에 적은 글은 보기를 바꿔도 남겨 둔다 (다시 기타를 고르면 그대로)
   const toggleOption = (optionId: number) => {
     if (question.type === "single") {
-      setAnswer({ optionIds: [optionId] });
+      setAnswer({ ...answer, optionIds: [optionId] });
       return;
     }
+    // 여러 개 고르기: 해당 없음은 혼자만 (고르면 다른 보기가 풀리고, 다른 보기를 고르면 해당 없음이 풀린다)
+    const noneIds = question.options.filter((o) => o.kind === "none").map((o) => o.id);
     const current = answer?.optionIds ?? [];
-    setAnswer({
-      optionIds: current.includes(optionId) ? current.filter((o) => o !== optionId) : [...current, optionId],
-    });
+    const next = current.includes(optionId)
+      ? current.filter((o) => o !== optionId)
+      : noneIds.includes(optionId)
+        ? [optionId]
+        : [...current.filter((o) => !noneIds.includes(o)), optionId];
+    setAnswer({ ...answer, optionIds: next });
   };
 
   const submit = async () => {
@@ -250,9 +284,14 @@ export default function SurveyRespond() {
         )}
 
         <Card style={styles.questionCard}>
-          <Text style={styles.qNumber}>Q{index + 1}</Text>
+          <Text style={styles.qNumber}>
+            Q{index + 1}
+            {question.required ? "" : " · 선택"}
+          </Text>
           <Text style={styles.question}>{question.text}</Text>
-          <Text style={styles.hint}>{TYPE_HINT[question.type]}</Text>
+          <Text style={styles.hint}>
+            {question.required ? TYPE_HINT[question.type] : "선택 문항이에요. 비워 두고 넘어가도 돼요."}
+          </Text>
 
           {(question.type === "single" || question.type === "multi") && (
             <View style={styles.options}>
@@ -265,6 +304,17 @@ export default function SurveyRespond() {
                   onPress={() => toggleOption(o.id)}
                 />
               ))}
+              {/* 기타를 고르면 바로 아래 입력칸 (적어야 다음으로) */}
+              {pickedOther(question, answer) && (
+                <TextInput
+                  style={styles.otherInput}
+                  value={answer?.otherText ?? ""}
+                  onChangeText={(otherText) => setAnswer({ ...answer, otherText })}
+                  placeholder="기타 답을 적어 주세요"
+                  maxLength={OTHER_TEXT_MAX}
+                  autoFocus
+                />
+              )}
             </View>
           )}
 
@@ -463,6 +513,14 @@ const styles = StyleSheet.create({
   },
   counter: {
     textAlign: "right",
+  },
+  otherInput: {
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: radius.md,
+    fontSize: fontSize.body,
+    color: colors.text,
   },
   notice: {
     padding: spacing.md,

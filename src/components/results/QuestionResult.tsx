@@ -16,6 +16,8 @@ export type QuestionStats = {
   scale: { avg: number | null; counts: number[] } | null;
   // 주관식 답 원문 (등록자에게만 온다)
   texts?: string[];
+  // 고르기 문항에서 "기타 (직접 입력)"에 적은 글 (등록자에게만 온다, 2026-11-10)
+  other_texts?: string[];
 };
 
 // 비율(%) 정수
@@ -39,7 +41,7 @@ export function QuestionHeader({ index, question: q, right }: { index: number; q
   );
 }
 
-// 문항 하나의 결과: 고르기 = 막대(1위 강조), 척도 = 평균 + 1~5 분포, 주관식 = 답 목록(등록자) 또는 안내
+// 문항 하나의 결과: 고르기 = 막대(1위 강조) + 기타에 적은 글(등록자), 척도 = 평균 + 1~5 분포, 주관식 = 답 목록(등록자) 또는 안내
 export function QuestionBody({ question: q }: { question: QuestionStats }) {
   if (q.type === "single" || q.type === "multi") {
     const max = Math.max(0, ...q.options.map((o) => o.count));
@@ -48,6 +50,16 @@ export function QuestionBody({ question: q }: { question: QuestionStats }) {
         {q.options.map((o) => (
           <Bar key={o.id} label={o.text} count={o.count} pct={percent(o.count, q.answered)} top={max > 0 && o.count === max} />
         ))}
+        {q.other_texts && q.other_texts.length > 0 && (
+          <View style={styles.otherBox}>
+            <Text style={styles.type}>기타에 적은 글 {q.other_texts.length}개 · 나만 볼 수 있어요</Text>
+            {q.other_texts.map((t, i) => (
+              <Text key={i} style={styles.textAnswer}>
+                {t}
+              </Text>
+            ))}
+          </View>
+        )}
       </View>
     );
   }
@@ -144,6 +156,10 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     fontWeight: "600",
     color: colors.textMuted,
+  },
+  otherBox: {
+    gap: spacing.xs,
+    marginTop: spacing.xs,
   },
   textAnswer: {
     fontSize: fontSize.small,

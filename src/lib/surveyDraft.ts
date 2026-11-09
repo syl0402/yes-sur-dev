@@ -20,7 +20,21 @@ export type DraftQuestion = {
   text: string;
   // 단일·복수 선택에서만 쓴다
   options: string[];
+  // 문항 옵션 (2026-11-10, 예전 임시저장에는 없음 → 없으면 기본값)
+  // required: 주관식만 끌 수 있다 (기본 true) / shuffle·none·other: 고르기 문항만 (기본 false)
+  required?: boolean;
+  shuffle?: boolean;
+  // 보기 맨 아래 "해당 없음" · "기타 (직접 입력)" (문구는 서버가 정한다)
+  none?: boolean;
+  other?: boolean;
 };
+
+// 서버가 붙이는 특별한 보기 문구 (create_survey와 같게)
+export const NONE_OPTION_LABEL = "해당 없음";
+export const OTHER_OPTION_LABEL = "기타 (직접 입력)";
+// 보기 종류 (question_options.kind) · 기타에 적는 글 최대 길이 (submit_response와 같게)
+export type OptionKind = "normal" | "none" | "other";
+export const OTHER_TEXT_MAX = 100;
 
 export type SurveyDraft = {
   title: string;
@@ -253,8 +267,15 @@ export function registrationCost(d: SurveyDraft, rules: Record<string, number>, 
 export function toRpcQuestions(d: SurveyDraft) {
   return d.questions.map((q) =>
     isChoice(q.type)
-      ? { type: q.type, text: q.text.trim(), options: q.options.map((o) => o.trim()) }
-      : { type: q.type, text: q.text.trim() },
+      ? {
+          type: q.type,
+          text: q.text.trim(),
+          options: q.options.map((o) => o.trim()),
+          shuffle: q.shuffle === true,
+          none: q.none === true,
+          other: q.other === true,
+        }
+      : { type: q.type, text: q.text.trim(), required: q.type !== "text" || q.required !== false },
   );
 }
 
@@ -281,11 +302,25 @@ export async function fetchSurveyAsDraft(surveyId: number): Promise<SurveyDraft 
     description: s.description ?? "",
     categoryId: s.category_id,
     tagIds: (tags ?? []).map((t) => t.tag_id),
-    questions: (questions as { type: QuestionType; text: string; options: string[] }[]).map((q) => ({
+    questions: (
+      questions as {
+        type: QuestionType;
+        text: string;
+        options: string[];
+        required?: boolean;
+        shuffle?: boolean;
+        none?: boolean;
+        other?: boolean;
+      }[]
+    ).map((q) => ({
       key: makeRequestId(),
       type: q.type,
       text: q.text,
       options: q.options,
+      required: q.required,
+      shuffle: q.shuffle,
+      none: q.none,
+      other: q.other,
     })),
     audience: s.audience,
     resultVisibility: s.result_visibility,
