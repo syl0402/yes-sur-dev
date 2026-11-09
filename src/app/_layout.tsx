@@ -17,12 +17,14 @@ export default function RootLayout() {
   // 로그인 안 된 상태로 다른 화면에 들어오면 첫 화면으로
   useRequireLogin();
 
-  // 앱 글꼴 Pretendard: 한 이름 아래 굵기 4종 → 화면에서는 fontWeight로 고른다
+  // 앱 글꼴 Pretendard: 한 이름 아래 굵기 5종 → 화면에서는 fontWeight로 고른다
   const [fontsLoaded, fontError] = useFonts([
     {
       fontFamily,
       fontDefinitions: [
         { path: require("../../assets/fonts/Pretendard-Regular.otf"), weight: 400 },
+        // 중간 굵기: 카드 회색 글씨·파스텔 표시·#태그 (없으면 폰이 기본 글꼴로 바꿔 보여 줌, 2026-11-10)
+        { path: require("../../assets/fonts/Pretendard-Medium.otf"), weight: 500 },
         { path: require("../../assets/fonts/Pretendard-SemiBold.otf"), weight: 600 },
         { path: require("../../assets/fonts/Pretendard-Bold.otf"), weight: 700 },
         { path: require("../../assets/fonts/Pretendard-ExtraBold.otf"), weight: 800 },

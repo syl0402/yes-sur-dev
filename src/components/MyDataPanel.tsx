@@ -2,15 +2,14 @@
 // 새 서버 함수 없음: get_hub_list(내가 응답한 것·스크랩 번호로 거름) · get_my_bookmarks · get_my_views. 모두 본인 것만
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet } from "react-native";
 
-import { listCardStyles as list } from "@/components/listCardStyles";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
-import { Text } from "@/components/ui/Text";
+import ListRow, { rowsCard } from "@/components/ui/ListRow";
 import TextTabs from "@/components/ui/TextTabs";
-import { colors, fontSize, spacing } from "@/constants/theme";
-import { formatDate, formatPoints } from "@/lib/format";
+import { colors, spacing } from "@/constants/theme";
+import { formatPoints, formatShortDate } from "@/lib/format";
 import type { HubItem } from "@/lib/hub";
 import { supabase } from "@/lib/supabase";
 
@@ -54,7 +53,7 @@ export default function MyDataPanel() {
         const toRow = (i: HubItem): Row => ({
           id: i.id,
           title: i.title,
-          sub: `${formatDate(i.ended_at)} 마감 · 응답 ${i.response_count}명`,
+          sub: `${formatShortDate(i.ended_at)} 마감 · 응답 ${i.response_count}명`,
         });
         setRows({
           answered: items.filter((i) => i.answered).map(toRow),
@@ -62,7 +61,7 @@ export default function MyDataPanel() {
           viewed: ((views.data as MyView[] | null) ?? []).map((v) => ({
             id: v.survey_id,
             title: v.title,
-            sub: `${formatDate(v.viewed_at)} 열람 · ${v.paid > 0 ? formatPoints(v.paid) : "무료"}`,
+            sub: `${formatShortDate(v.viewed_at)} 열람 · ${v.paid > 0 ? formatPoints(v.paid) : "무료"}`,
           })),
         });
       });
@@ -82,25 +81,21 @@ export default function MyDataPanel() {
         ]}
         value={tab}
         onChange={setTab}
+        fill
       />
       {shown.length === 0 ? (
         <EmptyState {...EMPTY[tab]} />
       ) : (
-        <Card style={list.card}>
+        <Card style={rowsCard}>
           {shown.map((r, i) => (
-            <Pressable
+            <ListRow
               key={r.id}
-              style={[styles.row, i > 0 && styles.rowDivider]}
+              first={i === 0}
+              title={r.title}
+              sub={r.sub}
+              titleLines={2}
               onPress={() => router.push({ pathname: "/data/[id]", params: { id: String(r.id) } })}
-            >
-              <View style={styles.rowMain}>
-                <Text style={styles.title} numberOfLines={2}>
-                  {r.title}
-                </Text>
-                <Text style={styles.muted}>{r.sub}</Text>
-              </View>
-              <Text style={styles.arrow}>›</Text>
-            </Pressable>
+            />
           ))}
         </Card>
       )}
@@ -111,32 +106,5 @@ export default function MyDataPanel() {
 const styles = StyleSheet.create({
   loading: {
     marginTop: spacing.lg,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    paddingVertical: spacing.sm + 2,
-  },
-  rowDivider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  rowMain: {
-    flex: 1,
-    gap: 2,
-  },
-  title: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  muted: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
-  },
-  arrow: {
-    fontSize: fontSize.subtitle,
-    color: colors.textSubtle,
   },
 });

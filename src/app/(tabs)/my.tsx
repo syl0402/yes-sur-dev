@@ -1,6 +1,6 @@
 // ys-150 마일리지 지갑 · F-701 (2026-10-31 디자인: 프로필 · 포인트 카드 · 탭 전환 [내 설문 | 포인트 내역 | 내 데이터], 2026-11-09 열람한 결과 → 내 데이터)
-import { type Href, router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { type Href, router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import AppIcon from "@/components/AppIcon";
@@ -9,6 +9,7 @@ import MyDataPanel from "@/components/MyDataPanel";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import ListRow, { rowsCard } from "@/components/ui/ListRow";
 import EmptyState from "@/components/ui/EmptyState";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { Text } from "@/components/ui/Text";
@@ -178,6 +179,16 @@ function surveyIdOf(refId: string | null): number | null {
 export default function My() {
   const [data, setData] = useState<MyData | null>(null);
   const [tab, setTab] = useState<Tab>("surveys");
+  // 다른 화면에서 특정 탭으로 열기 (예: 홈 포인트 카드 → ?tab=ledger). 한 번 반영하고 주소에서 지운다 (다음에 또 열 수 있게)
+  const params = useLocalSearchParams<{ tab?: Tab }>();
+  const [seenTab, setSeenTab] = useState<string | undefined>(undefined);
+  if (params.tab !== seenTab) {
+    setSeenTab(params.tab);
+    if (params.tab === "surveys" || params.tab === "ledger" || params.tab === "data") setTab(params.tab);
+  }
+  useEffect(() => {
+    if (params.tab) router.setParams({ tab: undefined });
+  }, [params.tab]);
   // 내 설문: 진행 중 / 마감 (2026-11-10, 쌓인 설문 정리)
   const [surveyFilter, setSurveyFilter] = useState<"open" | "closed">("open");
 
@@ -306,27 +317,24 @@ export default function My() {
 
           {/* 임시저장함: 이 폰에만 있고, 있을 때만 보인다 */}
           {data.drafts.length > 0 && (
-            <Card style={list.card}>
+            <Card>
               <Text style={styles.cardTitle}>임시저장한 설문</Text>
-              {data.drafts.map((d) => (
-                <Pressable
-                  key={d.id}
-                  style={styles.row}
-                  onPress={() => router.push({ pathname: "/create", params: { draft: d.id } })}
-                >
-                  <View style={styles.rowMain}>
-                    <Text style={styles.rowLabel} numberOfLines={1}>
-                      {d.draft.title.trim() || "제목 없는 설문"}
-                    </Text>
-                    <Text style={styles.muted}>
-                      {formatDate(d.savedAt)} 저장 · 문항 {d.draft.questions.length}개
-                    </Text>
-                  </View>
-                  <Pressable onPress={() => removeDraft(d)} hitSlop={8}>
-                    <Text style={styles.deleteText}>삭제</Text>
-                  </Pressable>
-                </Pressable>
-              ))}
+              <View>
+                {data.drafts.map((d, i) => (
+                  <ListRow
+                    key={d.id}
+                    first={i === 0}
+                    title={d.draft.title.trim() || "제목 없는 설문"}
+                    sub={`${formatDate(d.savedAt)} 저장 · 문항 ${d.draft.questions.length}개`}
+                    onPress={() => router.push({ pathname: "/create", params: { draft: d.id } })}
+                    right={
+                      <Pressable onPress={() => removeDraft(d)} hitSlop={8}>
+                        <Text style={styles.deleteText}>삭제</Text>
+                      </Pressable>
+                    }
+                  />
+                ))}
+              </View>
               <Text style={styles.muted}>임시저장은 이 폰에만 있어요.</Text>
             </Card>
           )}
@@ -362,20 +370,16 @@ export default function My() {
         (data.ledger.length === 0 ? (
           <EmptyState title="아직 포인트 내역이 없어요" message="설문에 답하면 여기에 쌓여요." emoji="🪙" />
         ) : (
-          <Card style={list.card}>
+          <Card style={rowsCard}>
             {data.ledger.map((item, i) => (
-              <View key={item.id} style={[styles.row, i > 0 && styles.rowDivider]}>
-                <View style={styles.rowMain}>
-                  <Text style={styles.rowLabel} numberOfLines={1}>
-                    {item.label}
-                  </Text>
-                  <Text style={styles.muted}>{item.date}</Text>
-                </View>
-                <Text style={[styles.amount, item.amount < 0 && styles.amountMinus]}>
-                  {item.amount > 0 ? "+" : "-"}
-                  {formatPoints(Math.abs(item.amount))}
-                </Text>
-              </View>
+              <ListRow
+                key={item.id}
+                first={i === 0}
+                title={item.label}
+                sub={item.date}
+                value={`${item.amount > 0 ? "+" : "-"}${formatPoints(Math.abs(item.amount))}`}
+                valueTone={item.amount < 0 ? "danger" : "primary"}
+              />
             ))}
           </Card>
         ))}
@@ -618,32 +622,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.body,
     fontWeight: "700",
     color: colors.text,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  rowDivider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  rowMain: {
-    flex: 1,
-    gap: 2,
-  },
-  rowLabel: {
-    fontSize: fontSize.body,
-    color: colors.text,
-  },
-  amount: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.primary,
-  },
-  amountMinus: {
-    color: colors.danger,
   },
   deleteText: {
     fontSize: fontSize.small,

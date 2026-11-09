@@ -1,10 +1,11 @@
-// ys-151 내 정보 · 회원정보 보기·비밀번호 변경·로그아웃·회원 탈퇴 (2026-10-30)
+// ys-151 내 정보 · 회원정보 보기·비밀번호 변경·로그아웃·회원 탈퇴 (2026-10-30, 2026-11-10 설정 화면처럼: 선·테두리 줄임)
 import { Stack, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
+import ListRow from "@/components/ui/ListRow";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
+import { colors, fontSize, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { GENDER_OPTIONS } from "@/lib/demographics";
 import { openLegal } from "@/lib/legal";
@@ -100,16 +101,28 @@ export default function AccountHome() {
     <ScrollView style={styles.screen} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
       <Stack.Screen options={{ title: "내 정보" }} />
 
-      <Text style={styles.name}>{account.name ? `${account.name}님` : ""}</Text>
+      {/* 맨 위 요약: 이니셜 · 이름 · 학교 (마이 탭 프로필과 같은 모양) */}
+      <View style={styles.profile}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{account.name.slice(0, 1) || "옛"}</Text>
+        </View>
+        <View style={styles.profileMain}>
+          <Text style={styles.name}>{account.name ? `${account.name}님` : ""}</Text>
+          {account.info.find((r) => r.label === "학교")?.value ? <Text style={styles.profileSub}>{account.info.find((r) => r.label === "학교")?.value}</Text> : null}
+        </View>
+      </View>
 
-      <Text style={styles.sectionTitle}>회원정보</Text>
-      <View style={styles.box}>
-        {account.info.map((row) => (
-          <View key={row.label} style={styles.row}>
-            <Text style={styles.rowLabel}>{row.label}</Text>
-            <Text style={styles.rowValue}>{row.value}</Text>
-          </View>
-        ))}
+      {/* 회원정보: 선 없는 연회색 상자 (이름표 회색 · 값 진하게) */}
+      <View style={styles.group}>
+        <Text style={styles.groupTitle}>회원정보</Text>
+        <View style={styles.infoBox}>
+          {account.info.map((row) => (
+            <View key={row.label} style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{row.label}</Text>
+              <Text style={styles.infoValue}>{row.value}</Text>
+            </View>
+          ))}
+        </View>
         {account.needsDemographics && (
           <Pressable onPress={() => router.push("/account/demographics")} hitSlop={8}>
             <Text style={styles.link}>⚠️ 성별·출생연도 입력하기 ›</Text>
@@ -118,45 +131,50 @@ export default function AccountHome() {
         <Text style={styles.hint}>회원정보를 고치려면 ‘의견 보내기’로 문의해 주세요.</Text>
       </View>
 
-      <Text style={styles.sectionTitle}>계정</Text>
-      <View style={styles.box}>
-        {!account.isOrg && <MenuRow label="닉네임 바꾸기" onPress={() => router.push("/account/nickname")} />}
-        <MenuRow label="비밀번호 변경" onPress={() => router.push("/account/password")} />
-        <MenuRow
-          label="의견 보내기"
-          onPress={() => router.push({ pathname: "/feedback", params: { from: "내 정보" } })}
-        />
+      {/* 메뉴: 상자·선 없이 줄만 */}
+      <View style={styles.group}>
+        <Text style={styles.groupTitle}>계정</Text>
+        {menu([
+          !account.isOrg && { label: "닉네임 바꾸기", onPress: () => router.push("/account/nickname") },
+          { label: "비밀번호 변경", onPress: () => router.push("/account/password") },
+          {
+            label: "의견 보내기",
+            onPress: () => router.push({ pathname: "/feedback", params: { from: "내 정보" } }),
+          },
+        ])}
       </View>
 
-      <Text style={styles.sectionTitle}>안내 · 약관</Text>
-      <View style={styles.box}>
-        {!account.isOrg && (
-          <MenuRow label="사용 안내 다시 보기" onPress={() => router.push({ pathname: "/onboarding", params: { again: "1" } })} />
-        )}
-        {!account.isOrg && <MenuRow label="포인트 안내" onPress={() => router.push("/points")} />}
-        <MenuRow label="이용약관" onPress={() => openLegal("terms")} />
-        <MenuRow label="개인정보처리방침" onPress={() => openLegal("privacy")} />
+      <View style={styles.group}>
+        <Text style={styles.groupTitle}>안내 · 약관</Text>
+        {menu([
+          !account.isOrg && {
+            label: "사용 안내 다시 보기",
+            onPress: () => router.push({ pathname: "/onboarding", params: { again: "1" } }),
+          },
+          !account.isOrg && { label: "포인트 안내", onPress: () => router.push("/points") },
+          { label: "이용약관", onPress: () => openLegal("terms") },
+          { label: "개인정보처리방침", onPress: () => openLegal("privacy") },
+        ])}
       </View>
 
-      <Pressable onPress={logout} style={styles.logout}>
-        <Text style={styles.logoutText}>로그아웃</Text>
-      </Pressable>
-
-      {/* 회원 탈퇴 (Google Play 계정 삭제 정책: 앱 안에서 할 수 있어야 함) */}
-      <Pressable onPress={() => router.push("/account/delete")} hitSlop={8} style={styles.deleteLink}>
-        <Text style={styles.deleteText}>회원 탈퇴</Text>
-      </Pressable>
+      <View style={styles.group}>
+        <ListRow plain title="로그아웃" onPress={logout} />
+        {/* 회원 탈퇴 (Google Play 계정 삭제 정책: 앱 안에서 할 수 있어야 함) */}
+        <Pressable onPress={() => router.push("/account/delete")} hitSlop={8} style={styles.deleteLink}>
+          <Text style={styles.deleteText}>회원 탈퇴</Text>
+        </Pressable>
+      </View>
     </ScrollView>
   );
 }
 
-function MenuRow({ label, onPress }: { label: string; onPress: () => void }) {
-  return (
-    <Pressable style={styles.menuRow} onPress={onPress}>
-      <Text style={styles.menuLabel}>{label}</Text>
-      <Text style={styles.menuArrow}>›</Text>
-    </Pressable>
-  );
+type MenuItem = { label: string; onPress: () => void };
+
+// 메뉴 줄들 (조건에 안 맞아 false인 줄은 뺀다)
+function menu(items: (MenuItem | false)[]) {
+  return items
+    .filter((m): m is MenuItem => m !== false)
+    .map((m) => <ListRow key={m.label} plain title={m.label} onPress={m.onPress} />);
 }
 
 const styles = StyleSheet.create({
@@ -171,87 +189,93 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    padding: spacing.lg,
-    gap: spacing.md,
+    padding: 20,
+    paddingBottom: spacing.xl,
+    gap: 28,
+  },
+  profile: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primarySoft,
+  },
+  avatarText: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: colors.primary,
+  },
+  profileMain: {
+    flex: 1,
+    gap: 2,
   },
   name: {
-    fontSize: fontSize.title,
+    fontSize: 20,
     fontWeight: "700",
     color: colors.text,
   },
-  sectionTitle: {
-    marginTop: spacing.sm,
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  box: {
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
-    gap: spacing.sm,
-    ...shadow.card,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  rowLabel: {
-    fontSize: fontSize.body,
+  profileSub: {
+    fontSize: fontSize.small,
     color: colors.textMuted,
   },
-  rowValue: {
-    fontSize: fontSize.body,
-    color: colors.text,
+  // 묶음: 작은 회색 제목 + 내용
+  group: {
+    gap: spacing.xs,
+  },
+  groupTitle: {
+    marginBottom: spacing.xs,
+    fontSize: fontSize.small,
     fontWeight: "600",
+    color: colors.textMuted,
+  },
+  infoBox: {
+    padding: 18,
+    gap: 14,
+    borderRadius: 16,
+    backgroundColor: colors.surfaceMuted,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  infoLabel: {
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  infoValue: {
+    flexShrink: 1,
+    textAlign: "right",
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.text,
   },
   link: {
     marginTop: spacing.sm,
-    fontSize: fontSize.body,
-    color: colors.primary,
+    fontSize: fontSize.small,
     fontWeight: "600",
+    color: colors.primary,
   },
   hint: {
-    marginTop: spacing.sm,
-    fontSize: fontSize.small,
-    color: colors.textMuted,
-  },
-  menuRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: spacing.sm,
-  },
-  menuLabel: {
-    fontSize: fontSize.body,
-    color: colors.text,
-  },
-  menuArrow: {
-    fontSize: fontSize.body,
-    color: colors.textMuted,
-  },
-  logout: {
-    marginTop: spacing.lg,
-    paddingVertical: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-  },
-  logoutText: {
-    fontSize: fontSize.body,
-    color: colors.textMuted,
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.xs,
+    fontSize: fontSize.caption,
+    color: colors.textSubtle,
   },
   deleteLink: {
-    alignSelf: "center",
-    paddingVertical: spacing.sm,
+    alignSelf: "flex-start",
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.xs,
   },
   deleteText: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
+    fontSize: fontSize.caption,
+    color: colors.textSubtle,
     textDecorationLine: "underline",
   },
 });

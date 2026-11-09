@@ -130,6 +130,12 @@ import { Text, TextInput } from "@/components/ui/Text";
 ### 운영자 화면 (`src/app/admin/`, `src/lib/admin.ts`, 2026-10-31)
 팀 운영자 계정(`profiles.role = 'admin'`)만. 마이 탭 맨 위 🛠 운영 카드(`fetchAdminCounts`가 운영자가 아니면 null) → `admin/index.tsx` [신고 | 의견 | 단체]. 답변은 `admin/reply.tsx`, 단체 거절 사유는 `admin/reject.tsx`. 서버 함수는 모두 함수 안에서 운영자인지 다시 확인한다 (docs/DB.md `admin_*`).
 
+### 카드 · 목록 한 줄 (`src/components/ui/Card.tsx` · `ListRow.tsx`, 2026-11-10)
+- `Card` 기본 = 평평한 카드 (얇은 회색 테두리 · 그림자 없음 · 모서리 20 · 여백 20 · 간격 12). 그림자는 눌러서 들어가는 목록 카드에만: `listCardStyles.card` (설문·데이터 탭, 홈 설문, 마이 내 설문). 강조는 `style`에 `borderColor`
+- `ListRow`: 카드 안 한 줄. `title` · `sub` · 오른쪽 `value`(`valueTone` primary/danger/text) 또는 `right` · `icon` · `onPress`면 › 화살표. 첫 줄은 `first`(위 선 없음)
+- 줄만 담는 카드는 `<Card style={rowsCard}>` (위아래 여백·줄 간격 줄임). 쓰는 곳: 내 정보, 포인트 안내, 마이 포인트 내역·임시저장, 내 데이터, 내가 쓴 댓글
+- 묶음 제목은 `SectionHeader`
+
 ### `PrimaryButton` (`src/components/PrimaryButton.tsx`)
 큰 파란 버튼. `disabled`면 회색, `loading`이면 돌아가는 표시 + 누르기 막힘(연타 방지).
 ```tsx

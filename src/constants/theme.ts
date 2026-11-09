@@ -46,7 +46,7 @@ export const colors = {
   overlay: "rgba(23, 35, 60, 0.4)",
 };
 
-// 글꼴: Pretendard (assets/fonts, SIL OFL 무료). 굵기는 fontWeight "400"·"600"·"700"·"800"으로 고른다
+// 글꼴: Pretendard (assets/fonts, SIL OFL 무료). 굵기는 fontWeight "400"·"500"·"600"·"700"·"800"으로 고른다 (이 다섯 개만. 다른 값은 기본 글꼴로 보일 수 있음)
 export const fontFamily = "Pretendard";
 
 export const fontSize = {
@@ -84,10 +84,10 @@ export const shadow = {
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
   },
-  // 설문·데이터 목록 카드: 테두리 없이 그림자만 (2026-11-09 피그마: 아래로 2 · 흐림 5 · 검정 20%)
+  // 눌러서 들어가는 목록 카드에만: 테두리 없이 그림자 (2026-11-09 피그마 20% → 2026-11-10 눈 피로 줄이려고 12%)
   listCard: {
     shadowOpacity: 0,
     elevation: 0,
-    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
+    boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.12)",
   },
 };

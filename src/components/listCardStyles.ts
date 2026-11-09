@@ -5,7 +5,7 @@ import { StyleSheet } from "react-native";
 import { colors, fontSize, radius, shadow } from "@/constants/theme";
 
 export const listCardStyles = StyleSheet.create({
-  // 흰 카드 · 모서리 20 · 테두리 없이 그림자 (테두리 자리는 내 설문 표시용으로 남겨 둔다)
+  // 흰 카드 · 모서리 20 · 테두리 없이 그림자. 앱 카드 중 그림자는 이 목록 카드만 (2026-11-10)
   card: {
     padding: 20,
     gap: 12,

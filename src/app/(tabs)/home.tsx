@@ -98,7 +98,7 @@ export default function Home() {
       contentContainerStyle={styles.container}
     >
       {/* 내 포인트 (단체는 응답·적립이 없어서 안내로 대신). 누르면 마이 탭의 포인트 내역으로 */}
-      <Pressable style={styles.hero} onPress={() => router.navigate("/my")} disabled={data.isOrg}>
+      <Pressable style={styles.hero} onPress={() => router.navigate({ pathname: "/my", params: { tab: "ledger" } })} disabled={data.isOrg}>
         {/* 오른쪽 아래 장식 고리 */}
         <View style={styles.heroRing} />
         {data.isOrg ? (

@@ -1,11 +1,14 @@
 // ys-157 포인트 안내 · F-702 (모으는 법·쓰는 법·규칙. 숫자는 모두 point_rules에서)
 // 2026-11-09 정리: 설문 길이별 숫자(응답 보상·등록비)를 표 하나로 모으고, 모으기·쓰기 목록은 짧게
+// 2026-11-10: 카드·목록 줄을 앱 공통 모양(Card · ListRow)으로
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
+import Card from "@/components/ui/Card";
+import ListRow from "@/components/ui/ListRow";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
 import { BAND_RULE_KEYS, BANDS } from "@/lib/pointBands";
 import { fetchRules } from "@/lib/rules";
@@ -104,7 +107,7 @@ export default function PointsGuide() {
       </View>
 
       {/* 설문 길이별 숫자를 한 표에 */}
-      <View style={styles.box}>
+      <Card>
         <Text style={styles.boxTitle}>⏱️ 설문 길이별 포인트</Text>
         <View style={[styles.tr, styles.thead]}>
           <Text style={[styles.th, styles.colLen]}>설문 길이</Text>
@@ -121,37 +124,31 @@ export default function PointsGuide() {
         <Text style={styles.note}>
           설문 길이는 문항으로 계산한 예상 시간이에요 (고르는 문항 {r.sec_per_choice ?? "-"}초 · 주관식 {r.sec_per_text ?? "-"}초).
         </Text>
-      </View>
+      </Card>
 
       <Section title="💰 모으기" rows={earn} />
       <Section title="🛒 쓰기" rows={spend} />
 
-      <View style={styles.box}>
+      <Card>
         <Text style={styles.boxTitle}>📌 알아 둘 것</Text>
         {rules.map((t) => (
           <Text key={t} style={styles.rule}>
             · {t}
           </Text>
         ))}
-      </View>
+      </Card>
     </ScrollView>
   );
 }
 
 function Section({ title, rows }: { title: string; rows: Row[] }) {
   return (
-    <View style={styles.box}>
+    <Card style={styles.rowsBox}>
       <Text style={styles.boxTitle}>{title}</Text>
-      {rows.map((row) => (
-        <View key={row.label} style={styles.row}>
-          <View style={styles.rowHead}>
-            <Text style={styles.label}>{row.label}</Text>
-            <Text style={styles.value}>{row.value}</Text>
-          </View>
-          {row.note ? <Text style={styles.note}>{row.note}</Text> : null}
-        </View>
+      {rows.map((row, i) => (
+        <ListRow key={row.label} first={i === 0} title={row.label} sub={row.note} value={row.value} valueTone="primary" />
       ))}
-    </View>
+    </Card>
   );
 }
 
@@ -183,14 +180,10 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     color: colors.text,
   },
-  box: {
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
-    gap: spacing.sm,
-    ...shadow.card,
+  // 목록 줄만 담는 카드: 제목 아래로 줄 간격은 ListRow가 맡는다
+  rowsBox: {
+    gap: 0,
+    paddingBottom: spacing.xs,
   },
   boxTitle: {
     fontSize: fontSize.body,
@@ -200,7 +193,7 @@ const styles = StyleSheet.create({
   tr: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 6,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -220,38 +213,18 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   td: {
-    fontSize: fontSize.body,
+    fontSize: 15,
     color: colors.text,
   },
   tdEarn: {
-    fontSize: fontSize.body,
+    fontSize: 15,
     fontWeight: "700",
     color: colors.primary,
   },
   tdSpend: {
-    fontSize: fontSize.body,
+    fontSize: 15,
     fontWeight: "700",
     color: colors.text,
-  },
-  row: {
-    gap: 2,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  rowHead: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: spacing.sm,
-  },
-  label: {
-    fontSize: fontSize.body,
-    color: colors.text,
-  },
-  value: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.primary,
   },
   note: {
     fontSize: fontSize.small,

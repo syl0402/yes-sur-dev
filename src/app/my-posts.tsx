@@ -1,11 +1,12 @@
 // ys-158 내가 쓴 글 · F-601 (마이 탭에서. [글 | 댓글] 최신순, 누르면 그 글로. 2026-11-10 개인 피드백)
 import { Stack, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
+import ListRow, { rowsCard } from "@/components/ui/ListRow";
 import Segmented from "@/components/ui/Segmented";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
@@ -121,29 +122,17 @@ export default function MyPosts() {
         (comments.length === 0 ? (
           <EmptyState title="아직 쓴 댓글이 없어요" message="글·오늘의 질문·월드컵에 댓글을 남길 수 있어요." emoji="💬" />
         ) : (
-          <Card>
-            {comments.map((c, i) => {
-              const onPress = openComment(c);
-              return (
-                <Pressable
-                  key={c.id}
-                  onPress={onPress}
-                  disabled={!onPress}
-                  style={[styles.row, i > 0 && styles.rowDivider]}
-                >
-                  <View style={styles.rowMain}>
-                    <Text style={styles.body} numberOfLines={2}>
-                      {c.body}
-                    </Text>
-                    <Text style={styles.muted} numberOfLines={1}>
-                      {c.moderation !== "visible" ? `${MODERATION_LABELS[c.moderation]} · ` : ""}
-                      {TARGET_LABELS[c.target_type]} · {c.target_title ?? ""} · {formatAgo(c.created_at)}
-                    </Text>
-                  </View>
-                  {onPress && <Text style={styles.arrow}>›</Text>}
-                </Pressable>
-              );
-            })}
+          <Card style={rowsCard}>
+            {comments.map((c, i) => (
+              <ListRow
+                key={c.id}
+                first={i === 0}
+                title={c.body}
+                titleLines={2}
+                sub={`${c.moderation !== "visible" ? `${MODERATION_LABELS[c.moderation]} · ` : ""}${TARGET_LABELS[c.target_type]} · ${c.target_title ?? ""} · ${formatAgo(c.created_at)}`}
+                onPress={openComment(c)}
+              />
+            ))}
           </Card>
         ))}
     </ScrollView>
@@ -175,30 +164,8 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.text,
   },
-  body: {
-    fontSize: fontSize.body,
-    color: colors.text,
-  },
   muted: {
     fontSize: fontSize.small,
     color: colors.textMuted,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  rowDivider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  rowMain: {
-    flex: 1,
-    gap: 2,
-  },
-  arrow: {
-    fontSize: fontSize.subtitle,
-    color: colors.textSubtle,
   },
 });

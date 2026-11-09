@@ -1,8 +1,10 @@
-// 흰 카드 (연파랑 바탕 위에 올린다). onPress가 있으면 누를 수 있다 (2026-10-31 디자인)
+// 흰 카드. onPress가 있으면 누를 수 있다 (2026-10-31 디자인)
+// 2026-11-10: 모서리 20 · 여백 20으로 통일. 기본은 평평하게(얇은 회색 테두리, 그림자 없음)
+// 그림자는 눌러서 들어가는 목록 카드에만 (설문·데이터 탭, 내 설문 → listCardStyles.card)
 import type { ReactNode } from "react";
 import { Pressable, type StyleProp, StyleSheet, View, type ViewStyle } from "react-native";
 
-import { colors, radius, shadow, spacing } from "@/constants/theme";
+import { colors, radius } from "@/constants/theme";
 
 type Props = {
   children: ReactNode;
@@ -24,10 +26,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    gap: spacing.sm,
-    ...shadow.card,
+    borderRadius: radius.xl,
+    padding: 20,
+    gap: 12,
   },
   pressed: {
     opacity: 0.7,
