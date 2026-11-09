@@ -171,7 +171,9 @@ export default function Data() {
               <Text style={styles.meta} numberOfLines={1}>
                 {formatHost(i)} · 응답 {i.response_count} · 열람 {i.view_count} · {formatDate(i.ended_at)}
               </Text>
-              {i.viewed ? (
+              {i.mine ? (
+                <Badge label="내 설문" tone="primary" />
+              ) : i.viewed ? (
                 <Badge label="열람함" tone="muted" />
               ) : i.free ? (
                 <Badge label="무료" tone="accent" />

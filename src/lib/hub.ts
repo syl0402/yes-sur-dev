@@ -24,6 +24,8 @@ export type HubItem = {
   ended_at: string;
   viewed: boolean;
   answered: boolean;
+  // 내가 올린 설문 (2026-11-10, 데이터 탭에도 보임)
+  mine: boolean;
   free: boolean;
   trusted: boolean;
   low_count: boolean;
