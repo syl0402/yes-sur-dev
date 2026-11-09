@@ -222,6 +222,8 @@
 | `point_rule(p_key)` | `point_rules` 값 하나 (없으면 `rule_missing`) | 서버 함수 안에서 사용 |
 | `get_survey_results(p_survey_id)` | 문항별 집계 결과 (2026-10-30). **유효 응답** = 확인 문항 정답을 고른 응답(확인 문항이 없으면 전부). `{ total, excluded, questions: [{ id, type, text, answered, options[{id,text,count}], scale{avg,counts[5]}, texts[] }] }`. 확인 문항은 빼고, 응답자 정보는 넣지 않는다. 응답 1개부터 | 작성자 본인 |
 | `close_survey(p_survey_id)` | 응답 마감 (status → closed) + **못 받은 인원 × 1명당 값 환불** (`survey_refund`, 설문당 1번). 이미 마감이면 그대로. 다시 열기 없음 (2026-10-30) | 작성자 본인 |
+| `delete_survey(p_survey_id)` | **정상 응답 0명일 때만** 설문 삭제 (확인 문항 오답 응답은 함께 지워짐, `20261110000003`) + 등록비 − 이미 받은 환불만큼 돌려줌 (`survey_delete`). 문항·보기·태그·홍보 글은 함께 삭제. 돌려준 금액 반환 (2026-11-10) | 작성자 본인 |
+| `get_survey_for_copy(p_survey_id)` | 다시 고치기용 문항·보기 (확인 문항 제외) `[{type, text, options[]}]` (2026-11-10) | 작성자 본인 |
 | `get_hub_list(p_category, p_sort)` | 데이터 허브 목록 (popular·latest·responses). 열람함·응답함·무료·신뢰도·참고용 표시 (2026-10-30) | 로그인한 사람 |
 | `get_hub_preview(p_survey_id)` | 무료 정보: 설문 정보·문항 목록·응답자 구성(5명 미만 숨김)·열람 상태·무료 이유·가격 | 볼 수 있는 사람 |
 | `get_my_comparison(p_survey_id)` | 내 답 비교 (문항별 내 답과 같은 답 비율, 주관식 제외) | 그 설문 응답자 |

@@ -1,7 +1,7 @@
 // ys-111 설문 상세 · F-205
 import { Stack, router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import Button from "@/components/ui/Button";
@@ -13,7 +13,10 @@ import Card from "@/components/ui/Card";
 import StatTile from "@/components/ui/StatTile";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
+import { showConfirm } from "@/lib/confirm";
+import { errorMessage } from "@/lib/errors";
 import { formatAgo, formatPoints, formatTimeLeft } from "@/lib/format";
+import { showNotice } from "@/lib/notice";
 import { fetchSurveyReward } from "@/lib/rewards";
 import { supabase } from "@/lib/supabase";
 import { formatHost, remainingSpots } from "@/lib/surveys";
@@ -135,6 +138,27 @@ export default function SurveyDetail() {
 
   const spots = remainingSpots(detail);
 
+  // 삭제: 돌려줄 금액은 서버가 정하고 알려 준다
+  const confirmDelete = () =>
+    showConfirm({
+      title: "설문을 삭제할까요?",
+      message: "삭제하면 되돌릴 수 없어요. 낸 등록비는 돌려드려요.",
+      okLabel: "삭제",
+      cancelLabel: "취소",
+      destructive: true,
+      onOk: async () => {
+        const { data, error } = await supabase.rpc("delete_survey", { p_survey_id: Number(id) });
+        if (error) {
+          showNotice("삭제하지 못했어요", errorMessage(error));
+          return;
+        }
+        const refund = typeof data === "number" ? data : 0;
+        showNotice("삭제했어요", refund > 0 ? `등록비 ${formatPoints(refund)}를 돌려드렸어요.` : "설문을 지웠어요.", () =>
+          router.back(),
+        );
+      },
+    });
+
   const join = () => router.push({ pathname: "/survey/respond", params: { id: String(id) } });
 
   return (
@@ -182,6 +206,12 @@ export default function SurveyDetail() {
         )}
 
         {detail.isOwner && <Text style={styles.muted}>내가 올린 설문이에요.</Text>}
+        {/* 정상 응답 0명일 때만 삭제 (2026-11-10). 확인 문항 오답 응답은 함께 지워진다 */}
+        {detail.isOwner && detail.response_count === 0 && (
+          <Pressable onPress={confirmDelete} hitSlop={8} style={styles.deleteLink}>
+            <Text style={styles.deleteText}>설문 삭제</Text>
+          </Pressable>
+        )}
         {!detail.isOwner && <ReportLink surveyId={Number(id)} />}
       </ScrollView>
 
@@ -303,5 +333,13 @@ const styles = StyleSheet.create({
     fontSize: fontSize.body,
     color: colors.textMuted,
     textAlign: "center",
+  },
+  deleteLink: {
+    alignSelf: "center",
+  },
+  deleteText: {
+    fontSize: fontSize.small,
+    color: colors.danger,
+    textDecorationLine: "underline",
   },
 });

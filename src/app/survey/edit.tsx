@@ -1,4 +1,4 @@
-// ys-122 설문 수정 (설명·보상 안내만) · F-406 확장 (2026-11-08 팀 피드백)
+// ys-122 설문 수정 (설명·보상 안내만) · F-406 확장 (2026-11-08 팀 피드백, 2026-11-10 응답 0명이면 처음부터 다시 고치기)
 // 진행 중인 내 설문의 안내 글만 고친다. 문항·제목·인원은 응답이 섞이지 않게 잠금 (시중 설문 서비스와 같게)
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
@@ -6,14 +6,25 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import { formStyles } from "@/components/create/formStyles";
 import PrimaryButton from "@/components/PrimaryButton";
+import Button from "@/components/ui/Button";
 import CheckRow from "@/components/ui/CheckRow";
 import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
+import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
+import { formatPoints } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { fetchSurveyReward } from "@/lib/rewards";
 import { supabase } from "@/lib/supabase";
-import { DESCRIPTION_MAX, REWARD_NOTE_MAX, REWARD_NOTE_MIN } from "@/lib/surveyDraft";
+import {
+  DESCRIPTION_MAX,
+  REWARD_NOTE_MAX,
+  REWARD_NOTE_MIN,
+  deleteDraft,
+  fetchSurveyAsDraft,
+  makeRequestId,
+  saveDraft,
+} from "@/lib/surveyDraft";
 
 export default function SurveyEdit() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -26,13 +37,17 @@ export default function SurveyEdit() {
   const [agreed, setAgreed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  // 응답이 0명이면 "처음부터 다시 고치기"를 보여 준다 (2026-11-10)
+  const [noResponses, setNoResponses] = useState(false);
+  const [redoing, setRedoing] = useState(false);
 
   useEffect(() => {
     Promise.all([
-      supabase.from("surveys").select("description").eq("id", surveyId).maybeSingle(),
+      supabase.from("surveys").select("description, response_count").eq("id", surveyId).maybeSingle(),
       fetchSurveyReward(surveyId),
     ]).then(([{ data }, reward]) => {
       setDescription(data?.description ?? "");
+      setNoResponses(data?.response_count === 0);
       setNote(reward ?? "");
       setOriginalNote(reward);
       setLoaded(true);
@@ -64,6 +79,48 @@ export default function SurveyEdit() {
     showNotice("수정했어요", "바뀐 내용이 응답자에게 바로 보여요.", () => router.back());
   };
 
+  // 처음부터 다시 고치기: 지금 내용을 임시저장으로 옮기고 → 설문 삭제(등록비 환불) → 작성 화면
+  // 임시저장을 먼저 만들어서, 삭제가 실패하면 그 임시저장만 지운다
+  const redo = async () => {
+    setRedoing(true);
+    const [{ data: auth }, draft] = await Promise.all([supabase.auth.getUser(), fetchSurveyAsDraft(surveyId)]);
+    const userId = auth.user?.id;
+    if (!userId || !draft) {
+      setRedoing(false);
+      showNotice("불러오지 못했어요", "잠시 후 다시 시도해 주세요.");
+      return;
+    }
+    const draftId = makeRequestId();
+    saveDraft(userId, draftId, draft, 1);
+    const { data, error: deleteError } = await supabase.rpc("delete_survey", { p_survey_id: surveyId });
+    setRedoing(false);
+    if (deleteError) {
+      deleteDraft(userId, draftId);
+      showNotice("다시 고치지 못했어요", errorMessage(deleteError));
+      return;
+    }
+    const refund = typeof data === "number" ? data : 0;
+    const open = () => {
+      // 지운 설문의 상세·수정 화면으로 돌아가지 않게 처음 화면까지 닫고 작성 화면을 연다
+      router.dismissAll();
+      router.push({ pathname: "/create", params: { draft: draftId } });
+    };
+    showNotice(
+      "작성 화면으로 옮겼어요",
+      `${refund > 0 ? `등록비 ${formatPoints(refund)}를 돌려드렸어요. ` : ""}고친 뒤 다시 등록해 주세요. 임시저장함에도 있어요.`,
+      open,
+    );
+  };
+
+  const confirmRedo = () =>
+    showConfirm({
+      title: "처음부터 다시 고칠까요?",
+      message: "지금 설문은 지우고 낸 등록비를 돌려드려요. 같은 내용이 채워진 작성 화면이 열리고, 다시 등록하면 등록비를 새로 내요.",
+      okLabel: "다시 고치기",
+      cancelLabel: "취소",
+      onOk: redo,
+    });
+
   if (!loaded) {
     return (
       <View style={styles.center}>
@@ -83,9 +140,19 @@ export default function SurveyEdit() {
     >
       <Stack.Screen options={{ title: "설문 수정" }} />
 
-      <Text style={styles.lead}>
-        설명과 보상 안내만 수정할 수 있어요.{"\n"}문항·제목·인원은 이미 받은 응답과 맞지 않게 되어 수정할 수 없어요.
-      </Text>
+      {noResponses ? (
+        <View style={formStyles.card}>
+          <Text style={formStyles.label}>문항·제목·인원까지 고치고 싶다면</Text>
+          <Text style={formStyles.hint}>
+            아직 응답이 없어서 처음부터 다시 고칠 수 있어요. 응답이 1명이라도 생기면 설명과 보상 안내만 고칠 수 있어요.
+          </Text>
+          <Button title="처음부터 다시 고치기" variant="outline" onPress={confirmRedo} disabled={redoing} />
+        </View>
+      ) : (
+        <Text style={styles.lead}>
+          응답이 생겨서 설명과 보상 안내만 고칠 수 있어요.{"\n"}문항·제목·인원은 이미 받은 응답과 맞지 않게 되어 고칠 수 없어요.
+        </Text>
+      )}
 
       <View style={formStyles.card}>
         <Text style={formStyles.label}>설명 (선택)</Text>

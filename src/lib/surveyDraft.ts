@@ -1,6 +1,7 @@
 // 설문 작성 화면(ys-120)에서 쓰는 작성 중인 설문의 모양과 검사·계산.
 // 글자 수 한도는 서버 create_survey와 같게 맞춘다 (docs/DB.md "create_survey 입력 규칙")
 import { BAND_RULE_KEYS, bandOf } from "@/lib/pointBands";
+import { supabase } from "@/lib/supabase";
 
 export type QuestionType = "single" | "multi" | "scale" | "text";
 
@@ -255,4 +256,43 @@ export function toRpcQuestions(d: SurveyDraft) {
       ? { type: q.type, text: q.text.trim(), options: q.options.map((o) => o.trim()) }
       : { type: q.type, text: q.text.trim() },
   );
+}
+
+// 등록한 설문을 작성 화면 내용으로 되돌린다 ("처음부터 다시 고치기", 2026-11-10). 내 설문만 읽힌다
+// 문항은 get_survey_for_copy로 (확인 문항은 서버가 뺀다). 마감 일수는 등록일~마감일로 다시 계산한다. 보상 안내 동의는 다시 받는다
+export async function fetchSurveyAsDraft(surveyId: number): Promise<SurveyDraft | null> {
+  const [{ data: s }, { data: questions }, { data: tags }, { data: reward }] = await Promise.all([
+    supabase
+      .from("surveys")
+      .select("title, description, category_id, audience, result_visibility, target_responses, closes_at, created_at, show_nickname")
+      .eq("id", surveyId)
+      .maybeSingle(),
+    supabase.rpc("get_survey_for_copy", { p_survey_id: surveyId }),
+    supabase.from("survey_tags").select("tag_id").eq("survey_id", surveyId),
+    supabase.from("survey_rewards").select("note").eq("survey_id", surveyId).maybeSingle(),
+  ]);
+  if (!s || !questions) return null;
+
+  const days = s.closes_at
+    ? Math.max(1, Math.round((new Date(s.closes_at).getTime() - new Date(s.created_at).getTime()) / 86400000))
+    : null;
+  return {
+    title: s.title,
+    description: s.description ?? "",
+    categoryId: s.category_id,
+    tagIds: (tags ?? []).map((t) => t.tag_id),
+    questions: (questions as { type: QuestionType; text: string; options: string[] }[]).map((q) => ({
+      key: makeRequestId(),
+      type: q.type,
+      text: q.text,
+      options: q.options,
+    })),
+    audience: s.audience,
+    resultVisibility: s.result_visibility,
+    target: String(s.target_responses),
+    days: days === null ? "" : String(days),
+    showNickname: s.show_nickname,
+    rewardNote: reward?.note ?? "",
+    rewardAgreed: false,
+  };
 }

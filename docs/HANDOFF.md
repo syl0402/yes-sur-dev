@@ -36,6 +36,7 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 화면: `router.push({ pathname: "/survey/results", params: { id } })` (상세에서 작성자에게만 [결과 보기])
 - 결과: `supabase.rpc("get_survey_results", { p_survey_id })` → 작성자 본인만. 모양은 `docs/DB.md`
 - 마감: `supabase.rpc("close_survey", { p_survey_id })` → 작성자 본인만 (못 받은 인원만큼 환불)
+- 삭제 (2026-11-10): `supabase.rpc("delete_survey", { p_survey_id })` → 작성자 본인 + 정상 응답 0명만. 돌려준 포인트 숫자를 돌려줌. 다시 고치기는 `fetchSurveyAsDraft(id)`(`surveyDraft.ts`, 문항은 `get_survey_for_copy`) → `saveDraft` → `delete_survey` → `/create?draft=`
 - 결과 공개 범위: 등록 때 `create_survey`에 `p_result_visibility: "public" | "campus" | "private"`, 나중엔 `supabase.rpc("set_result_visibility", { p_survey_id, p_visibility })`. 화면 문구는 `VISIBILITY_LABELS` (`surveyDraft.ts`)
 - 데이터 허브(공개 결과)에서도 같은 결과 화면 모양을 다시 쓸 예정
 

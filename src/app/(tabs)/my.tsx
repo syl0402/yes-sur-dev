@@ -33,6 +33,7 @@ const REASON_LABELS: Record<string, string> = {
   survey_reward: "설문 응답",
   survey_create: "설문 등록",
   survey_refund: "설문 마감 환불",
+  survey_delete: "설문 삭제 환불",
   data_view: "데이터 열람",
   data_share: "열람 수익",
   balance_vote: "밸런스 투표",

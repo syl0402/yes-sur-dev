@@ -78,7 +78,7 @@ export default function ConfirmStep({ draft, rules, categoryName, cost, balance,
         {isOrg ? "" : "· 일찍 마감하면 못 받은 인원만큼 등록비를 돌려받아요.\n"}
         {hasAttention ? "· 성실한 응답을 확인하는 문항이 가운데쯤 1개 들어가요. 결과에는 빠져요.\n" : ""}
         {isOrg ? "" : "· 소속을 알리고 싶으면 설명에 적어 주세요.\n"}
-        · 등록한 뒤에는 내용을 고칠 수 없어요.
+        · 응답이 1명이라도 생기면 제목·문항·인원은 고칠 수 없어요. 응답이 없을 때는 삭제하거나 다시 고칠 수 있어요.
       </Text>
 
       {/* 등록자 혜택 */}

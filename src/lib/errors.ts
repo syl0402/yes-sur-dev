@@ -26,6 +26,8 @@ const MESSAGES: Record<string, string> = {
   own_survey: "내가 올린 설문에는 응답할 수 없어요.",
   survey_closed: "마감된 설문이에요.",
   survey_full: "응답 인원이 다 찼어요.",
+  // 설문 삭제 (delete_survey, 2026-11-10)
+  survey_has_responses: "응답이 있는 설문은 삭제할 수 없어요. 마감만 할 수 있어요.",
   not_target: "응답 대상이 아닌 설문이에요.",
   already_responded: "이미 참여한 설문이에요.",
   invalid_answers: "모든 문항에 답해 주세요.",
