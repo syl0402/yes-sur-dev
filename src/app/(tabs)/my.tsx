@@ -5,11 +5,12 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 
 import AppIcon from "@/components/AppIcon";
 import { listCardStyles as list } from "@/components/listCardStyles";
+import LedgerList from "@/components/LedgerList";
 import MyDataPanel from "@/components/MyDataPanel";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
-import ListRow, { rowsCard } from "@/components/ui/ListRow";
+import ListRow from "@/components/ui/ListRow";
 import EmptyState from "@/components/ui/EmptyState";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { Text } from "@/components/ui/Text";
@@ -21,6 +22,7 @@ import { type AdminCounts, fetchAdminCounts, totalPending } from "@/lib/admin";
 import { showConfirm } from "@/lib/confirm";
 import { formatDate, formatPoints, formatShortDate } from "@/lib/format";
 import type { HubItem } from "@/lib/hub";
+import { fetchLedger, type LedgerItem } from "@/lib/ledger";
 import { supabase } from "@/lib/supabase";
 import { type ResultVisibility, type SavedDraft, VISIBILITY_LABELS, deleteDraft, listDrafts } from "@/lib/surveyDraft";
 
@@ -31,37 +33,13 @@ const ADMIN_HREF = "/admin" as Href;
 // 내가 쓴 글 (my-posts.tsx, 2026-11-10). 같은 이유로 Href로 고정
 const MY_POSTS_HREF = "/my-posts" as Href;
 
-// TODO(임시): 포인트 내역은 최근 50개만 · 내역이 많아지면 아래로 내릴 때 더 불러오기 · docs/PROGRESS.md
-const LEDGER_LIMIT = 50;
+// 포인트 내역 전체 화면 (points-history.tsx, 2026-11-10). 같은 이유로 Href로 고정
+const POINTS_HISTORY_HREF = "/points-history" as Href;
 
-// 포인트 기록 이유 → 화면 문구
-const REASON_LABELS: Record<string, string> = {
-  welcome: "가입 축하",
-  survey_reward: "설문 응답",
-  survey_create: "설문 등록",
-  survey_refund: "설문 마감 환불",
-  survey_delete: "설문 삭제 환불",
-  data_view: "데이터 열람",
-  data_share: "열람 수익",
-  balance_vote: "밸런스 투표",
-  daily_question: "오늘의 질문",
-  streak_bonus: "연속 출석 보너스",
-  community: "커뮤니티 투표",
-  creator_bonus: "내 투표 인기 보너스",
-  invite: "친구 초대",
-};
+// 마이 탭에서는 최근 몇 개만 (전체는 전용 화면에서)
+const LEDGER_PREVIEW = 10;
 
 type Tab = "surveys" | "ledger" | "data";
-
-type LedgerItem = {
-  id: number;
-  amount: number;
-  // 이유 (설문 응답 · 오늘의 질문 …)
-  reason: string;
-  // 설문 관련이면 설문 제목
-  title: string | null;
-  createdAt: string;
-};
 
 type MySurvey = {
   id: number;
@@ -123,30 +101,14 @@ async function fetchMy(): Promise<MyData> {
   const { data: auth } = await supabase.auth.getUser();
   const userId = auth.user?.id ?? "";
 
-  const [{ data: profile }, { data: org }, { data: balance }, { data: rows }, surveys, admin] = await Promise.all([
+  const [{ data: profile }, { data: org }, { data: balance }, ledger, surveys, admin] = await Promise.all([
     supabase.from("profiles").select("nickname, account_type, gender, birth_year").maybeSingle(),
     supabase.from("organizations").select("name").maybeSingle(),
     supabase.rpc("get_my_balance"),
-    supabase
-      .from("point_ledger")
-      .select("id, amount, reason, ref_id, created_at")
-      .eq("status", "confirmed")
-      .order("created_at", { ascending: false })
-      .limit(LEDGER_LIMIT),
+    fetchLedger({ limit: LEDGER_PREVIEW }),
     fetchMySurveys(userId),
     fetchAdminCounts(),
   ]);
-
-  // 설문 관련 기록에 설문 이름을 붙인다 (ref_id = 설문 번호, 열람 수익은 "설문번호:열람번호")
-  const surveyIds = (rows ?? [])
-    // 설문 번호가 있는 기록만. 개발용 포인트 기록(ref_id "dev-…")은 빼고
-    .map((r) => surveyIdOf(r.ref_id))
-    .filter((sid): sid is number => sid !== null);
-  const titles = new Map<string, string>();
-  if (surveyIds.length > 0) {
-    const { data: found } = await supabase.from("surveys").select("id, title").in("id", surveyIds);
-    (found ?? []).forEach((s) => titles.set(String(s.id), s.title));
-  }
 
   const isOrg = profile?.account_type === "org";
 
@@ -156,18 +118,7 @@ async function fetchMy(): Promise<MyData> {
     needsDemographics: !isOrg && (profile?.gender == null || profile?.birth_year == null),
     name: org?.name ?? profile?.nickname ?? "",
     balance: typeof balance === "number" ? balance : 0,
-    ledger: (rows ?? []).map((r) => {
-      const reason = REASON_LABELS[r.reason] ?? "기타";
-      const sid = surveyIdOf(r.ref_id);
-      const title = sid !== null ? titles.get(String(sid)) : undefined;
-      return {
-        id: r.id,
-        amount: r.amount,
-        reason,
-        title: title ?? null,
-        createdAt: r.created_at,
-      };
-    }),
+    ledger,
     surveys,
     drafts: userId ? listDrafts(userId) : [],
     admin,
@@ -175,11 +126,6 @@ async function fetchMy(): Promise<MyData> {
 }
 
 // 포인트 기록의 설문 번호: "12" 또는 "12:34"(열람 수익) → 12. 개발용 기록("dev-…")·웰컴은 null
-function surveyIdOf(refId: string | null): number | null {
-  const match = /^(\d+)(:\d+)?$/.exec(refId ?? "");
-  return match ? Number(match[1]) : null;
-}
-
 export default function My() {
   const [data, setData] = useState<MyData | null>(null);
   const [tab, setTab] = useState<Tab>("surveys");
@@ -374,26 +320,11 @@ export default function My() {
         (data.ledger.length === 0 ? (
           <EmptyState title="아직 포인트 내역이 없어요" message="설문에 답하면 여기에 쌓여요." emoji="🪙" />
         ) : (
-          // 날짜별로 묶기 (최신 날짜부터): 날짜 소제목 + 그날 내역 카드 (2026-11-10, 은행·토스 앱 방식)
-          <View style={styles.ledger}>
-            {groupByDay(data.ledger).map((day) => (
-              <View key={day.key} style={styles.ledgerDay}>
-                <Text style={styles.ledgerDate}>{day.label}</Text>
-                <Card style={rowsCard}>
-                  {day.items.map((item, i) => (
-                    <ListRow
-                      key={item.id}
-                      first={i === 0}
-                      title={item.reason}
-                      sub={[item.title, formatClock(item.createdAt)].filter(Boolean).join(" · ")}
-                      value={`${item.amount > 0 ? "+" : "-"}${formatPoints(Math.abs(item.amount))}`}
-                      valueTone={item.amount > 0 ? "primary" : "text"}
-                    />
-                  ))}
-                </Card>
-              </View>
-            ))}
-          </View>
+          // 최근 내역만 날짜별로 + 전체 내역 화면으로 (2026-11-10: 마이 탭이 길어지지 않게)
+          <>
+            <LedgerList items={data.ledger} />
+            <Button title="전체 내역 보기" variant="soft" onPress={() => router.push(POINTS_HISTORY_HREF)} />
+          </>
         ))}
 
       {/* 응답한·스크랩·열람한 결과를 한 곳에 (2026-11-09) */}
@@ -401,36 +332,6 @@ export default function My() {
       </View>
     </ScrollView>
   );
-}
-
-const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
-
-// 포인트 내역을 날짜별로 (오늘 · 어제 · "11월 9일 토요일" · 다른 해면 "2025년 11월 9일")
-function groupByDay(items: LedgerItem[]) {
-  const today = new Date();
-  const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
-  const days: { key: string; label: string; items: LedgerItem[] }[] = [];
-  for (const item of items) {
-    const d = new Date(item.createdAt);
-    const key = dayKey(d);
-    let day = days.find((x) => x.key === key);
-    if (!day) {
-      const base = `${d.getMonth() + 1}월 ${d.getDate()}일 ${WEEKDAYS[d.getDay()]}요일`;
-      const label =
-        key === dayKey(today) ? "오늘" : key === dayKey(yesterday) ? "어제" : d.getFullYear() === today.getFullYear() ? base : `${d.getFullYear()}년 ${base}`;
-      day = { key, label, items: [] };
-      days.push(day);
-    }
-    day.items.push(item);
-  }
-  return days;
-}
-
-// 시각 "14:32"
-function formatClock(iso: string) {
-  const d = new Date(iso);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
 // 바로가기 하나: 회색 둥근 네모 안 파란 아이콘 + 아래 이름
@@ -676,18 +577,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.caption,
     fontWeight: "600",
     color: colors.cardTitle,
-  },
-  ledger: {
-    gap: 20,
-  },
-  ledgerDay: {
-    gap: spacing.sm,
-  },
-  ledgerDate: {
-    paddingHorizontal: spacing.xs,
-    fontSize: fontSize.small,
-    fontWeight: "600",
-    color: colors.textMuted,
   },
   hubRow: {
     flexDirection: "row",
