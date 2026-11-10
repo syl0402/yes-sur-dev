@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import AppDialog from "@/components/ui/AppDialog";
 import { colors, fontFamily } from "@/constants/theme";
+import { usePush } from "@/hooks/usePush";
 import { useRequireLogin } from "@/hooks/useRequireLogin";
 import { useResumeSignup } from "@/hooks/useResumeSignup";
 
@@ -16,6 +17,8 @@ export default function RootLayout() {
   useResumeSignup();
   // 로그인 안 된 상태로 다른 화면에 들어오면 첫 화면으로
   useRequireLogin();
+  // 푸시 알림 준비 · 알림 누르면 그 화면으로 (앱 1.0.1 이상 폰에서만, 2026-11-10)
+  usePush();
 
   // 앱 글꼴 Pretendard: 한 이름 아래 굵기 5종 → 화면에서는 fontWeight로 고른다
   const [fontsLoaded, fontError] = useFonts([

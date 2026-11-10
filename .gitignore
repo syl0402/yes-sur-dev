@@ -42,3 +42,7 @@ example
 # generated native folders
 /ios
 /android
+
+# Firebase (푸시 알림, 2026-11-10): 키가 들어 있어 커밋하지 않는다. 빌드는 EAS 비공개 파일(GOOGLE_SERVICES_JSON)로
+google-services.json
+*firebase-adminsdk*.json

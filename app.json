@@ -37,7 +37,22 @@
       "expo-sqlite",
       "expo-sharing",
       "expo-image",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "color": "#3157D5",
+          "defaultChannel": "daily"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "설문 문항에 넣을 사진을 고르려면 사진 접근 권한이 필요해요.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

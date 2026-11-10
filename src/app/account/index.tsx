@@ -1,7 +1,7 @@
 // ys-151 내 정보 · 회원정보 보기·비밀번호 변경·로그아웃·회원 탈퇴 (2026-10-30, 2026-11-10 설정 화면처럼: 선·테두리 줄임)
 import { Stack, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 
 import ListRow from "@/components/ui/ListRow";
 import { Text } from "@/components/ui/Text";
@@ -9,6 +9,10 @@ import { colors, fontSize, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { GENDER_OPTIONS } from "@/lib/demographics";
 import { openLegal } from "@/lib/legal";
+import { errorMessage } from "@/lib/errors";
+import { canUseNotifications } from "@/lib/nativeFeatures";
+import { showNotice } from "@/lib/notice";
+import { disablePushOnThisDevice, enablePush } from "@/lib/push";
 import { supabase } from "@/lib/supabase";
 
 type Account = {
@@ -18,6 +22,8 @@ type Account = {
   needsDemographics: boolean;
   // 회원정보 (보기만. 고치려면 문의)
   info: { label: string; value: string }[];
+  // 오늘의 질문 알림 켬 (2026-11-10)
+  notifyDaily: boolean;
 };
 
 // 하나짜리 관계(학교·전공 계열)는 배열로 올 때도 있어서 첫 번째만
@@ -31,7 +37,7 @@ async function fetchAccount(): Promise<Account> {
     supabase
       .from("profiles")
       .select(
-        "nickname, account_type, gender, birth_year, admission_year, degree_type, universities(name), major_fields(category_name, name)",
+        "nickname, account_type, gender, birth_year, admission_year, degree_type, notify_daily, universities(name), major_fields(category_name, name)",
       )
       .maybeSingle(),
     supabase.from("organizations").select("name, kind").maybeSingle(),
@@ -62,6 +68,7 @@ async function fetchAccount(): Promise<Account> {
     isOrg,
     needsDemographics: !isOrg && (profile?.gender == null || profile?.birth_year == null),
     info,
+    notifyDaily: profile?.notify_daily ?? true,
   };
 }
 
@@ -82,11 +89,28 @@ export default function AccountHome() {
       okLabel: "로그아웃",
       cancelLabel: "취소",
       onOk: async () => {
+        // 이 기기로 내 알림이 계속 오지 않게
+        await disablePushOnThisDevice();
         await supabase.auth.signOut();
         router.dismissAll();
         router.replace("/");
       },
     });
+
+  // 오늘의 질문 알림 켜기/끄기: 켤 때 기기 허락이 없으면 허락 창. 거절했으면 폰 설정 안내
+  const toggleDaily = async (on: boolean) => {
+    if (!account) return;
+    setAccount({ ...account, notifyDaily: on });
+    const { error } = await supabase.rpc("set_notify_daily", { p_on: on });
+    if (error) {
+      setAccount({ ...account });
+      showNotice("바꾸지 못했어요", errorMessage(error));
+      return;
+    }
+    if (on && !(await enablePush())) {
+      showNotice("알림을 받으려면 허락이 필요해요", "폰 설정 → 애플리케이션 → 옛썰 → 알림에서 허락해 주세요.");
+    }
+  };
 
   if (account === null) {
     return (
@@ -143,6 +167,27 @@ export default function AccountHome() {
           },
         ])}
       </View>
+
+      {/* 알림 (앱 1.0.1 이상 폰에서만. 웹·옛 APK는 알림을 받을 수 없어 숨김) */}
+      {canUseNotifications && (
+        <View style={styles.group}>
+          <Text style={styles.groupTitle}>알림</Text>
+          <ListRow
+            plain
+            first
+            title="오늘의 질문 알림"
+            sub="낮 12시, 아직 답하지 않았을 때만 보내요"
+            right={
+              <Switch
+                value={account.notifyDaily}
+                onValueChange={toggleDaily}
+                trackColor={{ true: colors.primary, false: colors.border }}
+                thumbColor={colors.surface}
+              />
+            }
+          />
+        </View>
+      )}
 
       <View style={styles.group}>
         <Text style={styles.groupTitle}>안내 · 약관</Text>

@@ -409,6 +409,15 @@
 | `not_played` | 월드컵 결과는 한 판 끝낸 뒤에 |
 | `invalid_bracket` | 월드컵 대진이 맞지 않음 (매치 수·후보·진 후보 재등장) |
 
+## 푸시 알림 (2026-11-10, `20261110000007_push.sql`)
+
+- `push_tokens` (token PK · user_id · platform): 기기 알림 주소. RLS 켬 + 정책 없음 → 앱은 직접 못 읽고 못 씀. `register_push_token(p_token, p_platform)` · `unregister_push_token(p_token)`(내 것만)으로만
+- `profiles.notify_daily` (기본 true): 오늘의 질문 알림 켜기/끄기. `set_notify_daily(p_on)`
+- `notifications` (user_id · kind `daily` · day · title · body · url · read_at): 보낸 알림 기록 (나중에 알림함). 본인 것만 읽기. `unique (user_id, kind, day)` → 같은 날 두 번 실행돼도 한 번만
+- `send_daily_push()`: pg_cron `daily-question-push` 매일 03:00 UTC(한국 12시). 오늘 질문에 안 답한 + 알림 켠 + 기기 있는 사람 → 기록 남기고 pg_net으로 Expo 푸시 서버에 100개씩. 앱에서 부를 수 없음
+- 직접 보내 보기 (테스트): SQL Editor에서 `select public.send_daily_push();` (오늘 이미 보냈으면 0) · 결과 확인: `select * from net._http_response order by created desc limit 5;`
+- 탈퇴하면 auth.users 삭제 → profiles와 함께 알림 주소·기록도 지워짐
+
 ## 신고 처리 (운영자, 2026-10-30)
 
 > 2026-10-31부터: 팀 운영자 계정으로 앱 → 마이 탭 맨 위 **🛠 운영** 카드에서 처리할 수 있다. 아래는 Supabase에서 직접 할 때

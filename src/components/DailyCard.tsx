@@ -11,7 +11,9 @@ import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { formatPoints } from "@/lib/format";
 import type { GroupDim } from "@/lib/hub";
+import { showConfirm } from "@/lib/confirm";
 import { showNotice } from "@/lib/notice";
+import { enablePush, markPushAsked, shouldAskPush } from "@/lib/push";
 import { supabase } from "@/lib/supabase";
 
 // get_today_daily (a·b·groups는 답한 뒤에만)
@@ -75,6 +77,19 @@ export default function DailyCard({ onAnswered, onOpen, onLoaded, compact }: Pro
     setEarned({ reward: result.reward, bonus: result.bonus });
     load();
     onAnswered?.();
+    // 처음 답한 직후 한 번만: 매일 알림 받을지 (2026-11-10, 앱 켤 때 묻는 것보다 허용률이 높음)
+    if (await shouldAskPush()) {
+      markPushAsked();
+      showConfirm({
+        title: "매일 오늘의 질문 알림을 받을까요?",
+        message: "낮 12시, 아직 답하지 않았을 때만 한 번 보내요. 내 정보에서 언제든 끌 수 있어요.",
+        okLabel: "받을게요",
+        cancelLabel: "나중에",
+        onOk: () => {
+          enablePush();
+        },
+      });
+    }
   };
 
   const answered = daily.my_choice !== null;

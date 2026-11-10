@@ -136,6 +136,12 @@ import { Text, TextInput } from "@/components/ui/Text";
 - 줄만 담는 카드는 `<Card style={rowsCard}>` (위아래 여백·줄 간격 줄임). 쓰는 곳: 내 정보, 포인트 안내, 마이 포인트 내역·임시저장, 내 데이터, 내가 쓴 댓글
 - 묶음 제목은 `SectionHeader`
 
+### 푸시 알림 (`src/lib/push.ts` · `src/hooks/usePush.ts`, 2026-11-10)
+- 앱 1.0.1 이상 폰에서만 (`canUseNotifications`, `src/lib/nativeFeatures.ts`). 알림 부품은 필요할 때만 불러와서 옛 APK·웹에서는 아무것도 안 함
+- 루트 레이아웃 `usePush()`: 앱 시작·로그인 때 허락돼 있으면 알림 주소 다시 등록 · 알림 누르면 `data.url` 화면으로
+- 오늘의 질문 첫 답변 직후 한 번 "매일 알림 받을까요?" (`shouldAskPush` → `enablePush`), 내 정보 "알림" 켜기/끄기, 로그아웃 때 `disablePushOnThisDevice`
+- 안드로이드는 Expo Go로 원격 알림을 못 받음 → 테스트는 새 APK로. Firebase(FCM) 설정이 있어야 알림 주소가 나옴
+
 ### `PrimaryButton` (`src/components/PrimaryButton.tsx`)
 큰 파란 버튼. `disabled`면 회색, `loading`이면 돌아가는 표시 + 누르기 막힘(연타 방지).
 ```tsx
