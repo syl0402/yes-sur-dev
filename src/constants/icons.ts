@@ -15,11 +15,12 @@ export const tabIcons = {
   my: "person-outline",
 } satisfies Record<string, IconName>;
 
-// 홈 바로가기·설문 카드 (2026-10-31 디자인)
+// 홈 바로가기·설문 카드 (2026-10-31 디자인, 2026-11-10 피그마 홈 시안: 바로가기는 꽉 찬 아이콘 4칸)
 export const homeIcons = {
-  surveys: "clipboard-outline",
-  create: "add",
-  data: "bar-chart-outline",
+  surveys: "document-text",
+  create: "pencil",
+  data: "stats-chart",
+  community: "chatbox-ellipses",
   time: "time-outline",
   // 목록 카드 소요 시간 (꽉 찬 시계, 2026-11-09 피그마)
   timeFill: "time",

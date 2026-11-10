@@ -1,4 +1,5 @@
-// ys-100 홈 · F-201, F-702 (2026-10-31 디자인: 포인트 카드 · 바로가기 3칸 · 오늘의 질문 · 마감 임박 설문)
+// ys-100 홈 · F-201, F-702 (2026-10-31 디자인: 포인트 카드 · 바로가기 · 오늘의 질문 · 마감 임박 설문 · 2026-11-10 피그마 홈 시안: 마스코트 카드 · 바로가기 4칸)
+import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
@@ -6,7 +7,6 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 import AppIcon from "@/components/AppIcon";
 import DailyCard from "@/components/DailyCard";
 import SurveyListCard from "@/components/SurveyListCard";
-import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { Text } from "@/components/ui/Text";
@@ -24,6 +24,9 @@ type HomeData = {
   weekEarned: number;
   surveys: SurveyCard[];
 };
+
+// 포인트 카드 마스코트 (2026-11-10 피그마 홈 시안 145:3866 원본 그림)
+const MASCOT = require("../../../assets/images/mascot-cheer.png");
 
 // 홈에 보여줄 마감 임박 설문 개수
 const HOME_SURVEY_COUNT = 5;
@@ -99,8 +102,9 @@ export default function Home() {
     >
       {/* 내 포인트 (단체는 응답·적립이 없어서 안내로 대신). 누르면 마이 탭의 포인트 내역으로 */}
       <Pressable style={styles.hero} onPress={() => router.navigate({ pathname: "/my", params: { tab: "ledger" } })} disabled={data.isOrg}>
-        {/* 오른쪽 아래 장식 고리 */}
-        <View style={styles.heroRing} />
+        {/* 오른쪽 아래: 행성(큰 원) 위에 선 마스코트 (2026-11-10 피그마 홈 시안) */}
+        <View style={styles.heroPlanet} />
+        <Image source={MASCOT} style={styles.heroMascot} contentFit="contain" accessible={false} />
         {data.isOrg ? (
           <>
             <Text style={styles.heroLabel}>단체 계정</Text>
@@ -125,29 +129,14 @@ export default function Home() {
         )}
       </Pressable>
 
-      {/* 바로가기 (단체는 응답하지 않으니 설문 참여 없음) */}
+      {/* 바로가기 4칸 (단체는 응답하지 않으니 설문 참여 없음) */}
       <View style={styles.shortcuts}>
         {!data.isOrg && (
-          <Shortcut
-            icon={homeIcons.surveys}
-            title="설문 참여"
-            sub="답하고 적립하기"
-            onPress={() => router.navigate("/surveys")}
-          />
+          <Shortcut icon={homeIcons.surveys} title="설문 참여" onPress={() => router.navigate("/surveys")} />
         )}
-        <Shortcut
-          icon={homeIcons.create}
-          title="설문 등록"
-          sub="의견 모으기"
-          accent
-          onPress={() => router.push("/create")}
-        />
-        <Shortcut
-          icon={homeIcons.data}
-          title="데이터 열람"
-          sub="인사이트 찾기"
-          onPress={() => router.navigate("/data")}
-        />
+        <Shortcut icon={homeIcons.create} title="설문 등록" onPress={() => router.push("/create")} />
+        <Shortcut icon={homeIcons.data} title="데이터 허브" onPress={() => router.navigate("/data")} />
+        <Shortcut icon={homeIcons.community} title="커뮤니티" onPress={() => router.navigate("/community")} />
       </View>
 
       {/* 오늘의 질문 (예약된 날만). 답하면 포인트가 바뀌니 홈을 다시 불러온다 */}
@@ -168,28 +157,15 @@ export default function Home() {
   );
 }
 
-// 바로가기 한 칸 (아이콘 동그라미 + 이름 + 설명)
-function Shortcut({
-  icon,
-  title,
-  sub,
-  accent,
-  onPress,
-}: {
-  icon: IconName;
-  title: string;
-  sub: string;
-  accent?: boolean;
-  onPress: () => void;
-}) {
+// 바로가기 한 칸 (꽉 찬 파란 아이콘 + 이름, 카드 없이)
+function Shortcut({ icon, title, onPress }: { icon: IconName; title: string; onPress: () => void }) {
   return (
-    <Card style={styles.shortcut} onPress={onPress}>
-      <View style={[styles.shortcutIcon, accent && styles.shortcutIconAccent]}>
-        <AppIcon name={icon} size={22} color={accent ? colors.onAccentSoft : colors.primary} />
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.shortcut, pressed && styles.shortcutPressed]}>
+      <View style={styles.shortcutIcon}>
+        <AppIcon name={icon} size={26} color={colors.primary} />
       </View>
       <Text style={styles.shortcutTitle}>{title}</Text>
-      <Text style={styles.shortcutSub}>{sub}</Text>
-    </Card>
+    </Pressable>
   );
 }
 
@@ -209,22 +185,31 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingBottom: spacing.xl,
   },
+  // 피그마 358 × 217. 글자는 위·아래로 나뉘고 가운데는 비운다
   hero: {
+    minHeight: 200,
     padding: spacing.lg,
     gap: spacing.sm,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     backgroundColor: colors.primary,
     overflow: "hidden",
   },
-  heroRing: {
+  heroPlanet: {
     position: "absolute",
-    right: -40,
-    bottom: -60,
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    borderWidth: 24,
-    borderColor: "rgba(255, 255, 255, 0.12)",
+    right: -50,
+    bottom: -86,
+    width: 178,
+    height: 161,
+    borderRadius: 90,
+    backgroundColor: colors.onPrimaryPlanet,
+  },
+  // 원본 그림 비율 1264 × 848
+  heroMascot: {
+    position: "absolute",
+    right: -24,
+    bottom: -4,
+    width: 200,
+    height: 134,
   },
   heroTop: {
     flexDirection: "row",
@@ -249,6 +234,7 @@ const styles = StyleSheet.create({
     color: colors.onPrimary,
   },
   heroWeek: {
+    marginTop: "auto",
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
@@ -263,36 +249,31 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.onPrimary,
   },
+  // 아래 구분선까지 (피그마: 바로가기 밑 얇은 선)
   shortcuts: {
     flexDirection: "row",
-    gap: spacing.sm,
+    paddingBottom: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
   shortcut: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.sm,
-    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    gap: spacing.sm,
+  },
+  shortcutPressed: {
+    opacity: 0.5,
   },
   shortcutIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
+    width: 48,
+    height: 48,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.primarySoft,
-    marginBottom: spacing.xs,
-  },
-  shortcutIconAccent: {
-    backgroundColor: colors.accentSoft,
   },
   shortcutTitle: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  shortcutSub: {
-    fontSize: fontSize.caption,
-    color: colors.textMuted,
+    fontSize: fontSize.small,
+    fontWeight: "500",
+    color: colors.primaryStrong,
   },
 });

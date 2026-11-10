@@ -9,6 +9,8 @@ export const colors = {
   primarySoft: "#E3E9FF", // Blue 100
   // 대표 색 중간 밝기 (결과 막대에서 1위가 아닌 보기)
   primaryMuted: "#9FB2FF", // Blue 300
+  // 흰 바탕 위 파란 글자 (홈 바로가기 이름, 2026-11-10 피그마)
+  primaryStrong: "#2949B5", // Blue 600
   // 강조 (별·포인트·완료 뱃지). 흰 바탕 위 글자색으로 쓰지 않는다 (잘 안 읽힘) → 바탕으로 쓰고 글자는 onAccent
   accent: "#A3EA16", // Lime 500
   accentSoft: "#F0F8D5", // Lime 100
@@ -45,6 +47,8 @@ export const colors = {
   onPrimary: "#FFFFFF",
   // 파란 카드 위 흐린 흰색 (마이 포인트 카드 원 장식, 2026-11-10)
   onPrimarySoft: "rgba(255, 255, 255, 0.12)",
+  // 홈 포인트 카드 오른쪽 아래 큰 원 (마스코트가 올라선 행성, 2026-11-10 피그마) · Blue 300 반투명
+  onPrimaryPlanet: "rgba(159, 178, 255, 0.6)",
   // 목록 창 뒤를 어둡게 덮는 색
   overlay: "rgba(32, 42, 64, 0.4)", // Natural 900 40%
 };
