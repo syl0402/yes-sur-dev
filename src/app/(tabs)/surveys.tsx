@@ -1,6 +1,6 @@
 // ys-110 설문 목록 · F-202~204
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
 import AppIcon from "@/components/AppIcon";
@@ -57,7 +57,16 @@ export default function Surveys() {
   const q = search.trim().replace(/^#/, "").toLowerCase();
   const [sort, setSort] = useState<SortKey>("recommended");
   // 카드의 #태그를 누를 때마다 필터에 더한다 (모두 붙은 설문만). 주소의 ?tags= 가 곧 필터 (홈 카드에서 와도 같게)
-  const params = useLocalSearchParams<{ tags?: string }>();
+  const params = useLocalSearchParams<{ tags?: string; q?: string }>();
+  // 통합 검색 "설문 탭에서 더 보기"로 오면 검색칸에 같은 단어 (2026-11-10)
+  const [seenQ, setSeenQ] = useState<string | undefined>(undefined);
+  if (params.q !== seenQ) {
+    setSeenQ(params.q);
+    if (params.q) setSearch(params.q);
+  }
+  useEffect(() => {
+    if (params.q) router.setParams({ q: undefined });
+  }, [params.q]);
   const pickedTags = decodeTags(params.tags);
   const setPickedTags = (next: Tag[]) => router.setParams({ tags: encodeTags(next) });
   const [refreshing, setRefreshing] = useState(false);

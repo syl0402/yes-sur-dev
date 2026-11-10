@@ -1,6 +1,6 @@
 // ys-130 데이터 목록 · F-501 (2026-11-01: 검색 · 스크랩 · 카드 정리, 2026-11-09 "내가 응답한 결과" 줄 → 마이 탭 내 데이터)
-import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
 import AppIcon from "@/components/AppIcon";
@@ -33,6 +33,16 @@ export default function Data() {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [savedOnly, setSavedOnly] = useState(false);
   const [search, setSearch] = useState("");
+  // 통합 검색 "데이터 탭에서 더 보기"로 오면 검색칸에 같은 단어 (2026-11-10)
+  const params = useLocalSearchParams<{ q?: string }>();
+  const [seenQ, setSeenQ] = useState<string | undefined>(undefined);
+  if (params.q !== seenQ) {
+    setSeenQ(params.q);
+    if (params.q) setSearch(params.q);
+  }
+  useEffect(() => {
+    if (params.q) router.setParams({ q: undefined });
+  }, [params.q]);
   // 카드의 #태그를 누를 때마다 필터에 더한다 (모두 붙은 결과만, 2026-11-07)
   const [pickedTags, setPickedTags] = useState<Tag[]>([]);
   // 내가 스크랩한 설문 번호
@@ -69,13 +79,13 @@ export default function Data() {
   };
 
   const open = (id: number) => router.push({ pathname: "/data/[id]", params: { id: String(id) } });
-  const q = search.trim();
+  const q = search.trim().replace(/^#/, "");
   const filtering = q !== "" || verifiedOnly || savedOnly || pickedTags.length > 0;
   const shown = (items ?? []).filter(
     (i) =>
       (!verifiedOnly || i.host_verified) &&
       (!savedOnly || saved.includes(i.id)) &&
-      (q === "" || i.title.toLowerCase().includes(q.toLowerCase())) &&
+      (q === "" || i.title.toLowerCase().includes(q.toLowerCase()) || (i.tags ?? []).some((t) => t.name.toLowerCase().includes(q.toLowerCase()))) &&
       matchesTags(i.tags ?? [], pickedTags),
   );
 
