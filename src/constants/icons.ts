@@ -68,6 +68,8 @@ export const menuIcons = {
 // 화면 곳곳의 작은 표시 아이콘 (2026-11-10, 기능 이모지 → 선 아이콘)
 export const uiIcons = {
   search: "search-outline",
+  // 오른쪽 아래 둥근 "새로 쓰기" 버튼 (2026-11-10 피그마: + → 연필)
+  write: "pencil",
   gift: "gift-outline",
   streak: "flame",
   alert: "alert-circle-outline",
