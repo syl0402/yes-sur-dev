@@ -142,6 +142,15 @@ import { Text, TextInput } from "@/components/ui/Text";
 - 오늘의 질문 첫 답변 직후 한 번 "매일 알림 받을까요?" (`shouldAskPush` → `enablePush`), 내 정보 "알림" 켜기/끄기, 로그아웃 때 `disablePushOnThisDevice`
 - 안드로이드는 Expo Go로 원격 알림을 못 받음 → 테스트는 새 APK로. Firebase(FCM) 설정이 있어야 알림 주소가 나옴
 
+### 오류 자동 수집 Sentry (`src/lib/sentry.ts`, 2026-11-10)
+- 조직 `yessur` · 프로젝트 `react-native` (sentry.io). DSN = `EXPO_PUBLIC_SENTRY_DSN` (.env · EAS), 빌드 때 오류 위치 정보 올리기 = EAS 비밀 값 `SENTRY_AUTH_TOKEN`
+- 오류만 (화면 녹화·성능 추적 끔, `sendDefaultPii: false`). 개발 중·옛 APK(1.0.0)에서는 꺼짐. 루트 레이아웃을 `wrapWithSentry`로 감쌈
+- 원격 업데이트 뒤 위치 정보 올리기: `npx sentry-expo-upload-sourcemaps dist` (SENTRY_AUTH_TOKEN 필요)
+
+### 앱 버전 · 원격 업데이트 (2026-11-10)
+- `app.json` version = 원격 업데이트 대상 (`runtimeVersion: appVersion`). 1.0.1 APK부터 알림·도넛·진동·사진 고르기·Sentry 부품이 들어 있음. 1.0.0 APK는 `src/lib/nativeFeatures.ts`로 막음
+- 앱 안쪽 부품(네이티브 모듈)을 새로 넣으면 버전을 올리고 APK를 다시 빌드할 것
+
 ### `PrimaryButton` (`src/components/PrimaryButton.tsx`)
 큰 파란 버튼. `disabled`면 회색, `loading`이면 돌아가는 표시 + 누르기 막힘(연타 방지).
 ```tsx

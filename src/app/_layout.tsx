@@ -6,13 +6,17 @@ import { useEffect } from "react";
 import AppDialog from "@/components/ui/AppDialog";
 import { colors, fontFamily } from "@/constants/theme";
 import { usePush } from "@/hooks/usePush";
+import { initSentry, wrapWithSentry } from "@/lib/sentry";
 import { useRequireLogin } from "@/hooks/useRequireLogin";
 import { useResumeSignup } from "@/hooks/useResumeSignup";
 
 // 글꼴을 다 불러올 때까지 시작 화면을 유지한다 (기본 글꼴로 잠깐 보였다 바뀌지 않게)
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+// 오류 자동 수집 (테스터 폰·웹, 개발 중엔 꺼짐, 2026-11-10)
+initSentry();
+
+function RootLayout() {
   // 인증만 하고 가입을 마치지 않은 사람은 가입을 이어서 하게 한다
   useResumeSignup();
   // 로그인 안 된 상태로 다른 화면에 들어오면 첫 화면으로
@@ -64,3 +68,6 @@ export default function RootLayout() {
     </>
   );
 }
+
+// 화면에서 난 오류도 Sentry가 잡도록 감싼다
+export default wrapWithSentry(RootLayout);

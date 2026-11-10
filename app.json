@@ -2,7 +2,7 @@
   "expo": {
     "name": "옛썰",
     "slug": "yessur",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "yessur",
@@ -51,6 +51,14 @@
           "photosPermission": "설문 문항에 넣을 사진을 고르려면 사진 접근 권한이 필요해요.",
           "cameraPermission": false,
           "microphonePermission": false
+        }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "react-native",
+          "organization": "yessur"
         }
       ]
     ],
