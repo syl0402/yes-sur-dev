@@ -1,12 +1,12 @@
-// ys-140 커뮤니티 · F-601 (작은 오늘의 질문 · 🔥 HOT 롤링(펼치면 HOT TOP·학교 대항전) + 글: 밸런스 · 나만 그래? · 골라 줘 · 설문 홍보)
+// ys-140 커뮤니티 · F-601 (맨 위 배너: 오늘의 질문 + 이미지 배너 2026-11-10 · 🔥 HOT 롤링(펼치면 HOT TOP·학교 대항전) + 글: 밸런스 · 나만 그래? · 골라 줘 · 설문 홍보)
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
+import CommunityBanner from "@/components/community/CommunityBanner";
 import PostCard from "@/components/community/PostCard";
 import TrendingTicker from "@/components/community/TrendingTicker";
 import WorldcupCard from "@/components/community/WorldcupCard";
-import DailyCard from "@/components/DailyCard";
 import EmptyState from "@/components/ui/EmptyState";
 import Fab from "@/components/ui/Fab";
 import SelectButton from "@/components/ui/SelectButton";
@@ -38,7 +38,7 @@ export default function Community() {
   const [sort, setSort] = useState<PostSort>("latest");
   const [hot, setHot] = useState<HotItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  // 당겨서 새로고침할 때 오늘의 질문 카드도 다시 불러오게 (key가 바뀌면 새로 그림)
+  // 당겨서 새로고침할 때 배너(오늘의 질문)도 다시 불러오게 (key가 바뀌면 새로 그림)
   const [refreshKey, setRefreshKey] = useState(0);
 
   const load = useCallback(async () => {
@@ -97,8 +97,15 @@ export default function Community() {
           <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
-        {/* "전체"일 때만: 작은 오늘의 질문(누르면 그룹별 결과·댓글) + 🔥 HOT 롤링 한 줄 (2026-11-03 정리) */}
-        {kind === "all" && <DailyCard key={refreshKey} compact onOpen={() => router.push("/community/daily")} />}
+        {/* 맨 위 배너 (화면 양 끝까지): 1장 오늘의 질문 → 이미지 배너. 누르면 오늘의 질문 / 그 탭으로 (2026-11-10 피그마) */}
+        <View style={styles.banner}>
+          <CommunityBanner
+            key={refreshKey}
+            onOpenDaily={() => router.push("/community/daily")}
+            onSelect={setKind}
+          />
+        </View>
+        {/* "전체"일 때만: 🔥 HOT 롤링 한 줄 (오늘의 질문 작은 카드는 2026-11-10 배너 1장으로 옮김) */}
         {kind === "all" && <TrendingTicker items={hot} />}
 
         {/* 종류: 글자 탭 / 정렬: 선택 버튼 (2026-11-02 정리) */}
@@ -154,6 +161,11 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     // 둥근 만들기 버튼에 마지막 글이 가리지 않게
     paddingBottom: 96,
+  },
+  // 바깥 여백만큼 당겨서 화면 양 끝·제목줄 바로 아래에 붙인다
+  banner: {
+    marginHorizontal: -spacing.md,
+    marginTop: -spacing.md,
   },
   filters: {
     flexDirection: "row",

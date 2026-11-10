@@ -55,6 +55,12 @@ export default function TabsLayout() {
         name="community"
         options={{
           title: "커뮤니티",
+          // 오른쪽 위 ☰ 메뉴 (2026-11-10 피그마 커뮤니티 시안)
+          headerRight: () => (
+            <View style={{ paddingHorizontal: 16 }}>
+              <MenuButton />
+            </View>
+          ),
           tabBarIcon: ({ color, size }) => <AppIcon name={tabIcons.community} color={color} size={size} />,
         }}
       />
