@@ -4,9 +4,8 @@
 // 계열처럼 칸이 많으면 두 안 모두 많은 순서 가로 막대 (도넛·나눔 막대는 칸이 많으면 읽기 어려움)
 // 색: 진한 파랑 → 옅은 파랑 4단계, 미입력은 회색 (이웃한 색끼리 색맹도 구분되는지 검사함)
 // 5명 미만 그룹은 숫자 없이 한 줄로 모은다
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import Svg, { Circle } from "react-native-svg";
 
 import { Bar, percent } from "@/components/results/QuestionResult";
 import Card from "@/components/ui/Card";
@@ -14,6 +13,7 @@ import { Text } from "@/components/ui/Text";
 import TextTabs from "@/components/ui/TextTabs";
 import { chartRamp, chartUnknown, colors, fontSize, radius, spacing } from "@/constants/theme";
 import { type GroupDim, sortGroups } from "@/lib/hub";
+import { canDrawSvg } from "@/lib/nativeFeatures";
 
 type GroupCount = { label: string; n: number | null; hidden: boolean };
 type Variant = "bar" | "donut";
@@ -48,7 +48,9 @@ export default function CompositionChart({
   const summary = summarize(groups);
   // 막대로 그릴지 (칸이 많으면) · 도넛이 보이는지 (도넛이면 가운데에 총 인원이 있어서 제목 옆 숫자는 뺀다)
   const ranked = dim === "major" || shown.length > MAX_SEGMENTS;
-  const donutShown = variant === "donut" && !ranked && shown.length > 0;
+  // 도넛은 그림 기능이 있는 앱에서만 (옛 APK 1.0.0이면 A안 막대로)
+  const donut = variant === "donut" && canDrawSvg;
+  const donutShown = donut && !ranked && shown.length > 0;
 
   return (
     <Card>
@@ -62,7 +64,7 @@ export default function CompositionChart({
         <Text style={styles.hidden}>{hidden.length > 0 ? "모든 묶음이 5명 미만이라 숨겼어요." : "정보가 없어요."}</Text>
       ) : ranked ? (
         <RankedBars groups={shown} total={total} />
-      ) : variant === "donut" ? (
+      ) : donut ? (
         <Donut rows={toRows(shown, total)} total={total} />
       ) : (
         <ShareBar rows={toRows(shown, total)} />
@@ -149,37 +151,17 @@ function ShareBar({ rows }: { rows: Row[] }) {
   );
 }
 
-// B안: 도넛 (가운데 총 인원) + 오른쪽 목록. 칸 사이 2px 흰 틈
+// B안: 도넛 (가운데 총 인원) + 오른쪽 목록. 고리는 DonutRing을 필요할 때만 불러온다 (옛 APK 보호)
 const SIZE = 132;
 const STROKE = 22;
+const DonutRing = lazy(() => import("@/components/results/DonutRing"));
 function Donut({ rows, total }: { rows: Row[]; total: number }) {
-  const r = (SIZE - STROKE) / 2;
-  const c = 2 * Math.PI * r;
-  const gap = rows.filter((x) => x.n > 0).length > 1 ? 2 : 0;
-  // 조각마다 시작 위치를 미리 계산 (앞 조각들 길이의 합)
-  const lens = rows.map((x) => (total > 0 ? (x.n / total) * c : 0));
-  const starts = lens.map((_, i) => lens.slice(0, i).reduce((a, b) => a + b, 0));
   return (
     <View style={styles.donutWrap}>
       <View style={styles.donut}>
-        {/* 12시 방향부터 그리려고 상자를 -90도 돌린다 (원에 회전 속성을 주면 웹에서 경고) */}
-        <Svg width={SIZE} height={SIZE} style={styles.rotate}>
-          {rows.map((x, i) =>
-            x.n === 0 || total === 0 ? null : (
-              <Circle
-                key={x.label}
-                cx={SIZE / 2}
-                cy={SIZE / 2}
-                r={r}
-                stroke={x.color}
-                strokeWidth={STROKE}
-                fill="none"
-                strokeDasharray={`${Math.max(0, lens[i] - gap)} ${c}`}
-                strokeDashoffset={-starts[i]}
-              />
-            ),
-          )}
-        </Svg>
+        <Suspense fallback={null}>
+          <DonutRing segments={rows.map((r) => ({ key: r.label, n: r.n, color: r.color }))} total={total} size={SIZE} stroke={STROKE} />
+        </Suspense>
         <View style={styles.donutCenter} pointerEvents="none">
           <Text style={styles.donutLabel}>응답</Text>
           <Text style={styles.donutValue}>{total}명</Text>
@@ -297,9 +279,6 @@ const styles = StyleSheet.create({
   donut: {
     width: SIZE,
     height: SIZE,
-  },
-  rotate: {
-    transform: [{ rotate: "-90deg" }],
   },
   donutCenter: {
     position: "absolute",

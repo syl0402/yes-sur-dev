@@ -18,6 +18,7 @@ import { formatDate, formatPoints, formatShortDate } from "@/lib/format";
 import { type CrossResults, type FullResults, GROUP_DIMS, type Group, type GroupDim, sortGroups } from "@/lib/hub";
 import { showNotice } from "@/lib/notice";
 import { buildInsights, formatSeconds } from "@/lib/resultSummary";
+import { canDrawSvg } from "@/lib/nativeFeatures";
 import { supabase } from "@/lib/supabase";
 
 type Tab = "questions" | "people" | "info";
@@ -184,8 +185,12 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
         <>
           <Text style={styles.compareTag}>A안 · 나눔 막대</Text>
           <CompositionChart groups={full.groups} variant="bar" />
-          <Text style={styles.compareTag}>B안 · 도넛</Text>
-          <CompositionChart groups={full.groups} variant="donut" />
+          {canDrawSvg && (
+            <>
+              <Text style={styles.compareTag}>B안 · 도넛</Text>
+              <CompositionChart groups={full.groups} variant="donut" />
+            </>
+          )}
         </>
       )}
 
