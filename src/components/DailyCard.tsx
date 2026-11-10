@@ -42,10 +42,12 @@ type Props = {
   onLoaded?: (daily: Daily | null) => void;
   // 커뮤니티 탭: 작게 (질문 + 답 버튼 2개 / 답했으면 얇은 결과 막대 2줄, 2026-11-03)
   compact?: boolean;
+  // 홈 팝업 안: 그림자·"오늘의 질문" 표시 없이 (팝업 제목과 겹치지 않게, 2026-11-10)
+  bare?: boolean;
 };
 
 // "오늘의 질문": A/B 중 하나 → 바로 비율 + 출석 포인트. 오늘 질문이 없으면 아무것도 그리지 않는다
-export default function DailyCard({ onAnswered, onOpen, onLoaded, compact }: Props) {
+export default function DailyCard({ onAnswered, onOpen, onLoaded, compact, bare }: Props) {
   const [daily, setDaily] = useState<Daily | null>(null);
   const [sending, setSending] = useState(false);
   // 방금 받은 포인트 (출석 + 보너스) — 답한 직후 한 번만 보여 준다
@@ -150,8 +152,8 @@ export default function DailyCard({ onAnswered, onOpen, onLoaded, compact }: Pro
   }
 
   return (
-    <Pressable style={styles.card} onPress={onOpen} disabled={!onOpen}>
-      <Text style={styles.eyebrow}>오늘의 질문</Text>
+    <Pressable style={[styles.card, bare && styles.bareCard]} onPress={onOpen} disabled={!onOpen}>
+      {!bare && <Text style={styles.eyebrow}>오늘의 질문</Text>}
       <Text style={styles.question}>{daily.question}</Text>
 
       {answered ? (
@@ -218,6 +220,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     gap: spacing.sm,
     ...shadow.card,
+  },
+  // 팝업 안: 테두리는 두고 그림자만 뺀다 (팝업 위에 그림자가 겹치면 지저분, 2026-11-10 폰 확인 피드백)
+  bareCard: {
+    shadowOpacity: 0,
+    elevation: 0,
   },
   eyebrow: {
     alignSelf: "flex-start",

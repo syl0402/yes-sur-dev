@@ -1,11 +1,11 @@
-// ys-100 홈 · F-201, F-702 (2026-10-31 디자인: 포인트 카드 · 바로가기 · 오늘의 질문 · 마감 임박 설문 · 2026-11-10 피그마 홈 시안: 마스코트 카드 · 바로가기 4칸 · 빠른 탐색 · 추천 설문 · 최신 & 마감 임박 · 인기 투표)
+// ys-100 홈 · F-201, F-702 (2026-10-31 디자인: 포인트 카드 · 바로가기 · 오늘의 질문 · 마감 임박 설문 · 2026-11-10 피그마 홈 시안: 마스코트 카드 · 바로가기 4칸 · 빠른 탐색 · 추천 설문 · 최신 & 마감 임박 · 인기 투표 · 오늘의 질문 팝업)
 import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import AppIcon from "@/components/AppIcon";
-import DailyCard from "@/components/DailyCard";
+import DailyPopup from "@/components/DailyPopup";
 import HomeHotVotes from "@/components/HomeHotVotes";
 import QuickExplore from "@/components/QuickExplore";
 import SurveyMiniCard from "@/components/SurveyMiniCard";
@@ -181,8 +181,8 @@ export default function Home() {
         </View>
       )}
 
-      {/* 오늘의 질문 (예약된 날만). 답하면 포인트가 바뀌니 홈을 다시 불러온다 */}
-      <DailyCard onAnswered={() => fetchHome().then(setData)} onOpen={() => router.push("/community/daily")} />
+      {/* 오늘의 질문: 홈 카드 대신 하루 한 번 팝업 (2026-11-10). 답하면 포인트가 바뀌니 홈을 다시 불러온다 */}
+      <DailyPopup onAnswered={() => fetchHome().then(setData)} />
 
       <SectionHeader
         title="최신 설문 & 마감 임박"
