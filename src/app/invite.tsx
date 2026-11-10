@@ -1,4 +1,4 @@
-// ys-156 친구 초대 · F-905 (내 초대 코드 복사·공유 + 가입 직후 친구 코드 입력, 기간은 point_rules)
+// ys-156 친구 초대 · F-905 (내 초대 코드 복사·공유 + 가입 직후 친구 코드 입력, 기간은 point_rules. 2026-11-10 화면 정리)
 import * as Clipboard from "expo-clipboard";
 import { Stack, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
@@ -6,7 +6,6 @@ import { ActivityIndicator, Platform, Pressable, ScrollView, Share, StyleSheet, 
 
 import { formStyles } from "@/components/create/formStyles";
 import PrimaryButton from "@/components/PrimaryButton";
-import Card from "@/components/ui/Card";
 import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
@@ -106,30 +105,35 @@ export default function InviteScreen() {
     >
       <Stack.Screen options={{ title: "친구 초대" }} />
 
-      <Text style={styles.lead}>
-        친구가 내 코드를 입력하면 나는 {formatPoints(invite.inviter_reward)}, 친구는 {formatPoints(invite.invitee_reward)}를
-        받아요.
-      </Text>
+      {/* 맨 위: 무엇을 받는지 한눈에 (2026-11-10 정리) */}
+      <View style={styles.hero}>
+        <Text style={styles.heroTitle}>친구 초대하고{"\n"}함께 포인트 받기</Text>
+        <Text style={styles.heroSub}>
+          친구가 내 코드를 입력하면 나는 <Text style={styles.heroStrong}>{formatPoints(invite.inviter_reward)}</Text>, 친구는{" "}
+          <Text style={styles.heroStrong}>{formatPoints(invite.invitee_reward)}</Text>를 받아요.
+        </Text>
+      </View>
 
+      {/* 내 초대 코드: 연파랑 상자 + 복사(흰) · 공유(파랑) */}
       <View style={styles.codeBox}>
         <Text style={styles.codeLabel}>내 초대 코드</Text>
         <Text style={styles.code} selectable>
           {invite.code}
         </Text>
+        <Text style={styles.invited}>지금까지 {invite.invited}명을 초대했어요</Text>
         <View style={styles.buttons}>
-          <Pressable style={styles.secondary} onPress={copy}>
-            <Text style={styles.secondaryText}>코드 복사</Text>
+          <Pressable style={({ pressed }) => [styles.button, styles.copyButton, pressed && styles.pressed]} onPress={copy}>
+            <Text style={styles.copyText}>코드 복사</Text>
           </Pressable>
-          <Pressable style={styles.secondary} onPress={share}>
-            <Text style={styles.secondaryText}>공유하기</Text>
+          <Pressable style={({ pressed }) => [styles.button, styles.shareButton, pressed && styles.pressed]} onPress={share}>
+            <Text style={styles.shareText}>공유하기</Text>
           </Pressable>
         </View>
-        <Text style={styles.muted}>지금까지 {invite.invited}명을 초대했어요.</Text>
       </View>
 
       {invite.can_redeem && (
-        <View style={styles.redeemBox}>
-          <Text style={formStyles.label}>친구에게 받은 코드가 있나요?</Text>
+        <View style={styles.group}>
+          <Text style={styles.groupTitle}>친구에게 받은 코드가 있나요?</Text>
           <TextInput
             style={formStyles.input}
             value={code}
@@ -147,23 +151,27 @@ export default function InviteScreen() {
         </View>
       )}
 
-      {/* 이렇게 초대해요: 코드 입력 칸이 사라진 뒤에도 방법을 알 수 있게 (2026-11-07 피드백: 아래가 허전함) */}
-      <Card>
-        <Text style={styles.howTitle}>이렇게 초대해요</Text>
-        {[
-          "공유하기로 친구에게 내 코드를 보내요",
-          `친구가 가입하고 ${rules.invite_window_days ?? ""}일 안에 마이 탭 > 친구 초대에서 코드를 입력해요`,
-          `나는 ${formatPoints(invite.inviter_reward)}, 친구는 ${formatPoints(invite.invitee_reward)}를 받아요`,
-        ].map((step, i) => (
-          <View key={i} style={styles.step}>
-            <Text style={styles.stepNo}>{i + 1}</Text>
-            <Text style={styles.stepText}>{step}</Text>
-          </View>
-        ))}
+      {/* 이렇게 초대해요: 선 없는 연회색 상자 (코드 입력 칸이 사라진 뒤에도 방법을 알 수 있게) */}
+      <View style={styles.group}>
+        <Text style={styles.groupTitle}>이렇게 초대해요</Text>
+        <View style={styles.howBox}>
+          {[
+            "공유하기로 친구에게 내 코드를 보내요",
+            `친구가 가입하고 ${rules.invite_window_days ?? ""}일 안에 마이 탭 > 친구 초대에서 코드를 입력해요`,
+            `나는 ${formatPoints(invite.inviter_reward)}, 친구는 ${formatPoints(invite.invitee_reward)}를 받아요`,
+          ].map((step, i) => (
+            <View key={i} style={styles.step}>
+              <View style={styles.stepNo}>
+                <Text style={styles.stepNoText}>{i + 1}</Text>
+              </View>
+              <Text style={styles.stepText}>{step}</Text>
+            </View>
+          ))}
+        </View>
         {rules.invite_monthly_max !== undefined && (
           <Text style={styles.howNote}>포인트는 한 달에 {rules.invite_monthly_max}명까지 받을 수 있어요.</Text>
         )}
-      </Card>
+      </View>
     </ScrollView>
   );
 }
@@ -181,85 +189,129 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    padding: spacing.lg,
-    gap: spacing.lg,
+    padding: 20,
+    paddingBottom: spacing.xl,
+    gap: 28,
   },
-  lead: {
-    fontSize: fontSize.body,
+  hero: {
+    gap: spacing.sm,
+    paddingTop: spacing.xs,
+  },
+  heroTitle: {
+    fontSize: fontSize.title,
+    fontWeight: "700",
+    lineHeight: 30,
     color: colors.text,
+  },
+  heroSub: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: colors.textMuted,
+  },
+  heroStrong: {
+    fontWeight: "700",
+    color: colors.primary,
   },
   codeBox: {
     padding: spacing.lg,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.primary,
+    gap: 6,
+    borderRadius: radius.xl,
     alignItems: "center",
-    gap: spacing.sm,
+    backgroundColor: colors.primarySoft,
   },
   codeLabel: {
     fontSize: fontSize.small,
+    fontWeight: "600",
     color: colors.textMuted,
   },
   code: {
-    fontSize: fontSize.hero,
+    fontSize: 34,
     fontWeight: "800",
-    letterSpacing: 4,
+    letterSpacing: 6,
     color: colors.primary,
+  },
+  invited: {
+    fontSize: fontSize.caption,
+    color: colors.textMuted,
   },
   buttons: {
     flexDirection: "row",
     gap: spacing.sm,
+    marginTop: spacing.md,
+    alignSelf: "stretch",
   },
-  secondary: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
+  button: {
+    flex: 1,
+    paddingVertical: 14,
     borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.primary,
+    alignItems: "center",
   },
-  secondaryText: {
-    fontSize: fontSize.body,
-    fontWeight: "600",
+  copyButton: {
+    backgroundColor: colors.surface,
+  },
+  shareButton: {
+    backgroundColor: colors.primary,
+  },
+  copyText: {
+    fontSize: 15,
+    fontWeight: "700",
     color: colors.primary,
+  },
+  shareText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: colors.onPrimary,
+  },
+  pressed: {
+    opacity: 0.7,
   },
   muted: {
     fontSize: fontSize.small,
     color: colors.textMuted,
     textAlign: "center",
   },
-  redeemBox: {
+  // 묶음: 작은 회색 제목 + 내용 (내 정보 화면과 같은 모양)
+  group: {
     gap: spacing.sm,
   },
-  howTitle: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.text,
+  groupTitle: {
+    fontSize: fontSize.small,
+    fontWeight: "600",
+    color: colors.textMuted,
+  },
+  howBox: {
+    padding: 18,
+    gap: 14,
+    borderRadius: 16,
+    backgroundColor: colors.surfaceMuted,
   },
   step: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: spacing.sm,
+    gap: 12,
   },
   stepNo: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    overflow: "hidden",
-    textAlign: "center",
-    lineHeight: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface,
+  },
+  stepNoText: {
     fontSize: fontSize.caption,
     fontWeight: "800",
     color: colors.primary,
-    backgroundColor: colors.primarySoft,
   },
   stepText: {
     flex: 1,
-    fontSize: fontSize.small,
+    fontSize: 14,
     lineHeight: 22,
     color: colors.text,
   },
   howNote: {
+    paddingHorizontal: spacing.xs,
     fontSize: fontSize.caption,
-    color: colors.textMuted,
+    color: colors.textSubtle,
   },
 });
