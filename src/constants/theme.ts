@@ -39,6 +39,8 @@ export const colors = {
   pastelLime: "#F2F9E3", // 우리 학교 · 신뢰도 높음
   pastelPeach: "#FFE2D6", // 보상
   disabled: "#C5CAD6",
+  // 그래프: 강조하지 않는 막대 (1위만 파랑, 나머지는 이 회색, 2026-11-10)
+  chartMuted: "#CDD3DF",
   onPrimary: "#FFFFFF",
   // 파란 카드 위 흐린 흰색 (마이 포인트 카드 원 장식, 2026-11-10)
   onPrimarySoft: "rgba(255, 255, 255, 0.12)",

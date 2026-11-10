@@ -46,6 +46,15 @@ export const myIcons = {
   forward: "chevron-forward",
 } satisfies Record<string, IconName>;
 
+// 결과 "핵심 인사이트" 아이콘 (2026-11-10, 이모지 → 선 아이콘). 키는 인사이트 문장을 만드는 쪽의 이모지
+export const insightIcons: Record<string, IconName> = {
+  "💡": "bulb-outline",
+  "⚖️": "git-compare-outline",
+  "🔍": "search-outline",
+  "⭐": "star-outline",
+  "📉": "trending-down-outline",
+};
+
 // 데이터 결과 스크랩 (2026-11-10, ★ 저장 → 스크랩)
 export const bookmarkIcons = {
   on: "bookmark",

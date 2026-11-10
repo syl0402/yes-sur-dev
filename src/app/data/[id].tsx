@@ -18,7 +18,7 @@ import { bookmarkIcons } from "@/constants/icons";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
-import { formatDate, formatPoints } from "@/lib/format";
+import { formatPoints, formatShortDate } from "@/lib/format";
 import {
   type Comparison,
   FREE_REASON_LABELS,
@@ -142,15 +142,15 @@ export default function HubResult() {
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
         {/* ── 누구나 (무료): 설문 정보 ── */}
         <View style={styles.header}>
+          {/* 표시는 카테고리 · 신뢰도만, 주최는 아래 정보 줄로 (2026-11-10 정리) */}
           <View style={styles.badges}>
-            <Badge label={p.category_name} />
-            <Badge label={formatHost(p)} tone="muted" />
-            {p.trusted && <Badge label="✓ 신뢰도 높음" tone="accent" />}
+            <Badge label={p.category_name} tone="blue" />
+            {p.trusted && <Badge label="✓ 신뢰도 높음" tone="lime" />}
           </View>
           <Text style={styles.title}>{p.title}</Text>
-          {p.description ? <Text style={styles.body}>{p.description}</Text> : null}
+          {p.description ? <Text style={styles.desc}>{p.description}</Text> : null}
           <Text style={styles.meta}>
-            응답 {p.response_count}명 · {formatDate(p.started_at)} ~ {formatDate(p.ended_at)}
+            {formatHost(p)} · 응답 {p.response_count}명 · {formatShortDate(p.ended_at)} 마감
           </Text>
           {p.low_count && <Text style={styles.warning}>응답 수가 적어 참고용으로만 봐 주세요.</Text>}
         </View>
@@ -243,13 +243,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    padding: spacing.md,
+    padding: 20,
     gap: spacing.md,
     paddingBottom: spacing.xl,
   },
   header: {
     gap: spacing.sm,
-    paddingHorizontal: spacing.xs,
+    marginBottom: spacing.xs,
   },
   badges: {
     flexDirection: "row",
@@ -258,9 +258,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: fontSize.title,
-    fontWeight: "800",
+    fontWeight: "700",
     color: colors.text,
     lineHeight: 30,
+  },
+  desc: {
+    fontSize: 15,
+    color: colors.textMuted,
+    lineHeight: 22,
   },
   body: {
     fontSize: fontSize.body,
@@ -269,7 +274,7 @@ const styles = StyleSheet.create({
   },
   meta: {
     fontSize: fontSize.small,
-    color: colors.textMuted,
+    color: colors.textSubtle,
   },
   label: {
     fontSize: fontSize.small,

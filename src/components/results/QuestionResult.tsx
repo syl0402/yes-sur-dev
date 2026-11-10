@@ -1,3 +1,6 @@
+// 문항 하나의 결과 (2026-11-10 정리: 데이터 시각화 원칙)
+// - 고르기: 가장 많은 답 하나만 파랑, 나머지는 회색 (강조). 숫자는 글자색
+// - 5점 척도: 큰 평균 + 1~5점 세로 막대 (분포)
 import { StyleSheet, View } from "react-native";
 
 import Badge from "@/components/ui/Badge";
@@ -28,28 +31,29 @@ export function percent(count: number, total: number): number {
 // 문항 머리: [Q1] 하나 고르기 ······ 응답 63 / 질문
 export function QuestionHeader({ index, question: q, right }: { index: number; question: QuestionStats; right?: string }) {
   return (
-    <>
+    <View style={styles.headBox}>
       <View style={styles.head}>
         <View style={styles.headLeft}>
           <Badge label={`Q${index + 1}`} />
           <Text style={styles.type}>{QUESTION_TYPE_LABELS[q.type]}</Text>
         </View>
-        <Text style={styles.type}>{right ?? `응답 ${q.answered}`}</Text>
+        <Text style={styles.type}>{right ?? `응답 ${q.answered}명`}</Text>
       </View>
       <Text style={styles.questionText}>{q.text}</Text>
-    </>
+    </View>
   );
 }
 
-// 문항 하나의 결과: 고르기 = 막대(1위 강조) + 기타에 적은 글(등록자), 척도 = 평균 + 1~5 분포, 주관식 = 답 목록(등록자) 또는 안내
+// 문항 하나의 결과 본문
 export function QuestionBody({ question: q }: { question: QuestionStats }) {
   if (q.type === "single" || q.type === "multi") {
     const max = Math.max(0, ...q.options.map((o) => o.count));
     return (
-      <View style={styles.bars}>
+      <View style={styles.body}>
         {q.options.map((o) => (
           <Bar key={o.id} label={o.text} count={o.count} pct={percent(o.count, q.answered)} top={max > 0 && o.count === max} />
         ))}
+        {q.type === "multi" && <Text style={styles.countLine}>여러 개 고를 수 있어서 합이 100%를 넘을 수 있어요</Text>}
         {q.other_texts && q.other_texts.length > 0 && (
           <View style={styles.otherBox}>
             <Text style={styles.type}>기타에 적은 글 {q.other_texts.length}개 · 나만 볼 수 있어요</Text>
@@ -64,22 +68,11 @@ export function QuestionBody({ question: q }: { question: QuestionStats }) {
     );
   }
   if (q.type === "scale" && q.scale) {
-    const max = Math.max(0, ...q.scale.counts);
-    return (
-      <View style={styles.bars}>
-        <Text style={styles.average}>
-          {q.scale.avg ?? "-"}
-          <Text style={styles.averageUnit}> / 5점</Text>
-        </Text>
-        {q.scale.counts.map((count, i) => (
-          <Bar key={i} label={`${i + 1} ${SCALE_LABELS[i]}`} count={count} pct={percent(count, q.answered)} top={max > 0 && count === max} />
-        ))}
-      </View>
-    );
+    return <ScaleChart avg={q.scale.avg} counts={q.scale.counts} answered={q.answered} />;
   }
   if (q.type === "text") {
     return q.texts ? (
-      <View style={styles.bars}>
+      <View style={styles.body}>
         {q.texts.map((t, i) => (
           <Text key={i} style={styles.textAnswer}>
             {t}
@@ -103,16 +96,16 @@ export default function QuestionResult({ index, question }: { index: number; que
   );
 }
 
-// 가로 막대 한 줄: 보기 이름 · 명(%) / 막대. top이면 진한 파랑 + 굵은 글자
+// 가로 막대 한 줄: 보기 이름 ····· 48% 30명 / 막대. top이면 파랑 막대 + 굵은 글자, 아니면 회색 막대
 export function Bar({ label, count, pct, top }: { label: string; count: number; pct: number; top?: boolean }) {
   return (
     <View style={styles.barRow}>
       <View style={styles.barLabels}>
-        <Text style={[styles.barLabel, top && styles.barLabelTop]} numberOfLines={1}>
+        <Text style={[styles.barLabel, top && styles.barLabelTop]} numberOfLines={2}>
           {label}
         </Text>
-        <Text style={[styles.barCount, top && styles.barCountTop]}>
-          {pct}% <Text style={styles.barN}>· {count}명</Text>
+        <Text style={[styles.barPct, top && styles.barPctTop]}>
+          {pct}%<Text style={styles.barN}>  {count}명</Text>
         </Text>
       </View>
       <View style={styles.barTrack}>
@@ -122,7 +115,43 @@ export function Bar({ label, count, pct, top }: { label: string; count: number; 
   );
 }
 
+// 5점 척도: 왼쪽 큰 평균 + 오른쪽 1~5점 세로 막대 (가장 많은 점수만 파랑)
+function ScaleChart({ avg, counts, answered }: { avg: number | null; counts: number[]; answered: number }) {
+  const pcts = counts.map((c) => percent(c, answered));
+  const maxPct = Math.max(1, ...pcts);
+  const maxCount = Math.max(0, ...counts);
+  return (
+    <View style={styles.scale}>
+      <View style={styles.scaleTop}>
+        <Text style={styles.average}>{avg ?? "-"}</Text>
+        <Text style={styles.averageUnit}>/ 5점 평균</Text>
+      </View>
+      <View style={styles.columns}>
+        {counts.map((c, i) => {
+          const top = maxCount > 0 && c === maxCount;
+          return (
+            <View key={i} style={styles.column}>
+              <Text style={[styles.colPct, top && styles.colPctTop]}>{pcts[i]}%</Text>
+              <View style={styles.colTrack}>
+                <View style={[styles.colFill, top && styles.barFillTop, { height: `${(pcts[i] / maxPct) * 100}%` }]} />
+              </View>
+              <Text style={[styles.colLabel, top && styles.colLabelTop]}>{i + 1}</Text>
+            </View>
+          );
+        })}
+      </View>
+      <View style={styles.scaleEnds}>
+        <Text style={styles.scaleEnd}>{SCALE_LABELS[0]}</Text>
+        <Text style={styles.scaleEnd}>{SCALE_LABELS[SCALE_LABELS.length - 1]}</Text>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  headBox: {
+    gap: 10,
+  },
   head: {
     flexDirection: "row",
     alignItems: "center",
@@ -143,19 +172,13 @@ const styles = StyleSheet.create({
     color: colors.text,
     lineHeight: 23,
   },
-  bars: {
-    gap: spacing.sm,
+  body: {
+    gap: 14,
     marginTop: spacing.xs,
   },
-  average: {
-    fontSize: fontSize.hero,
-    fontWeight: "800",
-    color: colors.primary,
-  },
-  averageUnit: {
-    fontSize: fontSize.small,
-    fontWeight: "600",
-    color: colors.textMuted,
+  countLine: {
+    fontSize: fontSize.caption,
+    color: colors.textSubtle,
   },
   otherBox: {
     gap: spacing.xs,
@@ -168,30 +191,33 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     backgroundColor: colors.surfaceMuted,
   },
+  // 가로 막대
   barRow: {
-    gap: 4,
+    gap: 6,
   },
   barLabels: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "flex-end",
     gap: spacing.sm,
   },
   barLabel: {
     flex: 1,
-    fontSize: fontSize.small,
-    color: colors.text,
+    fontSize: 14,
+    color: colors.textMuted,
   },
   barLabelTop: {
     fontWeight: "700",
+    color: colors.text,
   },
-  barCount: {
-    fontSize: fontSize.small,
+  barPct: {
+    fontSize: 14,
     fontWeight: "600",
     color: colors.textMuted,
   },
-  barCountTop: {
-    color: colors.primary,
+  barPctTop: {
     fontWeight: "800",
+    color: colors.text,
   },
   barN: {
     fontSize: fontSize.caption,
@@ -199,7 +225,7 @@ const styles = StyleSheet.create({
     color: colors.textSubtle,
   },
   barTrack: {
-    height: 8,
+    height: 10,
     borderRadius: radius.pill,
     backgroundColor: colors.surfaceMuted,
     overflow: "hidden",
@@ -207,9 +233,76 @@ const styles = StyleSheet.create({
   barFill: {
     height: "100%",
     borderRadius: radius.pill,
-    backgroundColor: colors.primaryMuted,
+    backgroundColor: colors.chartMuted,
   },
   barFillTop: {
     backgroundColor: colors.primary,
+  },
+  // 5점 척도
+  scale: {
+    gap: 12,
+    marginTop: spacing.xs,
+  },
+  scaleTop: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 6,
+  },
+  average: {
+    fontSize: 32,
+    fontWeight: "800",
+    color: colors.text,
+  },
+  averageUnit: {
+    fontSize: fontSize.small,
+    fontWeight: "600",
+    color: colors.textMuted,
+  },
+  columns: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  column: {
+    flex: 1,
+    alignItems: "center",
+    gap: 6,
+  },
+  colPct: {
+    fontSize: fontSize.caption,
+    fontWeight: "600",
+    color: colors.textMuted,
+  },
+  colPctTop: {
+    fontWeight: "800",
+    color: colors.text,
+  },
+  colTrack: {
+    width: "100%",
+    height: 72,
+    justifyContent: "flex-end",
+    borderRadius: 6,
+    backgroundColor: colors.surfaceMuted,
+    overflow: "hidden",
+  },
+  colFill: {
+    width: "100%",
+    borderRadius: 6,
+    backgroundColor: colors.chartMuted,
+  },
+  colLabel: {
+    fontSize: fontSize.caption,
+    color: colors.textMuted,
+  },
+  colLabelTop: {
+    fontWeight: "700",
+    color: colors.text,
+  },
+  scaleEnds: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  scaleEnd: {
+    fontSize: 11,
+    color: colors.textSubtle,
   },
 });
