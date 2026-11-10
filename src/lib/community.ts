@@ -24,8 +24,8 @@ export const KIND_HINTS: Record<PostKind, string> = {
 export type PostSort = "popular" | "latest";
 
 export const POST_SORT_OPTIONS: { value: PostSort; label: string }[] = [
-  { value: "popular", label: "인기순" },
   { value: "latest", label: "최신순" },
+  { value: "popular", label: "인기순" },
 ];
 
 // 그룹 하나 (n이 null이면 5명 미만이라 숨김)

@@ -1,5 +1,5 @@
 // 밸런스 · 나만 그래? 결과: 한 줄 A vs B 막대 (2026-11-10 피드백)
-// 왼쪽 A = 파랑, 오른쪽 B = 연두. 방금 투표했을 때만 가운데에서 양쪽으로 "커튼 열리듯" 벌어지며 비율까지 간다 (0.6초)
+// 왼쪽 A = 파랑, 오른쪽 B = 연두. 방금 투표했을 때만 가운데에서 양쪽으로 "커튼 열리듯" 벌어지며 비율까지 간다 (1초)
 // 폰의 "동작 줄이기"가 켜져 있으면 움직이지 않고 바로 결과를 보여 준다
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -8,7 +8,16 @@ import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, w
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius } from "@/constants/theme";
 
-const DURATION = 600;
+// 1초 · 천천히 시작해 가운데서 빨라지고 끝에서 부드럽게 멈춤 (2026-11-10 피드백: 0.6초는 빠름)
+const DURATION = 1000;
+
+// 맞대결 비율: 합이 꼭 100이 되게 (A는 반올림, B는 나머지). 아무도 안 했으면 50:50
+export function duelPcts(a: number, b: number): [number, number] {
+  const total = a + b;
+  if (total === 0) return [50, 50];
+  const pa = Math.round((a / total) * 100);
+  return [pa, 100 - pa];
+}
 
 type Props = {
   labels: [string, string];
@@ -30,12 +39,13 @@ export default function BalanceBar({ labels, pcts, myChoice, animate }: Props) {
 
   useEffect(() => {
     if (!play) return;
-    t.value = withTiming(1, { duration: DURATION, easing: Easing.out(Easing.cubic) });
+    t.value = withTiming(1, { duration: DURATION, easing: Easing.inOut(Easing.cubic) });
     const start = Date.now();
     let frame = 0;
     const tick = () => {
       const p = Math.min(1, (Date.now() - start) / DURATION);
-      const e = 1 - Math.pow(1 - p, 3);
+      // 막대와 같은 움직임 (inOut cubic)
+      const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
       setShown([Math.round(a * e), Math.round(b * e)]);
       if (p < 1) frame = requestAnimationFrame(tick);
     };

@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import BalanceBar from "@/components/community/BalanceBar";
+import BalanceBar, { duelPcts } from "@/components/community/BalanceBar";
 import LinkedText from "@/components/LinkedText";
 import { percent } from "@/components/results/QuestionResult";
 import Badge from "@/components/ui/Badge";
@@ -77,7 +77,7 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
         <View style={styles.results}>
           <BalanceBar
             labels={[post.options[0], post.options[1]]}
-            pcts={duelPcts(post.counts ?? [], total)}
+            pcts={duelPcts(post.counts?.[0] ?? 0, post.counts?.[1] ?? 0)}
             myChoice={post.my_choice}
             animate={earned !== null}
           />
@@ -131,13 +131,6 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
       )}
     </Pressable>
   );
-}
-
-// 맞대결 비율: 합이 꼭 100이 되게 (A는 반올림, B는 나머지). 아무도 안 했으면 50:50
-function duelPcts(counts: number[], total: number): [number, number] {
-  if (total === 0) return [50, 50];
-  const a = Math.round(((counts[0] ?? 0) / total) * 100);
-  return [a, 100 - a];
 }
 
 // 설문 홍보글: 설문 요약 + [응답하러 가기]

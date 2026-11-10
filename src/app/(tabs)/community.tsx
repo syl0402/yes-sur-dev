@@ -34,7 +34,8 @@ export default function Community() {
   const [posts, setPosts] = useState<Post[] | null>(null);
   const [worldcups, setWorldcups] = useState<WorldcupItem[] | null>(null);
   const [kind, setKind] = useState<KindFilter>("all");
-  const [sort, setSort] = useState<PostSort>("popular");
+  // 기본은 최신순 (2026-11-10 피드백: 글이 적은 초기엔 새 글이 먼저 보이는 게 자연스러움)
+  const [sort, setSort] = useState<PostSort>("latest");
   const [hot, setHot] = useState<HotItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   // 당겨서 새로고침할 때 오늘의 질문 카드도 다시 불러오게 (key가 바뀌면 새로 그림)

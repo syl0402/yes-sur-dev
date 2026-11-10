@@ -2,7 +2,7 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import { percent } from "@/components/results/QuestionResult";
+import BalanceBar, { duelPcts } from "@/components/community/BalanceBar";
 import { Text } from "@/components/ui/Text";
 import type { PostGroup } from "@/lib/community";
 import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
@@ -95,23 +95,13 @@ export default function DailyCard({ onAnswered, onOpen, onLoaded, compact }: Pro
         </Text>
         {answered ? (
           <View style={styles.compactResults}>
-            {(["a", "b"] as const).map((key) => {
-              const label = key === "a" ? daily.option_a : daily.option_b;
-              const pct = percent((key === "a" ? daily.a : daily.b) ?? 0, total);
-              const mine = daily.my_choice === key;
-              return (
-                <View key={key} style={styles.compactRow}>
-                  <Text style={[styles.compactLabel, mine && styles.mine]} numberOfLines={1}>
-                    {label}
-                    {mine ? " ✓" : ""}
-                  </Text>
-                  <View style={[styles.track, styles.compactTrack]}>
-                    <View style={[styles.fill, styles.compactFill, mine && styles.fillMine, { width: `${pct}%` }]} />
-                  </View>
-                  <Text style={[styles.compactPct, mine && styles.mine]}>{pct}%</Text>
-                </View>
-              );
-            })}
+            {/* 밸런스와 같은 A vs B 막대 (방금 답했으면 커튼 열리듯, 2026-11-10) */}
+            <BalanceBar
+              labels={[daily.option_a, daily.option_b]}
+              pcts={duelPcts(daily.a ?? 0, daily.b ?? 0)}
+              myChoice={daily.my_choice === "a" ? 0 : daily.my_choice === "b" ? 1 : null}
+              animate={earned !== null}
+            />
             <Text style={styles.compactMeta}>
               {total}명 참여
               {earned ? ` · +${formatPoints(earned.reward + earned.bonus)} 받았어요` : ""}
@@ -144,25 +134,12 @@ export default function DailyCard({ onAnswered, onOpen, onLoaded, compact }: Pro
 
       {answered ? (
         <View style={styles.results}>
-          {(["a", "b"] as const).map((key) => {
-            const label = key === "a" ? daily.option_a : daily.option_b;
-            const pct = percent((key === "a" ? daily.a : daily.b) ?? 0, total);
-            const mine = daily.my_choice === key;
-            return (
-              <View key={key} style={styles.resultRow}>
-                <View style={styles.resultLabels}>
-                  <Text style={[styles.resultLabel, mine && styles.mine]}>
-                    {label}
-                    {mine ? "  ✓ 내 선택" : ""}
-                  </Text>
-                  <Text style={[styles.resultPct, mine && styles.mine]}>{pct}%</Text>
-                </View>
-                <View style={styles.track}>
-                  <View style={[styles.fill, mine && styles.fillMine, { width: `${pct}%` }]} />
-                </View>
-              </View>
-            );
-          })}
+          <BalanceBar
+            labels={[daily.option_a, daily.option_b]}
+            pcts={duelPcts(daily.a ?? 0, daily.b ?? 0)}
+            myChoice={daily.my_choice === "a" ? 0 : daily.my_choice === "b" ? 1 : null}
+            animate={earned !== null}
+          />
           <Text style={styles.meta}>{total}명 참여</Text>
         </View>
       ) : (
@@ -251,39 +228,6 @@ const styles = StyleSheet.create({
   results: {
     gap: spacing.sm,
   },
-  resultRow: {
-    gap: 4,
-  },
-  resultLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  resultLabel: {
-    fontSize: fontSize.small,
-    color: colors.text,
-  },
-  resultPct: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
-  },
-  mine: {
-    color: colors.primary,
-    fontWeight: "700",
-  },
-  track: {
-    height: 10,
-    borderRadius: radius.pill,
-    backgroundColor: colors.border,
-    overflow: "hidden",
-  },
-  fill: {
-    height: "100%",
-    borderRadius: radius.pill,
-    backgroundColor: colors.textSubtle,
-  },
-  fillMine: {
-    backgroundColor: colors.primary,
-  },
   meta: {
     fontSize: fontSize.small,
     color: colors.textMuted,
@@ -319,31 +263,6 @@ const styles = StyleSheet.create({
   },
   compactResults: {
     gap: 6,
-  },
-  // 보기 · 얇은 막대 · % 를 한 줄에
-  compactRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  compactLabel: {
-    width: "34%",
-    fontSize: fontSize.small,
-    color: colors.text,
-  },
-  compactTrack: {
-    flex: 1,
-    height: 6,
-    backgroundColor: colors.surfaceMuted,
-  },
-  compactFill: {
-    backgroundColor: colors.primaryMuted,
-  },
-  compactPct: {
-    width: 36,
-    fontSize: fontSize.small,
-    color: colors.textMuted,
-    textAlign: "right",
   },
   compactMeta: {
     fontSize: fontSize.caption,
