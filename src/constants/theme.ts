@@ -48,6 +48,11 @@ export const colors = {
   overlay: "rgba(23, 35, 60, 0.4)",
 };
 
+// 그래프 파랑 4단계 (진함 → 옅음) + 미입력 회색. 응답자 구성처럼 순서가 있는 묶음을 한 막대에 나눌 때 (2026-11-10)
+// 이웃한 색끼리 일반 시력·색맹 모두 구분되는지 검사함 (dataviz validate_palette, ΔE ≥ 15)
+export const chartRamp = ["#1F3A99", "#3F65DB", "#86A0EC", "#CAD5F7"];
+export const chartUnknown = "#7B8396";
+
 // 글꼴: Pretendard (assets/fonts, SIL OFL 무료). 굵기는 fontWeight "400"·"500"·"600"·"700"·"800"으로 고른다 (이 다섯 개만. 다른 값은 기본 글꼴로 보일 수 있음)
 export const fontFamily = "Pretendard";
 

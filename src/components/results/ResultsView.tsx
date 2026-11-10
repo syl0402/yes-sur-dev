@@ -179,7 +179,15 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
         </>
       )}
 
-      {tab === "people" && <CompositionChart groups={full.groups} />}
+      {/* TODO(임시): 응답자 탭 A안(나눔 막대) · B안(도넛) 비교용으로 둘 다 보여 줌 · 사용자가 고르면 하나만 남기기 · 2026-11-10 피드백 */}
+      {tab === "people" && (
+        <>
+          <Text style={styles.compareTag}>A안 · 나눔 막대</Text>
+          <CompositionChart groups={full.groups} variant="bar" />
+          <Text style={styles.compareTag}>B안 · 도넛</Text>
+          <CompositionChart groups={full.groups} variant="donut" />
+        </>
+      )}
 
       {/* 조사 정보: 연회색 상자 하나에 이름표–값 줄 (내 정보 회원정보와 같은 모양, 2026-11-10) */}
       {tab === "info" && (
@@ -357,6 +365,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: -10000,
     top: 0,
+  },
+  // TODO(임시): A·B안 비교 이름표 · 하나 고르면 지우기 · 2026-11-10
+  compareTag: {
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.xs,
+    fontSize: fontSize.caption,
+    fontWeight: "700",
+    color: colors.primary,
   },
   infoWrap: {
     gap: spacing.sm,
