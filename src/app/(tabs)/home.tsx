@@ -1,4 +1,4 @@
-// ys-100 홈 · F-201, F-702 (2026-10-31 디자인: 포인트 카드 · 바로가기 · 오늘의 질문 · 마감 임박 설문 · 2026-11-10 피그마 홈 시안: 마스코트 카드 · 바로가기 4칸 · 빠른 탐색 · 추천 설문 · 최신 & 마감 임박)
+// ys-100 홈 · F-201, F-702 (2026-10-31 디자인: 포인트 카드 · 바로가기 · 오늘의 질문 · 마감 임박 설문 · 2026-11-10 피그마 홈 시안: 마스코트 카드 · 바로가기 4칸 · 빠른 탐색 · 추천 설문 · 최신 & 마감 임박 · 인기 투표)
 import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 
 import AppIcon from "@/components/AppIcon";
 import DailyCard from "@/components/DailyCard";
+import HomeHotVotes from "@/components/HomeHotVotes";
 import QuickExplore from "@/components/QuickExplore";
 import SurveyMiniCard from "@/components/SurveyMiniCard";
 import SurveyRowCard, { isClosingSoon } from "@/components/SurveyRowCard";
@@ -194,6 +195,9 @@ export default function Home() {
       ) : (
         data.surveys.map((s) => <SurveyRowCard key={s.id} survey={s} />)
       )}
+
+      {/* 취향 밸런스 인기 투표: 커뮤니티 HOT 중 투표형 (2026-11-10) */}
+      <HomeHotVotes />
     </ScrollView>
   );
 }

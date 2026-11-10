@@ -60,6 +60,8 @@ export type HotItem = {
   question: string;
   votes: number;
   comment_count: number;
+  // 올린 시각 (2026-11-10 추가, 홈 NEW 표시용. 마이그레이션 전 서버에서는 없음)
+  created_at?: string;
 };
 
 export async function fetchHot(): Promise<HotItem[]> {
