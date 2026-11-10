@@ -24,11 +24,11 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: spacing.xs,
   },
-  // 2026-11-09 피그마: 작은 회색 글씨
+  // 2026-11-09 피그마: 작은 글씨 (2026-11-10 피그마: 회색 → 파랑)
   tag: {
     fontSize: fontSize.caption,
     lineHeight: 20,
     fontWeight: "500",
-    color: colors.cardSub,
+    color: colors.primary,
   },
 });

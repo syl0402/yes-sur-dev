@@ -1,4 +1,4 @@
-// ys-130 데이터 목록 · F-501 (2026-11-01: 검색 · 스크랩 · 카드 정리, 2026-11-09 "내가 응답한 결과" 줄 → 마이 탭 내 데이터)
+// ys-130 데이터 목록 · F-501 (2026-11-10 피그마 카드·개수, 2026-11-01: 검색 · 스크랩 · 카드 정리, 2026-11-09 "내가 응답한 결과" 줄 → 마이 탭 내 데이터)
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
@@ -14,9 +14,9 @@ import EmptyState from "@/components/ui/EmptyState";
 import SelectButton from "@/components/ui/SelectButton";
 import { Text, TextInput } from "@/components/ui/Text";
 import TextTabs from "@/components/ui/TextTabs";
-import { bookmarkIcons, uiIcons } from "@/constants/icons";
-import { colors, radius, spacing } from "@/constants/theme";
-import { formatShortDate } from "@/lib/format";
+import { bookmarkIcons, homeIcons, uiIcons } from "@/constants/icons";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
+import { formatAgo, formatPoints, formatShortDate } from "@/lib/format";
 import { HUB_SORT_OPTIONS, type HubItem, type HubSort } from "@/lib/hub";
 import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
@@ -49,6 +49,8 @@ export default function Data() {
   const [saved, setSaved] = useState<number[]>([]);
   // 데이터 허브에 올라가는 최소 응답 수 (빈 화면 안내용, point_rules)
   const [minCount, setMinCount] = useState<number | null>(null);
+  // 결과 전체 열람 비용 (카드 알약 "📖 100P", point_rules)
+  const [viewCost, setViewCost] = useState<number | null>(null);
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -59,7 +61,10 @@ export default function Data() {
       .select("key, name")
       .order("sort_order")
       .then(({ data }) => setCategories(data ?? []));
-    fetchRules(["result_min_count"]).then((r) => setMinCount(r.result_min_count ?? null));
+    fetchRules(["result_min_count", "cost_data_view"]).then((r) => {
+      setMinCount(r.result_min_count ?? null);
+      setViewCost(r.cost_data_view ?? null);
+    });
     const { data } = await supabase.rpc("get_hub_list", { p_category: category === "all" ? null : category, p_sort: sort });
     setItems((data as HubItem[] | null) ?? []);
   }, [category, sort]);
@@ -101,7 +106,7 @@ export default function Data() {
     >
       {/* 검색 (제목): 돋보기 아이콘 + 입력칸 */}
       <View style={styles.searchBox}>
-        <AppIcon name={uiIcons.search} size={18} color={colors.textSubtle} />
+        <AppIcon name={uiIcons.search} size={20} color={colors.textSubtle} />
         <TextInput
           style={styles.search}
           value={search}
@@ -120,7 +125,7 @@ export default function Data() {
       />
       <View style={styles.filters}>
         <SelectButton title="정렬" options={HUB_SORT_OPTIONS} value={sort} onChange={setSort} />
-        <Chip label="✓ 인증 단체" selected={verifiedOnly} onPress={() => setVerifiedOnly(!verifiedOnly)} />
+        <Chip icon={homeIcons.host} label="인증 단체" selected={verifiedOnly} onPress={() => setVerifiedOnly(!verifiedOnly)} />
         <Chip icon={bookmarkIcons.on} label={`스크랩 ${saved.length}`} selected={savedOnly} onPress={() => setSavedOnly(!savedOnly)} />
       </View>
       {pickedTags.length > 0 && (
@@ -136,6 +141,12 @@ export default function Data() {
         </View>
       )}
 
+      {/* 개수 (2026-11-10 피그마: "전체 설문 27개") */}
+      {items !== null && (
+        <Text style={styles.count}>
+          {categories.find((c) => c.key === category)?.name ?? "전체"} 설문 {shown.length}개
+        </Text>
+      )}
       {items === null ? (
         <ActivityIndicator color={colors.primary} style={styles.loading} />
       ) : shown.length === 0 ? (
@@ -154,13 +165,15 @@ export default function Data() {
       ) : (
         shown.map((i) => (
           <Card key={i.id} onPress={() => open(i.id)} style={[card.card, i.mine && card.mineCard]}>
-            {/* 설문 탭 카드와 같은 모양 (2026-11-09 피그마): 주최·마감일 / 제목 / #태그 / 표시·숫자 + 상태 */}
+            {/* 설문 탭 카드와 같은 모양 (2026-11-10 피그마 140:2215): 표시 알약 · 마감일 / 제목 / #태그 / 숫자 · 올린 곳 + 상태 알약 */}
             <View style={card.head}>
               <View style={card.top}>
-                <Text style={card.host} numberOfLines={1}>
-                  {formatHost(i)}
-                </Text>
-                <Text style={card.sub}>{formatShortDate(i.ended_at)} 마감</Text>
+                <View style={card.badges}>
+                  {i.mine && <Badge label="내 설문" tone="solid" />}
+                  <Badge label={i.category_name} tone="blue" />
+                  {i.trusted && <Badge label="신뢰도 높음" tone="lime" />}
+                </View>
+                <Text style={card.topRight}>{formatShortDate(i.ended_at)} 마감</Text>
               </View>
               <Text style={card.title} numberOfLines={2}>
                 {i.title}
@@ -168,25 +181,31 @@ export default function Data() {
               <TagRow tags={i.tags ?? []} onPress={(t) => setPickedTags(addTag(pickedTags, t))} />
             </View>
             <View style={card.bottom}>
-              <View style={card.bottomLeft}>
-                <View style={card.badges}>
-                  {i.mine && <Badge label="내 설문" tone="solid" />}
-                  <Badge label={i.category_name} tone="blue" />
-                  {i.trusted && <Badge label="신뢰도 높음" tone="lime" />}
-                </View>
+              <View style={card.footLeft}>
                 <View style={card.meta}>
-                  <Text style={card.sub}>응답 {i.response_count}명</Text>
-                  <Text style={card.sub}>열람 {i.view_count}회</Text>
+                  <View style={card.metaIcon}>
+                    <AppIcon name={uiIcons.responses} size={12} color={colors.cardSub} />
+                    <Text style={card.sub}>응답 {i.response_count}명</Text>
+                  </View>
+                  <Text style={card.sub}>· 열람 {i.view_count}회</Text>
+                  <Text style={card.sub}>· {formatAgo(i.ended_at)}</Text>
+                </View>
+                <View style={card.metaIcon}>
+                  <AppIcon name={i.host_name ? homeIcons.host : homeIcons.person} size={11} color={colors.cardSub} />
+                  <Text style={[card.sub, { flexShrink: 1 }]} numberOfLines={1}>
+                    {formatHost(i)}
+                  </Text>
                 </View>
               </View>
-              {/* 오른쪽 알약: 처음 보는 무료 결과는 파란 알약, 이미 본 결과는 회색 표시 */}
-              {i.mine ? null : i.viewed ? (
-                <Badge label="열람함" tone="muted" />
-              ) : i.free ? (
-                <View style={card.pill}>
-                  <Text style={card.pillText}>무료</Text>
+              {/* 오른쪽 알약: 이미 본 결과 = 회색 "열람함" / 무료 = "무료" / 나머지 = 열람 비용. 내 설문은 없음 */}
+              {i.mine ? null : (
+                <View style={[card.pill, i.viewed && card.pillMuted]}>
+                  <AppIcon name={uiIcons.read} size={14} color={i.viewed ? colors.textMuted : colors.onPrimaryText} />
+                  <Text style={[card.pillText, i.viewed && card.pillMutedText]}>
+                    {i.viewed ? "열람함" : i.free ? "무료" : viewCost !== null ? formatPoints(viewCost) : "열람"}
+                  </Text>
                 </View>
-              ) : null}
+              )}
             </View>
           </Card>
         ))
@@ -222,20 +241,22 @@ const styles = StyleSheet.create({
   loading: {
     marginTop: spacing.lg,
   },
+  // 검색칸 (2026-11-10 피그마 140:1686 값: 높이 40 · Natural 300 테두리 · 모서리 12 · 돋보기 20 · 글자 14)
   searchBox: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
+    gap: spacing.xs,
+    height: 40,
+    paddingHorizontal: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
   },
   search: {
     flex: 1,
-    paddingVertical: 14,
-    fontSize: 15,
+    paddingVertical: 0,
+    fontSize: fontSize.label,
     color: colors.text,
   },
   filters: {
@@ -246,5 +267,10 @@ const styles = StyleSheet.create({
   },
   emptyBox: {
     gap: spacing.md,
+  },
+  count: {
+    fontSize: fontSize.small,
+    fontWeight: "500",
+    color: colors.textMuted,
   },
 });

@@ -121,6 +121,7 @@ export default function Home() {
       <Pressable style={styles.hero} onPress={() => router.navigate({ pathname: "/my", params: { tab: "ledger" } })} disabled={data.isOrg}>
         {/* 오른쪽 아래: 행성(큰 원) 위에 선 마스코트 (2026-11-10 피그마 홈 시안) */}
         <View style={styles.heroPlanet} />
+        <View style={styles.heroShadow} />
         <Image source={MASCOT} style={styles.heroMascot} contentFit="contain" accessible={false} />
         {data.isOrg ? (
           <>
@@ -129,13 +130,13 @@ export default function Home() {
           </>
         ) : (
           <>
-            <View style={styles.heroTop}>
+            <Text style={styles.heroLink}>포인트 내역 ›</Text>
+            <View style={styles.heroAmount}>
               <Text style={styles.heroLabel}>내 포인트</Text>
-              <Text style={styles.heroLink}>포인트 내역 ›</Text>
+              <Text style={styles.heroValue}>{formatPoints(data.balance)}</Text>
             </View>
-            <Text style={styles.heroValue}>{formatPoints(data.balance)}</Text>
             <View style={styles.heroWeek}>
-              <AppIcon name={homeIcons.sparkle} size={14} color={colors.accent} />
+              <AppIcon name={homeIcons.star} size={12} color={colors.accent} />
               <Text style={styles.heroWeekText}>
                 {data.weekEarned > 0
                   ? `이번 주 ${formatPoints(data.weekEarned)}를 모았어요`
@@ -207,7 +208,7 @@ function Shortcut({ icon, title, onPress }: { icon: IconName; title: string; onP
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.shortcut, pressed && styles.shortcutPressed]}>
       <View style={styles.shortcutIcon}>
-        <AppIcon name={icon} size={26} color={colors.primary} />
+        <AppIcon name={icon} size={24} color={colors.primary} />
       </View>
       <Text style={styles.shortcutTitle}>{title}</Text>
     </Pressable>
@@ -230,48 +231,60 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingBottom: spacing.xl,
   },
-  // 피그마 358 × 217. 글자는 위·아래로 나뉘고 가운데는 비운다
+  // 포인트 카드 (2026-11-10 피그마 116:302 값): 358 × 217 · 모서리 20 · 오른쪽 위 "포인트 내역" · 왼쪽 금액 · 아래 이번 주
   hero: {
-    minHeight: 200,
-    padding: spacing.lg,
-    gap: spacing.sm,
+    height: 217,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xl,
     borderRadius: radius.xl,
     backgroundColor: colors.primary,
     overflow: "hidden",
   },
+  // 오른쪽 아래 큰 원 (흰색 38%)
   heroPlanet: {
     position: "absolute",
-    right: -50,
+    right: -49,
     bottom: -86,
     width: 178,
     height: 161,
-    borderRadius: 90,
+    borderRadius: 89,
     backgroundColor: colors.onPrimaryPlanet,
   },
-  // 원본 그림 비율 1264 × 848
+  // 마스코트 발밑 그림자 (흰색 37% 타원, 살짝 기울임)
+  heroShadow: {
+    position: "absolute",
+    right: 21,
+    bottom: 41,
+    width: 64,
+    height: 18,
+    borderRadius: 32,
+    backgroundColor: colors.onPrimaryPlanet,
+    transform: [{ rotate: "-13deg" }],
+  },
+  // 마스코트 (피그마 151 × 110, -9.4도 기울임. 원본 그림 비율 1264 × 848)
   heroMascot: {
     position: "absolute",
-    right: -24,
-    bottom: -4,
-    width: 200,
-    height: 134,
+    right: -14,
+    bottom: 36,
+    width: 164,
+    height: 110,
+    transform: [{ rotate: "-9.4deg" }],
   },
-  heroTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  heroLink: {
+    alignSelf: "flex-end",
+    fontSize: fontSize.small,
+    fontWeight: "500",
+    color: colors.onPrimary,
+  },
+  heroAmount: {
+    marginTop: spacing.sm,
+    gap: spacing.sm,
   },
   heroLabel: {
     fontSize: fontSize.body,
-    fontWeight: "600",
+    fontWeight: "500",
     color: colors.onPrimary,
-    opacity: 0.9,
-  },
-  heroLink: {
-    fontSize: fontSize.small,
-    fontWeight: "600",
-    color: colors.onPrimary,
-    opacity: 0.9,
   },
   heroValue: {
     fontSize: fontSize.hero,
@@ -282,12 +295,12 @@ const styles = StyleSheet.create({
     marginTop: "auto",
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.xs,
+    gap: 6,
   },
   heroWeekText: {
     fontSize: fontSize.small,
+    fontWeight: "500",
     color: colors.onPrimary,
-    opacity: 0.9,
   },
   heroOrg: {
     fontSize: fontSize.subtitle,
@@ -311,11 +324,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
+  // 바로가기 (2026-11-10 피그마 145:2877 값: 아이콘 24 · 아이콘과 이름 사이 16 · 이름 13 Blue 500)
   shortcut: {
     flex: 1,
     alignItems: "center",
     paddingVertical: spacing.xs,
-    gap: spacing.sm,
+    gap: spacing.md,
   },
   shortcutPressed: {
     opacity: 0.5,
@@ -329,6 +343,6 @@ const styles = StyleSheet.create({
   shortcutTitle: {
     fontSize: fontSize.small,
     fontWeight: "500",
-    color: colors.primaryStrong,
+    color: colors.primary,
   },
 });

@@ -4,8 +4,6 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import { listCardStyles } from "@/components/listCardStyles";
-import Card from "@/components/ui/Card";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
@@ -49,7 +47,7 @@ export default function HomeHotVotes() {
         actionLabel="전체 보기"
         onAction={() => router.navigate("/community")}
       />
-      <Card style={[listCardStyles.card, styles.card]}>
+      <View style={styles.card}>
         {items.map((h) => (
           <Pressable
             key={`${h.type}-${h.id}`}
@@ -67,37 +65,45 @@ export default function HomeHotVotes() {
             )}
           </Pressable>
         ))}
-      </Card>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // 피그마 145:3841 값: Natural 50 바탕 · Natural 200 테두리 · 모서리 16 · 위아래 12 좌우 16 · 줄 사이 4
   card: {
     marginTop: spacing.sm,
-    paddingVertical: 13,
-    paddingHorizontal: 17,
-    gap: 0,
+    paddingVertical: spacing.md - spacing.xs,
+    paddingHorizontal: spacing.md,
+    gap: spacing.xs,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceSubtle,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    paddingVertical: 6,
+    minHeight: 24,
   },
   pressed: {
     opacity: 0.5,
   },
   // 종류 이름 칸 폭을 맞춰 질문 시작 위치를 줄 맞춤
   kind: {
-    width: 56,
-    fontSize: fontSize.small,
-    fontWeight: "600",
+    width: 64,
+    fontSize: fontSize.caption,
+    lineHeight: 20,
+    fontWeight: "500",
     color: colors.primary,
   },
   question: {
     flex: 1,
-    fontSize: fontSize.small,
+    fontSize: fontSize.caption,
+    lineHeight: 20,
+    fontWeight: "500",
     color: colors.textMuted,
   },
   // 연한 빨강 동그라미 + 빨간 N (한국 앱의 익숙한 "새 글" 표시, 커뮤니티 HOT 뱃지와 같은 색. 2026-11-10 폰 확인 피드백: 더 연하게)

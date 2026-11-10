@@ -134,7 +134,7 @@ export default function Surveys() {
         {/* 카테고리: 글자 탭 / 정렬 · 소요시간 · 우리 학교 · 보상 · 내 설문: 한 줄 (2026-11-02 정리, 11-08 우리 학교 = 작성자 학교, 11-09 내 설문) */}
         {/* 검색 (제목 · #태그): 돋보기 아이콘 + 입력칸 */}
         <View style={styles.searchBox}>
-          <AppIcon name={uiIcons.search} size={18} color={colors.textSubtle} />
+          <AppIcon name={uiIcons.search} size={20} color={colors.textSubtle} />
           <TextInput
             style={styles.search}
             value={search}
@@ -160,6 +160,7 @@ export default function Surveys() {
             placeholder="소요시간"
           />
           <Chip
+            icon={uiIcons.campus}
             label="우리 학교"
             selected={scope === "campus"}
             onPress={() => setScope(scope === "campus" ? "all" : "campus")}
@@ -182,7 +183,7 @@ export default function Surveys() {
         )}
 
         <View style={styles.countRow}>
-          <Text style={styles.count}>{surveys === null ? "" : `설문 ${visible.length}개`}</Text>
+          <Text style={styles.count}>{surveys === null ? "" : `${categories.find((c) => c.key === category)?.name ?? "전체"} 설문 ${visible.length}개`}</Text>
         </View>
 
         {surveys === null ? (
@@ -192,7 +193,7 @@ export default function Surveys() {
             // 설문 탭은 진행 중 설문만 보여서, 마감된 내 설문은 마이 탭으로 안내
             <EmptyState
               title="진행 중인 내 설문이 없어요"
-              message={"마감된 설문은 마이 탭 \"내 설문 관리\"에서 볼 수 있어요.\n오른쪽 아래 + 버튼으로 새 설문을 올려 보세요."}
+              message={"마감된 설문은 마이 탭 \"내 설문 관리\"에서 볼 수 있어요.\n오른쪽 아래 연필 버튼으로 새 설문을 올려 보세요."}
               emoji="📣"
             />
           ) : (
@@ -227,20 +228,22 @@ const styles = StyleSheet.create({
   loading: {
     marginTop: spacing.lg,
   },
+  // 검색칸 (2026-11-10 피그마 140:1686 값: 높이 40 · Natural 300 테두리 · 모서리 12 · 돋보기 20 · 글자 14)
   searchBox: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
+    gap: spacing.xs,
+    height: 40,
+    paddingHorizontal: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
   },
   search: {
     flex: 1,
-    paddingVertical: 14,
-    fontSize: 15,
+    paddingVertical: 0,
+    fontSize: fontSize.label,
     color: colors.text,
   },
   filters: {
@@ -261,7 +264,7 @@ const styles = StyleSheet.create({
   },
   count: {
     fontSize: fontSize.small,
-    fontWeight: "600",
+    fontWeight: "500",
     color: colors.textMuted,
   },
 });

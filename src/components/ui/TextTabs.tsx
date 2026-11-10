@@ -1,4 +1,5 @@
 // 글자 탭 (카테고리 등): 옆으로 넘기고, 고른 것만 진한 글자 + 파란 밑줄 (2026-11-02, 당근·쿠팡 방식)
+// 2026-11-10 피그마 140:273 값: 14 미디엄, 고른 탭은 파란 글자 + 파란 밑줄 4px, 나머지 회색
 // fill: 탭이 몇 개 안 될 때 가로를 똑같이 나눠 채운다 (커뮤니티 [전체·투표·월드컵·설문 홍보], 2026-11-10)
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
@@ -53,9 +54,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   tab: {
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: 2,
+    paddingTop: spacing.sm,
+    paddingBottom: 10,
+    paddingHorizontal: spacing.xs,
+    borderBottomWidth: 4,
     borderBottomColor: "transparent",
     marginBottom: -1,
   },
@@ -67,12 +69,11 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.primary,
   },
   text: {
-    fontSize: fontSize.body,
-    fontWeight: "600",
-    color: colors.textSubtle,
+    fontSize: fontSize.label,
+    fontWeight: "500",
+    color: colors.textMuted,
   },
   textOn: {
-    fontWeight: "800",
-    color: colors.text,
+    color: colors.primary,
   },
 });

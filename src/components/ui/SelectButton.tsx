@@ -4,7 +4,9 @@ import { useState } from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import AppIcon from "@/components/AppIcon";
 import { Text } from "@/components/ui/Text";
+import { uiIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 
 type Props<T extends string> = {
@@ -29,7 +31,8 @@ export default function SelectButton<T extends string>({ title, options, value, 
   return (
     <>
       <Pressable onPress={() => setOpen(true)} style={[styles.button, active && styles.buttonOn]} hitSlop={4}>
-        <Text style={[styles.label, active && styles.labelOn]}>{label} ▾</Text>
+        <Text style={[styles.label, active && styles.labelOn]}>{label}</Text>
+        <AppIcon name={uiIcons.caretDown} size={14} color={active ? colors.primary : colors.iconStrong} />
       </Pressable>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
@@ -61,12 +64,16 @@ export default function SelectButton<T extends string>({ title, options, value, 
 }
 
 const styles = StyleSheet.create({
+  // 2026-11-10 피그마 140:856 값
   button: {
-    paddingVertical: 7,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    paddingVertical: 9,
     paddingHorizontal: 12,
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.surface,
   },
   buttonOn: {
@@ -74,9 +81,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primarySoft,
   },
   label: {
-    fontSize: fontSize.small,
-    fontWeight: "600",
-    color: colors.text,
+    fontSize: fontSize.caption,
+    fontWeight: "500",
+    color: colors.textStrong,
   },
   labelOn: {
     color: colors.primary,

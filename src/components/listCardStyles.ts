@@ -1,38 +1,46 @@
-// 설문 탭·데이터 탭 목록 카드가 함께 쓰는 모양 (2026-11-09 피그마 카드 디자인 116:329)
-// 위: 주최·남은 시간 / 제목 / #태그  →  아래: 왼쪽(표시 알약 · 시간 정보) + 오른쪽(포인트 알약)
+// 목록 카드가 함께 쓰는 모양 (설문 탭·데이터 탭·홈 카드·마이 탭)
+// 2026-11-10 피그마 140:178 · 140:2215 · 145:3042 값:
+// 위 표시 알약 · 남은 시간(오른쪽) / 제목 / #태그(파랑)  →  아래: 왼쪽(시간 정보 / 올린 곳) + 오른쪽(아이콘 알약)
 import { StyleSheet } from "react-native";
 
-import { colors, fontSize, radius, shadow } from "@/constants/theme";
+import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 
 export const listCardStyles = StyleSheet.create({
-  // 흰 카드 · 모서리 20 · 테두리 없이 그림자. 앱 카드 중 그림자는 이 목록 카드만 (2026-11-10)
+  // 탭 목록 카드: Natural 30 바탕 · 모서리 16 · 여백 16 · 테두리 없이 옅은 그림자
   card: {
-    padding: 20,
-    gap: 12,
-    borderRadius: radius.xl,
+    padding: spacing.md,
+    gap: spacing.sm,
+    borderRadius: radius.lg,
     borderColor: "transparent",
+    backgroundColor: colors.surface,
     ...shadow.listCard,
   },
-  // 내 설문: 파란 테두리 + 아주 옅은 파랑 바탕
+  // 홈 카드: 그림자 대신 얇은 테두리 (피그마 145:3042 · 145:3585)
+  borderCard: {
+    borderColor: colors.border,
+    boxShadow: [],
+  },
+  // 내 설문: 살짝 다른 바탕 (피그마 143:2465, 표시는 "내 설문" 진한 알약)
   mineCard: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primarySoft,
+    backgroundColor: colors.surfaceSubtle,
   },
   head: {
-    gap: 4,
+    gap: spacing.xs,
   },
+  // 표시 알약들 + 오른쪽 남은 시간·마감일
   top: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 8,
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
   },
-  host: {
-    flexShrink: 1,
+  // 남은 시간·마감일 (Natural 500)
+  topRight: {
     fontSize: fontSize.caption,
     lineHeight: 20,
-    fontWeight: "600",
-    color: colors.primary,
+    fontWeight: "500",
+    color: colors.textSubtle,
   },
   sub: {
     fontSize: fontSize.caption,
@@ -48,43 +56,55 @@ export const listCardStyles = StyleSheet.create({
   },
   bottom: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-  },
-  bottomLeft: {
-    flex: 1,
-    gap: 12,
+    alignItems: "center",
+    gap: spacing.sm,
   },
   badges: {
+    flexShrink: 1,
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: spacing.sm,
+  },
+  // 아래 왼쪽: 시간 정보 줄 + 올린 곳 줄
+  footLeft: {
+    flex: 1,
+    gap: 2,
   },
   meta: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 7,
+    flexWrap: "wrap",
+    columnGap: spacing.xs,
   },
   metaIcon: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
   },
-  // 오른쪽 파란 알약 (포인트)
+  // 오른쪽 알약 (포인트 · 열람): Blue 500 · 높이 33 · 모서리 10
   pill: {
-    minWidth: 73,
-    height: 29,
-    paddingHorizontal: 6,
+    flexDirection: "row",
+    gap: spacing.xs,
+    minWidth: 64,
+    height: 33,
+    paddingHorizontal: spacing.sm,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: radius.pill,
+    borderRadius: 10,
     backgroundColor: colors.primary,
   },
   pillText: {
     fontSize: fontSize.caption,
     lineHeight: 20,
     fontWeight: "700",
-    color: colors.onPrimary,
+    color: colors.onPrimaryText,
+  },
+  // 이미 본 결과: 회색 알약 (Natural 200 + Natural 600)
+  pillMuted: {
+    backgroundColor: colors.border,
+  },
+  pillMutedText: {
+    color: colors.textMuted,
   },
   // 내 설문: 포인트 대신 모인 응답 수
   progressText: {

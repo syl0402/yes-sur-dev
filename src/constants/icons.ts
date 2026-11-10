@@ -23,12 +23,16 @@ export const homeIcons = {
   community: "chatbox-ellipses",
   // 추천 설문 카드의 올린 곳 (피그마 fa-solid:university)
   host: "business",
+  // 개인이 올린 설문 (피그마 bi:person-fill)
+  person: "person",
   // 포인트 알약 앞 동전 (피그마 ri:copper-coin-fill과 비슷한 모양)
   coin: "radio-button-on",
   time: "time-outline",
   // 목록 카드 소요 시간 (꽉 찬 시계, 2026-11-09 피그마)
   timeFill: "time",
   sparkle: "sparkles",
+  // 포인트 카드 "이번 주" 앞 별 (피그마 star-filled)
+  star: "star",
 } satisfies Record<string, IconName>;
 
 // 비밀번호 보기 (2026-11-02)
@@ -70,7 +74,14 @@ export const uiIcons = {
   search: "search-outline",
   // 오른쪽 아래 둥근 "새로 쓰기" 버튼 (2026-11-10 피그마: + → 연필)
   write: "pencil",
-  gift: "gift-outline",
+  // 데이터 카드: 응답 수 앞 · 열람 알약 · 우리 학교 칩 (2026-11-10 피그마)
+  responses: "document-text",
+  // 정렬 버튼 ▼ · 묶음 제목 오른쪽 › (2026-11-10 피그마)
+  caretDown: "caret-down",
+  chevron: "chevron-forward",
+  read: "book",
+  campus: "school",
+  gift: "gift", // 피그마 bxs:gift (꽉 찬 선물)
   streak: "flame",
   alert: "alert-circle-outline",
   admin: "construct-outline",

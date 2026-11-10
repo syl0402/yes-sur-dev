@@ -1,4 +1,4 @@
-// 홈 "빠른 탐색": 설문 카테고리 8칸 (한 줄 4칸 × 2줄). 누르면 설문 탭이 그 카테고리로 걸러진 채 열린다 (2026-11-10 피그마 홈 시안)
+// 홈 "빠른 탐색": 설문 카테고리 8칸 (한 줄 2칸 × 4줄, 2026-11-10 피그마 모양). 누르면 설문 탭이 그 카테고리로 걸러진 채 열린다 (2026-11-10 피그마 홈 시안)
 // 카테고리 이름·순서는 survey_categories 표에서 읽는다 (표가 바뀌면 칸도 따라 바뀜)
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -42,7 +42,7 @@ export default function QuickExplore() {
 
   return (
     <View>
-      <SectionHeader title="빠른 탐색" subtitle="관심 카테고리를 골라 보세요" />
+      <SectionHeader title="빠른 탐색" subtitle="관심 카테고리를 선택해 보세요" />
       <View style={styles.grid}>
         {categories.map((c) => (
           <Pressable
@@ -52,7 +52,7 @@ export default function QuickExplore() {
             accessibilityLabel={`${c.name} 설문 보기`}
           >
             <Image source={CHARACTERS[c.key] ?? FALLBACK} style={styles.character} contentFit="contain" />
-            <Text style={styles.name} numberOfLines={1} adjustsFontSizeToFit>
+            <Text style={styles.name} numberOfLines={1}>
               {c.name}
             </Text>
           </Pressable>
@@ -62,23 +62,23 @@ export default function QuickExplore() {
   );
 }
 
-const GAP = spacing.sm;
-
+// 2026-11-10 피그마 145:2972 값: 한 줄 2칸 · 칸 안은 캐릭터(39 × 32) 왼쪽 + 이름 14 미디엄 · 여백 12 · 모서리 12 · Natural 200 테두리
+// (시안은 칸 너비가 줄마다 달랐는데 2칸 균등으로 맞춤)
 const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: GAP,
+    gap: spacing.sm,
     marginTop: spacing.sm,
   },
-  // 한 줄 4칸: 22%씩 차지하고 남는 폭은 나눠 가짐 (5칸은 110%라 다음 줄로)
+  // 한 줄 2칸: 각자 절반에서 칸 사이 간격만큼 뺀 너비
   tile: {
     flexGrow: 1,
-    flexBasis: "22%",
+    flexBasis: "45%",
+    flexDirection: "row",
     alignItems: "center",
-    gap: spacing.xs,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xs,
+    gap: spacing.sm,
+    padding: spacing.md - spacing.xs,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
@@ -88,12 +88,14 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   character: {
-    width: 44,
-    height: 38,
+    width: 39,
+    height: 32,
   },
   name: {
-    fontSize: fontSize.small,
-    fontWeight: "600",
+    flex: 1,
+    fontSize: fontSize.label,
+    lineHeight: 16,
+    fontWeight: "500",
     color: colors.text,
   },
 });

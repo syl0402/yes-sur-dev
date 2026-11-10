@@ -24,12 +24,12 @@ export default function SurveyMiniCard({ survey: s }: { survey: SurveyCard }) {
   return (
     <Card
       onPress={() => router.push({ pathname: "/survey/[id]", params: { id: String(s.id) } })}
-      style={[listCardStyles.card, styles.card]}
+      style={[listCardStyles.card, listCardStyles.borderCard, styles.card]}
     >
       <View style={styles.badges}>
-        <Badge label={s.category_name} tone="blue" />
-        {s.audience === "campus" && <Badge label="우리 학교" tone="lime" />}
-        {s.has_reward && <Badge label="보상" tone="peach" />}
+        <Badge label={s.category_name} tone="blue" size="sm" />
+        {s.audience === "campus" && <Badge label="우리 학교" tone="lime" size="sm" />}
+        {s.has_reward && <Badge label="보상" tone="peach" size="sm" />}
       </View>
       <View style={styles.body}>
         <Text style={listCardStyles.title} numberOfLines={2}>
@@ -52,7 +52,7 @@ export default function SurveyMiniCard({ survey: s }: { survey: SurveyCard }) {
           </Text>
         </View>
         <View style={listCardStyles.metaIcon}>
-          <AppIcon name={homeIcons.host} size={11} color={colors.cardSub} />
+          <AppIcon name={s.host_name ? homeIcons.host : homeIcons.person} size={11} color={colors.cardSub} />
           <Text style={[listCardStyles.sub, styles.host]} numberOfLines={1}>
             {formatHost(s)}
           </Text>
@@ -63,10 +63,10 @@ export default function SurveyMiniCard({ survey: s }: { survey: SurveyCard }) {
 }
 
 const styles = StyleSheet.create({
+  // 피그마 145:3042 값: 테두리 카드 · 여백 16 · 간격 8 · 표시 알약 글자 10
   card: {
     width: MINI_CARD_WIDTH,
     minHeight: 210,
-    padding: 16,
   },
   badges: {
     flexDirection: "row",

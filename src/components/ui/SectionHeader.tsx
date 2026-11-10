@@ -1,7 +1,9 @@
-// 묶음 제목 + 설명 + 오른쪽 "전체 보기 ›" (2026-10-31 디자인)
+// 묶음 제목 + 설명 + 오른쪽 › (2026-10-31 디자인, 2026-11-10 피그마 145:2973 값: 제목 18 Blue 900 · 설명 12 · 오른쪽 › 아이콘)
 import { Pressable, StyleSheet, View } from "react-native";
 
+import AppIcon from "@/components/AppIcon";
 import { Text } from "@/components/ui/Text";
+import { uiIcons } from "@/constants/icons";
 import { colors, fontSize, spacing } from "@/constants/theme";
 
 type Props = {
@@ -19,8 +21,8 @@ export default function SectionHeader({ title, subtitle, actionLabel, onAction }
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       </View>
       {actionLabel && onAction ? (
-        <Pressable onPress={onAction} hitSlop={8}>
-          <Text style={styles.action}>{actionLabel} ›</Text>
+        <Pressable onPress={onAction} hitSlop={10} accessibilityLabel={actionLabel}>
+          <AppIcon name={uiIcons.chevron} size={24} color={colors.iconStrong} />
         </Pressable>
       ) : null}
     </View>
@@ -30,26 +32,22 @@ export default function SectionHeader({ title, subtitle, actionLabel, onAction }
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "center",
     gap: spacing.md,
     marginTop: spacing.sm,
   },
   main: {
     flex: 1,
-    gap: 2,
   },
   title: {
     fontSize: fontSize.subtitle,
+    lineHeight: 24,
     fontWeight: "700",
-    color: colors.text,
+    color: colors.heading,
   },
   subtitle: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
-  },
-  action: {
-    fontSize: fontSize.small,
-    fontWeight: "600",
-    color: colors.textMuted,
+    fontSize: fontSize.caption,
+    lineHeight: 16,
+    color: colors.textSubtle,
   },
 });

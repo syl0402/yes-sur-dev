@@ -8,7 +8,7 @@ import { listCardStyles } from "@/components/listCardStyles";
 import Card from "@/components/ui/Card";
 import { Text } from "@/components/ui/Text";
 import { homeIcons } from "@/constants/icons";
-import { colors, radius } from "@/constants/theme";
+import { colors, spacing } from "@/constants/theme";
 import { formatAgo, formatPoints } from "@/lib/format";
 import type { SurveyCard } from "@/lib/surveys";
 
@@ -36,7 +36,7 @@ export default function SurveyRowCard({ survey: s }: { survey: SurveyCard }) {
   return (
     <Card
       onPress={() => router.push({ pathname: "/survey/[id]", params: { id: String(s.id) } })}
-      style={[listCardStyles.card, styles.card]}
+      style={[listCardStyles.card, listCardStyles.borderCard, styles.card]}
     >
       <View style={styles.left}>
         <Text style={listCardStyles.title} numberOfLines={1}>
@@ -50,8 +50,8 @@ export default function SurveyRowCard({ survey: s }: { survey: SurveyCard }) {
           <Text style={[listCardStyles.sub, soon && styles.soon]}>· {statusText(s)}</Text>
         </View>
       </View>
-      <View style={styles.pill}>
-        <AppIcon name={homeIcons.coin} size={14} color={colors.onPrimary} />
+      <View style={listCardStyles.pill}>
+        <AppIcon name={homeIcons.coin} size={16} color={colors.onPrimaryText} />
         <Text style={listCardStyles.pillText}>{formatPoints(s.reward_points)}</Text>
       </View>
     </Card>
@@ -59,12 +59,13 @@ export default function SurveyRowCard({ survey: s }: { survey: SurveyCard }) {
 }
 
 const styles = StyleSheet.create({
+  // 피그마 145:3585 값: 테두리 카드 · 위아래 12 좌우 16
   card: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 13,
-    paddingHorizontal: 17,
-    gap: 12,
+    paddingVertical: spacing.md - spacing.xs,
+    paddingHorizontal: spacing.md,
+    gap: spacing.md,
   },
   left: {
     flex: 1,
@@ -72,13 +73,5 @@ const styles = StyleSheet.create({
   soon: {
     color: colors.primary,
   },
-  pill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-    height: 33,
-    paddingHorizontal: 10,
-    borderRadius: radius.md,
-    backgroundColor: colors.primary,
-  },
+
 });

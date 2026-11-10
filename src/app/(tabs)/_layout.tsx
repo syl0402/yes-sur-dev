@@ -27,7 +27,8 @@ export default function TabsLayout() {
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
         tabBarLabelStyle: { fontFamily, fontWeight: "600" },
         headerTintColor: colors.text,
-        headerTitleStyle: { color: colors.text, fontFamily, fontWeight: "700" },
+        // 화면 제목 18 굵게 Natural 800 (2026-11-10 피그마 140:181)
+        headerTitleStyle: { color: colors.textStrong, fontFamily, fontWeight: "700", fontSize: 18 },
         headerStyle: { backgroundColor: colors.background },
         headerShadowVisible: false,
         sceneStyle: { backgroundColor: colors.background },

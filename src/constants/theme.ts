@@ -20,14 +20,23 @@ export const colors = {
 
   // 글자
   text: "#202A40", // Natural 900
+  // 화면·묶음 제목 (2026-11-10 피그마: 제목줄 · 카드 제목 Natural 800, 묶음 제목 Blue 900)
+  textStrong: "#374158", // Natural 800
+  heading: "#121F4A", // Blue 900
+  // 아이콘·화살표처럼 진한 회색 (묶음 제목 오른쪽 › 등)
+  iconStrong: "#545E73", // Natural 700
   textMuted: "#70798D", // Natural 600
   textSubtle: "#8B93A5", // Natural 500
 
   // 바탕
   background: "#FCFCFC", // 화면 바탕 Natural 30 (2026-11-09 흰색 → 2026-11-10 Natural 30)
-  surface: "#FFFFFF", // 카드·입력칸·하단 탭
+  surface: "#FCFCFC", // 카드·입력칸·하단 탭 · Natural 30 (2026-11-10 피그마: 카드도 화면과 같은 색, 그림자·테두리로 구분)
+  // 홈 인기 투표 상자 · 내 설문 카드처럼 살짝 다른 바탕
+  surfaceSubtle: "#F7F8FC", // Natural 50
   surfaceMuted: "#EFF1F7", // 카드 안 회색 상자·꺼진 칩 · Natural 100
   border: "#E2E5EE", // Natural 200
+  // 검색칸·정렬 버튼 테두리 (조금 더 진하게)
+  borderStrong: "#CDD2DF", // Natural 300
 
   // 상태
   danger: "#E5484D",
@@ -35,20 +44,25 @@ export const colors = {
   // 커뮤니티 HOT 표시 (롤링 줄 제목·🔥 HOT 뱃지, 2026-11-03)
   hot: "#E5484D",
   hotSoft: "#FDECEC",
-  // 목록 카드 (2026-11-09 피그마 카드 디자인 116:329): 제목 진회색 · 보조 글씨 회색 · 표시 바탕 파스텔 3색
-  cardTitle: "#2F3133",
-  cardSub: "#757B80",
-  pastelBlue: "#E3E9FF", // 카테고리 · Blue 100
-  pastelLime: "#F0F8D5", // Lime 100 · 우리 학교 · 신뢰도 높음
-  pastelPeach: "#FFE2D6", // 보상
+  // 목록 카드 (2026-11-10 피그마 140:178 값): 제목 · 보조 글씨 · 표시 알약 3색(바탕 + 글자)
+  cardTitle: "#374158", // Natural 800
+  cardSub: "#70798D", // Natural 600
+  pastelBlue: "#E3E9FF", // 카테고리 바탕 · Blue 100
+  pastelBlueText: "#2949B5", // Blue 600
+  pastelLime: "#F0F8D5", // 우리 학교 · 신뢰도 높음 바탕 · Lime 100
+  pastelLimeText: "#6F942D", // Lime 700
+  pastelPeach: "#FFE3D6", // 보상 바탕
+  pastelPeachText: "#D3504C",
   disabled: "#CDD2DF", // Natural 300
   // 그래프: 강조하지 않는 막대 (1위만 파랑, 나머지는 이 회색, 2026-11-10)
   chartMuted: "#CDD2DF", // Natural 300
   onPrimary: "#FFFFFF",
+  // 파란 알약 위 글자 (피그마 Natural 30)
+  onPrimaryText: "#FCFCFC",
   // 파란 카드 위 흐린 흰색 (마이 포인트 카드 원 장식, 2026-11-10)
   onPrimarySoft: "rgba(255, 255, 255, 0.12)",
-  // 홈 포인트 카드 오른쪽 아래 큰 원 (마스코트가 올라선 행성, 2026-11-10 피그마) · Blue 300 반투명
-  onPrimaryPlanet: "rgba(159, 178, 255, 0.6)",
+  // 홈 포인트 카드 오른쪽 아래 큰 원 (마스코트가 올라선 행성) · 흰색 38% (2026-11-10 피그마 145:3849 값)
+  onPrimaryPlanet: "rgba(255, 255, 255, 0.38)",
   // 목록 창 뒤를 어둡게 덮는 색
   overlay: "rgba(32, 42, 64, 0.4)", // Natural 900 40%
 };
@@ -62,10 +76,12 @@ export const chartUnknown = "#7B8396";
 export const fontFamily = "Pretendard";
 
 export const fontSize = {
-  hero: 32,
+  hero: 30, // 2026-11-10 피그마 포인트 숫자 30
   title: 22,
   subtitle: 18,
   body: 16,
+  // 탭 글자 · 검색칸 · 빠른 탐색 이름 (2026-11-10 피그마 14)
+  label: 14,
   small: 13,
   caption: 12,
 };
@@ -100,6 +116,6 @@ export const shadow = {
   listCard: {
     shadowOpacity: 0,
     elevation: 0,
-    boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.12)",
+    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.12)", // 퍼짐은 피그마 140:1734 값(5px), 진하기는 12% 유지 (피그마 18%)
   },
 };
