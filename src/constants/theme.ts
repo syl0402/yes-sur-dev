@@ -7,6 +7,8 @@ export const colors = {
   primary: "#3157D5", // Blue 500
   // 대표 색을 옅게 (선택된 칩·뱃지·아이콘 바탕)
   primarySoft: "#E3E9FF", // Blue 100
+  // 아주 옅은 파랑 바탕 (오늘의 질문 팝업 질문 칸, 2026-11-10)
+  primaryFaint: "#F1F4FF", // Blue 50
   // 대표 색 중간 밝기 (결과 막대에서 1위가 아닌 보기)
   primaryMuted: "#9FB2FF", // Blue 300
   // 흰 바탕 위 파란 글자 (홈 바로가기 이름, 2026-11-10 피그마)
@@ -112,10 +114,10 @@ export const shadow = {
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
   },
-  // 눌러서 들어가는 목록 카드에만: 테두리 없이 그림자 (2026-11-09 피그마 20% → 2026-11-10 눈 피로 줄이려고 12%)
+  // 눌러서 들어가는 목록 카드에만: 테두리 없이 그림자 (2026-11-09 피그마 20% → 11-10 12% → 11-10 시안대로 18%)
   listCard: {
     shadowOpacity: 0,
     elevation: 0,
-    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.12)", // 퍼짐은 피그마 140:1734 값(5px), 진하기는 12% 유지 (피그마 18%)
+    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.18)", // 피그마 140:1734 값 (2026-11-10 12% → 18%: 화면이 너무 허옇게 보여서 시안대로)
   },
 };

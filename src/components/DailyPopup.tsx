@@ -2,17 +2,24 @@
 // TODO(임시): 팝업 모양은 개발팀 임시 시안 · 디자인팀 팝업 시안이 오면 교체 · 디자인팀 시안 없음
 // 뜨는 조건: 학생 · 오늘 질문 있음 · 아직 안 답함 · 이번에 앱을 켠 뒤 아직 안 띄움 · "오늘 그만 보기"를 안 누름 · 첫 사용 안내가 뜨는 날이 아님
 // → 답할 때까지 앱을 켤 때마다 한 번씩 (탭을 오갈 때는 다시 안 뜸)
+// 아래쪽 "매일 낮 12시 알림 받기 ›": 알림을 받을 수 있는 폰인데 아직 안 켰을 때만. 누르면 내 정보의 알림 설정으로 이동 (2026-11-10)
 // 답하기·결과·포인트·알림 묻기는 DailyCard 그대로 (서버 answer_daily가 금액과 중복을 정한다)
 import { Image } from "expo-image";
-import { router, useFocusEffect } from "expo-router";
+import { type Href, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
 
+import AppIcon from "@/components/AppIcon";
 import DailyCard from "@/components/DailyCard";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, radius, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
+import { uiIcons } from "@/constants/icons";
 import { hasSeenOnboarding } from "@/lib/onboarding";
+import { markPushAsked, pushPermission } from "@/lib/push";
 import { supabase } from "@/lib/supabase";
+
+// 알림 켜기/끄기가 있는 내 정보 화면
+const ACCOUNT_HREF = "/account" as Href;
 
 const MASCOT = require("../../assets/images/mascot-cheer.png");
 
@@ -46,6 +53,8 @@ function setOffToday(userId: string) {
 
 export default function DailyPopup({ onAnswered }: { onAnswered?: () => void }) {
   const [userId, setUserId] = useState<string | null>(null);
+  // 알림 받기 줄을 보여 줄지
+  const [showPush, setShowPush] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -61,12 +70,19 @@ export default function DailyPopup({ onAnswered }: { onAnswered?: () => void }) 
           return;
         }
         const [{ data: profile }, { data: daily }] = await Promise.all([
-          supabase.from("profiles").select("account_type").maybeSingle(),
+          supabase.from("profiles").select("account_type, notify_daily").maybeSingle(),
           supabase.rpc("get_today_daily"),
         ]);
         const d = daily as { my_choice: string | null } | null;
         if (cancelled || shownThisLaunch || profile?.account_type !== "student" || !d || d.my_choice) return;
         shownThisLaunch = true;
+        // 알림: 받을 수 있는 폰 + (기기 허락 안 함 또는 알림 설정 꺼 둠)일 때만 줄을 보여 준다
+        const perm = await pushPermission();
+        if (perm !== null && !(perm === "granted" && profile.notify_daily)) {
+          setShowPush(true);
+          // 답한 뒤 따로 뜨는 "매일 알림 받을까요?" 창은 띄우지 않는다 (같은 걸 두 번 묻지 않게)
+          markPushAsked();
+        }
         setUserId(uid);
       })();
       return () => {
@@ -76,6 +92,13 @@ export default function DailyPopup({ onAnswered }: { onAnswered?: () => void }) 
   );
 
   const close = () => setUserId(null);
+
+  // 알림 설정 화면(내 정보)으로 이동
+  const goPushSettings = () => {
+    close();
+    router.push(ACCOUNT_HREF);
+  };
+
   const closeForToday = () => {
     if (userId) setOffToday(userId);
     close();
@@ -95,13 +118,19 @@ export default function DailyPopup({ onAnswered }: { onAnswered?: () => void }) 
               router.push("/community/daily");
             }}
           />
-          {/* 아래 버튼 줄: 오늘 그만 보기 | 닫기 (이벤트 팝업에서 흔한 모양) */}
+          {showPush && (
+            <Pressable onPress={goPushSettings} style={({ pressed }) => [styles.push, pressed && styles.pushPressed]}>
+              <AppIcon name={uiIcons.bell} size={18} color={colors.primary} />
+              <Text style={styles.pushText}>매일 낮 12시, 오늘의 질문 알림 받기</Text>
+              <Text style={styles.pushAction}>설정 ›</Text>
+            </Pressable>
+          )}
+          {/* 아래 버튼: 앱 확인 창과 같은 둥근 회색 버튼 두 개 */}
           <View style={styles.footer}>
-            <Pressable onPress={closeForToday} hitSlop={8} style={styles.footerButton}>
+            <Pressable onPress={closeForToday} style={({ pressed }) => [styles.footerButton, pressed && styles.pushPressed]}>
               <Text style={styles.footerMuted}>오늘 그만 보기</Text>
             </Pressable>
-            <View style={styles.footerDivider} />
-            <Pressable onPress={close} hitSlop={8} style={styles.footerButton}>
+            <Pressable onPress={close} style={({ pressed }) => [styles.footerButton, pressed && styles.pushPressed]}>
               <Text style={styles.footerText}>닫기</Text>
             </Pressable>
           </View>
@@ -119,56 +148,72 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     backgroundColor: colors.overlay,
   },
+  // 앱 확인 창(AppDialog)과 같은 틀: 모서리 16 · 여백 24 · 옅은 그림자
   box: {
     width: "100%",
-    maxWidth: 400,
+    maxWidth: 360,
+    padding: spacing.lg,
     paddingTop: spacing.md,
-    paddingHorizontal: spacing.lg,
-    gap: spacing.sm,
-    borderRadius: radius.xl,
+    gap: spacing.md,
+    borderRadius: radius.lg,
     backgroundColor: colors.surface,
-    overflow: "hidden",
+    ...shadow.card,
   },
   // 원본 그림 비율 1264 × 848
   mascot: {
     alignSelf: "center",
-    width: 150,
-    height: 100,
+    width: 132,
+    height: 88,
   },
   title: {
     textAlign: "center",
     fontSize: fontSize.subtitle,
-    fontWeight: "800",
+    fontWeight: "700",
     color: colors.text,
-    marginBottom: spacing.xs,
+  },
+  // 알림 받기 줄: 연파랑 바탕
+  // 알림 줄: 위 얇은 선 · 종 아이콘 · 문구 · "설정 ›" (참고 시안)
+  push: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+  },
+  pushPressed: {
+    opacity: 0.7,
+  },
+  pushText: {
+    flex: 1,
+    fontSize: fontSize.small,
+    fontWeight: "500",
+    color: colors.textStrong,
+  },
+  pushAction: {
+    fontSize: fontSize.small,
+    fontWeight: "700",
+    color: colors.primary,
   },
   // 팝업 양옆 끝까지 닿는 버튼 줄 (위에 얇은 선)
   footer: {
     flexDirection: "row",
-    alignItems: "center",
-    marginTop: spacing.sm,
-    marginHorizontal: -spacing.lg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
+    gap: spacing.sm,
   },
   footerButton: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: spacing.md,
-  },
-  footerDivider: {
-    width: StyleSheet.hairlineWidth,
-    alignSelf: "stretch",
-    backgroundColor: colors.border,
+    paddingVertical: 12,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceMuted,
   },
   footerMuted: {
     fontSize: fontSize.body,
-    fontWeight: "500",
+    fontWeight: "600",
     color: colors.textMuted,
   },
   footerText: {
     fontSize: fontSize.body,
-    fontWeight: "700",
+    fontWeight: "600",
     color: colors.text,
   },
 });

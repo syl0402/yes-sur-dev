@@ -171,7 +171,7 @@ export default function DailyCard({ onAnswered, onOpen, onLoaded, compact, bare 
           {(["a", "b"] as const).map((key) => (
             <Pressable
               key={key}
-              style={({ pressed }) => [styles.choice, pressed && styles.choicePressed]}
+              style={({ pressed }) => [styles.choice, bare && styles.bareChoice, pressed && styles.choicePressed]}
               onPress={() => answer(key)}
               disabled={sending}
             >
@@ -181,7 +181,20 @@ export default function DailyCard({ onAnswered, onOpen, onLoaded, compact, bare 
         </View>
       )}
 
-      {daily.rewarded && (
+      {/* 팝업 안(답하기 전): 왼쪽 "답하면 +5P" · 오른쪽 🔥 연속 알약 (덜 붐비게 두 가지만) */}
+      {bare && !answered && daily.rewarded && (
+        <View style={styles.bareInfo}>
+          <Text style={styles.streak}>답하면 +{formatPoints(daily.reward)}</Text>
+          {daily.streak > 0 && (
+            <View style={styles.streakPill}>
+              <AppIcon name={uiIcons.streak} size={12} color={colors.hot} />
+              <Text style={styles.streakPillText}>{daily.streak}일 연속</Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      {daily.rewarded && !(bare && !answered) && (
         <View style={styles.streakLine}>
           {answered && <AppIcon name={uiIcons.streak} size={14} color={colors.hot} />}
         <Text style={styles.streak}>
@@ -195,7 +208,7 @@ export default function DailyCard({ onAnswered, onOpen, onLoaded, compact, bare 
         </View>
       )}
 
-      {onOpen && (
+      {onOpen && !(bare && !answered) && (
         <Text style={styles.more}>
           {daily.comment_count > 0 ? `댓글 ${daily.comment_count} · ` : ""}
           {answered ? "그룹별 결과 · 댓글 보기 ›" : "댓글 보기 ›"}
@@ -221,10 +234,39 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     ...shadow.card,
   },
-  // 팝업 안: 테두리는 두고 그림자만 뺀다 (팝업 위에 그림자가 겹치면 지저분, 2026-11-10 폰 확인 피드백)
+  // 팝업 안: 테두리·그림자 없이 아주 옅은 파랑 바탕 (2026-11-10 참고 시안)
   bareCard: {
+    borderWidth: 0,
     shadowOpacity: 0,
     elevation: 0,
+    backgroundColor: colors.primaryFaint,
+    gap: spacing.md,
+  },
+  // 옅은 파랑 위에서는 흰 버튼 + 연파랑 테두리 (두 버튼 같은 모양: 한쪽만 강조하면 답이 쏠림)
+  bareChoice: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.primarySoft,
+  },
+  bareInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  // 🔥 연속 알약 (커뮤니티 HOT과 같은 연한 빨강)
+  streakPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingVertical: 3,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.pill,
+    backgroundColor: colors.hotSoft,
+  },
+  streakPillText: {
+    fontSize: fontSize.caption,
+    fontWeight: "700",
+    color: colors.hot,
   },
   eyebrow: {
     alignSelf: "flex-start",

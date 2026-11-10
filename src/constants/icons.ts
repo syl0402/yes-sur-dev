@@ -22,7 +22,7 @@ export const homeIcons = {
   data: "stats-chart",
   community: "chatbox-ellipses",
   // 추천 설문 카드의 올린 곳 (피그마 fa-solid:university)
-  host: "business",
+  host: "library", // 피그마 fa-solid:university (기둥 있는 건물)
   // 개인이 올린 설문 (피그마 bi:person-fill)
   person: "person",
   // 포인트 알약 앞 동전 (피그마 ri:copper-coin-fill과 비슷한 모양)
@@ -75,12 +75,15 @@ export const uiIcons = {
   // 오른쪽 아래 둥근 "새로 쓰기" 버튼 (2026-11-10 피그마: + → 연필)
   write: "pencil",
   // 데이터 카드: 응답 수 앞 · 열람 알약 · 우리 학교 칩 (2026-11-10 피그마)
-  responses: "document-text",
+  responses: "list", // 피그마 mingcute:report-forms-fill (점 목록)
   // 정렬 버튼 ▼ · 묶음 제목 오른쪽 › (2026-11-10 피그마)
   caretDown: "caret-down",
   chevron: "chevron-forward",
   read: "book",
   campus: "school",
+  // 오늘의 질문 팝업 "알림 받기" (2026-11-10)
+  bell: "notifications-outline",
+  bellOn: "notifications",
   // 설문 탭 "내 설문" 칩
   mine: "person",
   gift: "gift", // 피그마 bxs:gift (꽉 찬 선물)

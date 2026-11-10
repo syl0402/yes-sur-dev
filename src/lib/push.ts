@@ -77,6 +77,17 @@ export async function enablePush(): Promise<boolean> {
   return true;
 }
 
+// 이 폰의 알림 허락 상태 (2026-11-10, 오늘의 질문 팝업 "알림 받기" 줄)
+// null = 알림을 못 받는 곳(웹·옛 APK) · blocked = 거절해서 허락 창이 다시 안 뜸 → 폰 설정으로 보내야 함
+export async function pushPermission(): Promise<"granted" | "undetermined" | "denied" | "blocked" | null> {
+  const N = await load();
+  if (!N) return null;
+  const { status, canAskAgain } = await N.getPermissionsAsync();
+  if (status === "granted") return "granted";
+  if (status === "denied" && !canAskAgain) return "blocked";
+  return status === "denied" ? "denied" : "undetermined";
+}
+
 // 로그아웃할 때: 이 기기로 내 알림이 가지 않게 주소를 지운다
 export async function disablePushOnThisDevice() {
   const N = await load();
