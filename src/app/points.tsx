@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import Card from "@/components/ui/Card";
-import ListRow from "@/components/ui/ListRow";
+import ListRow, { rowsCard } from "@/components/ui/ListRow";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
@@ -106,49 +106,56 @@ export default function PointsGuide() {
         <Text style={styles.heroText}>같은 길이의 설문이면, 등록비(1명당)는 응답 보상의 절반이에요.</Text>
       </View>
 
-      {/* 설문 길이별 숫자를 한 표에 */}
-      <Card>
-        <Text style={styles.boxTitle}>⏱️ 설문 길이별 포인트</Text>
-        <View style={[styles.tr, styles.thead]}>
-          <Text style={[styles.th, styles.colLen]}>설문 길이</Text>
-          <Text style={[styles.th, styles.colNum]}>응답하면</Text>
-          <Text style={[styles.th, styles.colNum]}>등록 1명당</Text>
-        </View>
-        {BANDS.map((b) => (
-          <View key={b.key} style={styles.tr}>
-            <Text style={[styles.td, styles.colLen]}>{b.label}</Text>
-            <Text style={[styles.tdEarn, styles.colNum]}>+{p(`reward_${b.key}`)}</Text>
-            <Text style={[styles.tdSpend, styles.colNum]}>{p(`price_${b.key}`)}</Text>
+      {/* 설문 길이별 숫자를 한 표에 (2026-11-10: 이모지 소제목 → 작은 회색 소제목, 표는 연회색 상자) */}
+      <View style={styles.group}>
+        <Text style={styles.groupTitle}>설문 길이별 포인트</Text>
+        <View style={styles.tableBox}>
+          <View style={styles.tr}>
+            <Text style={[styles.th, styles.colLen]}>설문 길이</Text>
+            <Text style={[styles.th, styles.colNum]}>응답하면</Text>
+            <Text style={[styles.th, styles.colNum]}>등록 1명당</Text>
           </View>
-        ))}
+          {BANDS.map((b) => (
+            <View key={b.key} style={styles.tr}>
+              <Text style={[styles.td, styles.colLen]}>{b.label}</Text>
+              <Text style={[styles.tdEarn, styles.colNum]}>+{p(`reward_${b.key}`)}</Text>
+              <Text style={[styles.tdSpend, styles.colNum]}>{p(`price_${b.key}`)}</Text>
+            </View>
+          ))}
+        </View>
         <Text style={styles.note}>
           설문 길이는 문항으로 계산한 예상 시간이에요 (고르는 문항 {r.sec_per_choice ?? "-"}초 · 주관식 {r.sec_per_text ?? "-"}초).
         </Text>
-      </Card>
+      </View>
 
-      <Section title="💰 모으기" rows={earn} />
-      <Section title="🛒 쓰기" rows={spend} />
+      <Section title="모으기" rows={earn} />
+      <Section title="쓰기" rows={spend} />
 
-      <Card>
-        <Text style={styles.boxTitle}>📌 알아 둘 것</Text>
-        {rules.map((t) => (
-          <Text key={t} style={styles.rule}>
-            · {t}
-          </Text>
-        ))}
-      </Card>
+      <View style={styles.group}>
+        <Text style={styles.groupTitle}>알아 둘 것</Text>
+        <View style={styles.rulesBox}>
+          {rules.map((t) => (
+            <View key={t} style={styles.ruleRow}>
+              <Text style={styles.ruleDot}>·</Text>
+              <Text style={styles.rule}>{t}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
     </ScrollView>
   );
 }
 
 function Section({ title, rows }: { title: string; rows: Row[] }) {
   return (
-    <Card style={styles.rowsBox}>
-      <Text style={styles.boxTitle}>{title}</Text>
-      {rows.map((row, i) => (
-        <ListRow key={row.label} first={i === 0} title={row.label} sub={row.note} value={row.value} valueTone="primary" />
-      ))}
-    </Card>
+    <View style={styles.group}>
+      <Text style={styles.groupTitle}>{title}</Text>
+      <Card style={rowsCard}>
+        {rows.map((row, i) => (
+          <ListRow key={row.label} first={i === 0} title={row.label} sub={row.note} value={row.value} valueTone="primary" />
+        ))}
+      </Card>
+    </View>
   );
 }
 
@@ -162,14 +169,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    padding: spacing.lg,
-    gap: spacing.md,
+    padding: 20,
+    paddingBottom: spacing.xl,
+    gap: 28,
   },
   hero: {
-    padding: spacing.md,
-    borderRadius: radius.lg,
+    padding: 18,
+    borderRadius: radius.xl,
     backgroundColor: colors.primarySoft,
-    gap: 2,
+    gap: 4,
   },
   heroTitle: {
     fontSize: fontSize.subtitle,
@@ -178,30 +186,31 @@ const styles = StyleSheet.create({
   },
   heroText: {
     fontSize: fontSize.small,
+    lineHeight: 19,
     color: colors.text,
   },
-  // 목록 줄만 담는 카드: 제목 아래로 줄 간격은 ListRow가 맡는다
-  rowsBox: {
-    gap: 0,
-    paddingBottom: spacing.xs,
+  // 묶음: 작은 회색 제목 + 내용 (내 정보 화면과 같은 모양)
+  group: {
+    gap: spacing.sm,
   },
-  boxTitle: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.text,
+  groupTitle: {
+    fontSize: fontSize.small,
+    fontWeight: "600",
+    color: colors.textMuted,
+  },
+  tableBox: {
+    paddingVertical: 6,
+    paddingHorizontal: 18,
+    borderRadius: 16,
+    backgroundColor: colors.surfaceMuted,
   },
   tr: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  thead: {
-    paddingVertical: 4,
   },
   th: {
-    fontSize: fontSize.small,
+    fontSize: fontSize.caption,
     fontWeight: "600",
     color: colors.textMuted,
   },
@@ -227,11 +236,30 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   note: {
-    fontSize: fontSize.small,
+    paddingHorizontal: spacing.xs,
+    fontSize: fontSize.caption,
+    lineHeight: 17,
+    color: colors.textSubtle,
+  },
+  rulesBox: {
+    padding: 18,
+    gap: 10,
+    borderRadius: 16,
+    backgroundColor: colors.surfaceMuted,
+  },
+  ruleRow: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  ruleDot: {
+    fontSize: 14,
+    lineHeight: 21,
     color: colors.textMuted,
   },
   rule: {
-    fontSize: fontSize.small,
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 21,
     color: colors.text,
   },
 });
