@@ -1,12 +1,15 @@
 // 커뮤니티 탭 맨 위 배너 넘기기 (2026-11-10 피그마 커뮤니티 시안 140:55)
 // 1장: 오늘의 질문 (매일 바뀌어서 이미지 대신 화면에서 그림. 오늘 질문이 없으면 뺀다)
-// 2장~: 디자인팀 배너 이미지. 누르면 커뮤니티 안의 탭으로
-// 3초마다 다음 장으로 자동으로 넘어가고, 손으로 넘기는 동안·다른 탭에 있는 동안은 멈춘다 (2026-11-10)
+// 2장~: 디자인팀 배너 이미지 (천천히 확대됐다 돌아오는 움직임). 누르면 커뮤니티 안의 탭으로
+// 마지막: 트렌드 리포트 예고 (누르면 짧은 소개)
+// 4초마다 다음 장으로 자동으로 넘어가고, 손으로 넘기는 동안·다른 탭에 있는 동안은 멈춘다 (2026-11-10)
 // TODO(임시): 배너 이미지·연결 탭은 앱에 고정 · 운영자가 바꿀 수 있게 하려면 배너 표(DB) · 출시 후 (2026-11-10 결정)
 import { Image } from "expo-image";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Animated,
+  Easing,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   type ScrollViewInstance,
@@ -18,6 +21,7 @@ import {
 } from "react-native";
 
 import DailyBanner, { type TodayDaily } from "@/components/community/DailyBanner";
+import ReportTeaserBanner from "@/components/community/ReportTeaserBanner";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
@@ -25,7 +29,7 @@ import { supabase } from "@/lib/supabase";
 // 피그마 389 × 240
 const RATIO = 240 / 389;
 // 자동 넘김 간격
-const AUTO_MS = 3000;
+const AUTO_MS = 4000;
 
 // 이미지 배너: 누르면 갈 탭 (커뮤니티 화면의 종류 탭 값)
 export type BannerTarget = "vote" | "worldcup";
@@ -70,7 +74,22 @@ export default function CommunityBanner({ onOpenDaily, onSelect }: Props) {
     }, []),
   );
 
-  const total = IMAGE_BANNERS.length + (daily ? 1 : 0);
+  // 오늘의 질문(있을 때) + 이미지 배너 + 리포트 예고
+  const total = IMAGE_BANNERS.length + (daily ? 1 : 0) + 1;
+
+  // 이미지 배너: 6초에 걸쳐 1.08배까지 천천히 확대 → 다시 원래대로 (켄 번즈 효과)
+  const [zoom] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(zoom, { toValue: 1, duration: 6000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(zoom, { toValue: 0, duration: 6000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [zoom]);
+  const scale = zoom.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] });
 
   useEffect(() => {
     if (!focused || dragging || total <= 1) return;
@@ -104,10 +123,13 @@ export default function CommunityBanner({ onOpenDaily, onSelect }: Props) {
           <DailyBanner daily={daily} width={width} height={height} onPress={onOpenDaily} />
         )}
         {IMAGE_BANNERS.map((b) => (
-          <Pressable key={b.key} onPress={() => onSelect(b.target)} accessibilityLabel={b.label}>
-            <Image source={b.source} style={{ width, height }} contentFit="cover" />
+          <Pressable key={b.key} onPress={() => onSelect(b.target)} accessibilityLabel={b.label} style={styles.imageSlide}>
+            <Animated.View style={{ transform: [{ scale }] }}>
+              <Image source={b.source} style={{ width, height }} contentFit="cover" />
+            </Animated.View>
           </Pressable>
         ))}
+        <ReportTeaserBanner width={width} height={height} />
       </ScrollView>
       {/* 오른쪽 아래 "1 / 3" */}
       <View style={styles.counter} pointerEvents="none">
@@ -120,6 +142,10 @@ export default function CommunityBanner({ onOpenDaily, onSelect }: Props) {
 }
 
 const styles = StyleSheet.create({
+  // 확대돼도 옆 장으로 넘치지 않게
+  imageSlide: {
+    overflow: "hidden",
+  },
   counter: {
     position: "absolute",
     right: spacing.md,
