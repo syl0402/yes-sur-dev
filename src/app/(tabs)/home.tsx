@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 
 import AppIcon from "@/components/AppIcon";
 import DailyCard from "@/components/DailyCard";
+import QuickExplore from "@/components/QuickExplore";
 import SurveyListCard from "@/components/SurveyListCard";
 import EmptyState from "@/components/ui/EmptyState";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -138,6 +139,9 @@ export default function Home() {
         <Shortcut icon={homeIcons.data} title="데이터 허브" onPress={() => router.navigate("/data")} />
         <Shortcut icon={homeIcons.community} title="커뮤니티" onPress={() => router.navigate("/community")} />
       </View>
+
+      {/* 빠른 탐색: 카테고리 8칸 → 설문 탭 걸러 보기 (2026-11-10) */}
+      <QuickExplore />
 
       {/* 오늘의 질문 (예약된 날만). 답하면 포인트가 바뀌니 홈을 다시 불러온다 */}
       <DailyCard onAnswered={() => fetchHome().then(setData)} onOpen={() => router.push("/community/daily")} />

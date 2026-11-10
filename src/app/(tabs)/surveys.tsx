@@ -57,7 +57,16 @@ export default function Surveys() {
   const q = search.trim().replace(/^#/, "").toLowerCase();
   const [sort, setSort] = useState<SortKey>("recommended");
   // 카드의 #태그를 누를 때마다 필터에 더한다 (모두 붙은 설문만). 주소의 ?tags= 가 곧 필터 (홈 카드에서 와도 같게)
-  const params = useLocalSearchParams<{ tags?: string; q?: string }>();
+  const params = useLocalSearchParams<{ tags?: string; q?: string; category?: string }>();
+  // 홈 "빠른 탐색"에서 카테고리를 누르고 오면 그 카테고리로 (2026-11-10). 받은 뒤 주소에서 지워 다음에 탭을 눌러도 다시 걸리지 않게
+  const [seenCategory, setSeenCategory] = useState<string | undefined>(undefined);
+  if (params.category !== seenCategory) {
+    setSeenCategory(params.category);
+    if (params.category) setCategory(params.category);
+  }
+  useEffect(() => {
+    if (params.category) router.setParams({ category: undefined });
+  }, [params.category]);
   // 통합 검색 "설문 탭에서 더 보기"로 오면 검색칸에 같은 단어 (2026-11-10)
   const [seenQ, setSeenQ] = useState<string | undefined>(undefined);
   if (params.q !== seenQ) {
