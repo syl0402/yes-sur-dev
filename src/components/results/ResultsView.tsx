@@ -11,11 +11,10 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Segmented from "@/components/ui/Segmented";
 import SelectButton from "@/components/ui/SelectButton";
-import StatTile from "@/components/ui/StatTile";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
-import { formatDate, formatPoints } from "@/lib/format";
+import { formatDate, formatPoints, formatShortDate } from "@/lib/format";
 import { type CrossResults, type FullResults, GROUP_DIMS, type Group, type GroupDim, sortGroups } from "@/lib/hub";
 import { showNotice } from "@/lib/notice";
 import { buildInsights, formatSeconds } from "@/lib/resultSummary";
@@ -182,27 +181,32 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
 
       {tab === "people" && <CompositionChart groups={full.groups} />}
 
+      {/* 조사 정보: 연회색 상자 하나에 이름표–값 줄 (내 정보 회원정보와 같은 모양, 2026-11-10) */}
       {tab === "info" && (
-        <>
-          <View style={styles.tiles}>
-            <StatTile label="유효 응답" value={`${full.total}명`} />
-            <StatTile label="확인 문항 통과율" value={full.pass_rate !== null ? `${full.pass_rate}%` : "-"} />
+        <View style={styles.infoWrap}>
+          <View style={styles.infoBox}>
+            {[
+              { label: "유효 응답", value: `${full.total}명` },
+              { label: "확인 문항 통과율", value: full.pass_rate !== null ? `${full.pass_rate}%` : "-" },
+              { label: "평균 응답 시간", value: full.avg_seconds !== null ? formatSeconds(full.avg_seconds) : "-" },
+              { label: "조사 기간", value: `${formatShortDate(full.started_at)} ~ ${formatShortDate(full.ended_at)}` },
+              ...(full.share_earned !== null
+                ? [
+                    {
+                      label: "열람",
+                      value: `${full.view_count}회${showEarnings ? ` · 수익 +${formatPoints(full.share_earned)}` : ""}`,
+                    },
+                  ]
+                : []),
+            ].map((row) => (
+              <View key={row.label} style={styles.infoRow}>
+                <Text style={styles.infoLabel}>{row.label}</Text>
+                <Text style={styles.infoValue}>{row.value}</Text>
+              </View>
+            ))}
           </View>
-          <View style={styles.tiles}>
-            <StatTile label="평균 응답 시간" value={full.avg_seconds !== null ? formatSeconds(full.avg_seconds) : "-"} />
-            <StatTile label="조사 기간" value={shortPeriod} />
-          </View>
-          {(full.excluded > 0 || full.share_earned !== null) && (
-            <Card>
-              {full.excluded > 0 && <Text style={styles.body}>확인 문항 오답 {full.excluded}건은 결과에서 뺐어요.</Text>}
-              {full.share_earned !== null && (
-                <Text style={styles.earned}>
-                  열람 {full.view_count}회{showEarnings ? ` · 열람 수익 +${formatPoints(full.share_earned)}` : ""}
-                </Text>
-              )}
-            </Card>
-          )}
-        </>
+          {full.excluded > 0 && <Text style={styles.infoNote}>확인 문항을 틀린 응답 {full.excluded}건은 결과에서 뺐어요.</Text>}
+        </View>
       )}
     </>
   );
@@ -354,13 +358,35 @@ const styles = StyleSheet.create({
     left: -10000,
     top: 0,
   },
-  tiles: {
-    flexDirection: "row",
+  infoWrap: {
     gap: spacing.sm,
   },
-  body: {
-    fontSize: fontSize.small,
+  infoBox: {
+    padding: 18,
+    gap: 14,
+    borderRadius: 16,
+    backgroundColor: colors.surfaceMuted,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  infoLabel: {
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  infoValue: {
+    flexShrink: 1,
+    textAlign: "right",
+    fontSize: 14,
+    fontWeight: "600",
     color: colors.text,
+  },
+  infoNote: {
+    paddingHorizontal: spacing.xs,
+    fontSize: fontSize.caption,
+    color: colors.textSubtle,
   },
   label: {
     fontSize: fontSize.caption,
@@ -370,11 +396,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.body,
     color: colors.textMuted,
     textAlign: "center",
-  },
-  earned: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.primary,
   },
   selects: {
     flexDirection: "row",
