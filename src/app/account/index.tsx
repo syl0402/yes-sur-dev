@@ -6,13 +6,13 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, View } fr
 import ListRow from "@/components/ui/ListRow";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
-import { showConfirm } from "@/lib/confirm";
 import { GENDER_OPTIONS } from "@/lib/demographics";
 import { openLegal } from "@/lib/legal";
 import { errorMessage } from "@/lib/errors";
+import { confirmLogout } from "@/lib/logout";
 import { canUseNotifications } from "@/lib/nativeFeatures";
 import { showNotice } from "@/lib/notice";
-import { disablePushOnThisDevice, enablePush } from "@/lib/push";
+import { enablePush } from "@/lib/push";
 import { supabase } from "@/lib/supabase";
 
 type Account = {
@@ -81,21 +81,6 @@ export default function AccountHome() {
       fetchAccount().then(setAccount);
     }, []),
   );
-
-  const logout = () =>
-    showConfirm({
-      title: "로그아웃할까요?",
-      message: "",
-      okLabel: "로그아웃",
-      cancelLabel: "취소",
-      onOk: async () => {
-        // 이 기기로 내 알림이 계속 오지 않게
-        await disablePushOnThisDevice();
-        await supabase.auth.signOut();
-        router.dismissAll();
-        router.replace("/");
-      },
-    });
 
   // 오늘의 질문 알림 켜기/끄기: 켤 때 기기 허락이 없으면 허락 창. 거절했으면 폰 설정 안내
   const toggleDaily = async (on: boolean) => {
@@ -203,7 +188,7 @@ export default function AccountHome() {
       </View>
 
       <View style={styles.group}>
-        <ListRow plain title="로그아웃" onPress={logout} />
+        <ListRow plain title="로그아웃" onPress={confirmLogout} />
         {/* 회원 탈퇴 (Google Play 계정 삭제 정책: 앱 안에서 할 수 있어야 함) */}
         <Pressable onPress={() => router.push("/account/delete")} hitSlop={8} style={styles.deleteLink}>
           <Text style={styles.deleteText}>회원 탈퇴</Text>

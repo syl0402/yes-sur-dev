@@ -1,7 +1,8 @@
 import { type Href, Tabs, router } from "expo-router";
-import { Pressable } from "react-native";
+import { Pressable, View } from "react-native";
 
 import AppIcon from "@/components/AppIcon";
+import { MenuButton } from "@/components/SideMenu";
 import Logo from "@/components/ui/Logo";
 import { tabIcons, uiIcons } from "@/constants/icons";
 import { colors, fontFamily } from "@/constants/theme";
@@ -31,11 +32,14 @@ export default function TabsLayout() {
           title: "홈",
           headerTitle: () => <Logo />,
           headerTitleAlign: "left",
-          // 오른쪽 위 돋보기 → 통합 검색 (설문 · 데이터 · 커뮤니티, 2026-11-10)
+          // 오른쪽 위: 돋보기 → 통합 검색 (설문 · 데이터 · 커뮤니티) · ☰ 메뉴 (2026-11-10)
           headerRight: () => (
-            <Pressable onPress={() => router.push(SEARCH_HREF)} hitSlop={10} style={{ paddingHorizontal: 16 }} accessibilityLabel="검색">
-              <AppIcon name={uiIcons.search} size={24} color={colors.text} />
-            </Pressable>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 18, paddingHorizontal: 16 }}>
+              <Pressable onPress={() => router.push(SEARCH_HREF)} hitSlop={10} accessibilityLabel="검색">
+                <AppIcon name={uiIcons.search} size={24} color={colors.text} />
+              </Pressable>
+              <MenuButton />
+            </View>
           ),
           tabBarIcon: ({ color, size }) => <AppIcon name={tabIcons.home} color={color} size={size} />,
         }}

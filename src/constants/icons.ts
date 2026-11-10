@@ -46,6 +46,20 @@ export const myIcons = {
   forward: "chevron-forward",
 } satisfies Record<string, IconName>;
 
+// 홈 오른쪽 위 ☰ 메뉴 (2026-11-10, 푸망 방식: 앱 이동·서비스 안내)
+export const menuIcons = {
+  open: "menu-outline",
+  close: "close-outline",
+  home: "home-outline",
+  search: "search-outline",
+  about: "information-circle-outline",
+  feedback: "chatbubble-ellipses-outline",
+  partner: "briefcase-outline",
+  terms: "document-text-outline",
+  privacy: "shield-checkmark-outline",
+  logout: "log-out-outline",
+} satisfies Record<string, IconName>;
+
 // 화면 곳곳의 작은 표시 아이콘 (2026-11-10, 기능 이모지 → 선 아이콘)
 export const uiIcons = {
   search: "search-outline",

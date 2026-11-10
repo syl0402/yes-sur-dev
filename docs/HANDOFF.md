@@ -142,6 +142,11 @@ import { Text, TextInput } from "@/components/ui/Text";
 - 오늘의 질문 첫 답변 직후 한 번 "매일 알림 받을까요?" (`shouldAskPush` → `enablePush`), 내 정보 "알림" 켜기/끄기, 로그아웃 때 `disablePushOnThisDevice`
 - 안드로이드는 Expo Go로 원격 알림을 못 받음 → 테스트는 새 APK로. Firebase(FCM) 설정이 있어야 알림 주소가 나옴
 
+### ☰ 메뉴 `SideMenu` · `MenuButton` (`src/components/SideMenu.tsx`, 2026-11-10)
+- 홈 제목줄 오른쪽 ☰ → 오른쪽에서 밀려 나오는 메뉴 (새 라이브러리 없이 `Modal` + `Animated`). 아이콘은 `menuIcons`
+- 나누는 기준(푸망 방식): 메뉴 = 앱 안 이동·서비스 안내(홈·검색·옛썰 소개·의견 보내기·제휴 문의·약관·로그아웃) / 마이 탭 = 내 정보·내 기록
+- 로그아웃은 `confirmLogout` (`src/lib/logout.ts`): 확인 창 → 이 기기 알림 끄기 → 로그아웃. 내 정보 화면과 같이 씀
+
 ### 오류 자동 수집 Sentry (`src/lib/sentry.ts`, 2026-11-10)
 - 조직 `yessur` · 프로젝트 `react-native` (sentry.io). DSN = `EXPO_PUBLIC_SENTRY_DSN` (.env · EAS), 빌드 때 오류 위치 정보 올리기 = EAS 비밀 값 `SENTRY_AUTH_TOKEN`
 - 오류만 (화면 녹화·성능 추적 끔, `sendDefaultPii: false`). 개발 중·옛 APK(1.0.0)에서는 꺼짐. 루트 레이아웃을 `wrapWithSentry`로 감쌈
