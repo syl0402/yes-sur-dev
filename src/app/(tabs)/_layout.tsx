@@ -10,6 +10,13 @@ import { colors, fontFamily } from "@/constants/theme";
 // 통합 검색 (search.tsx). 개발 서버가 경로 목록을 늦게 갱신해 타입 오류가 나는 일이 있어 Href로 고정
 const SEARCH_HREF = "/search" as Href;
 
+// 설문·커뮤니티·데이터 제목줄 오른쪽 ☰ 메뉴 (홈은 검색과 함께 따로)
+const menuRight = () => (
+  <View style={{ paddingHorizontal: 16 }}>
+    <MenuButton />
+  </View>
+);
+
 // 로그인 후 하단 탭 5개 (홈·설문·커뮤니티·데이터·마이. 2026-10-30 밸런스 → 커뮤니티)
 export default function TabsLayout() {
   return (
@@ -48,6 +55,10 @@ export default function TabsLayout() {
         name="surveys"
         options={{
           title: "설문",
+          // 화면 위 제목은 길게 + ☰ 메뉴 (아래 탭 이름은 짧게 그대로, 2026-11-10 피그마)
+          headerTitle: "설문조사",
+          headerTitleAlign: "left",
+          headerRight: menuRight,
           tabBarIcon: ({ color, size }) => <AppIcon name={tabIcons.surveys} color={color} size={size} />,
         }}
       />
@@ -56,11 +67,8 @@ export default function TabsLayout() {
         options={{
           title: "커뮤니티",
           // 오른쪽 위 ☰ 메뉴 (2026-11-10 피그마 커뮤니티 시안)
-          headerRight: () => (
-            <View style={{ paddingHorizontal: 16 }}>
-              <MenuButton />
-            </View>
-          ),
+          headerTitleAlign: "left",
+          headerRight: menuRight,
           tabBarIcon: ({ color, size }) => <AppIcon name={tabIcons.community} color={color} size={size} />,
         }}
       />
@@ -68,6 +76,9 @@ export default function TabsLayout() {
         name="data"
         options={{
           title: "데이터",
+          headerTitle: "데이터 열람",
+          headerTitleAlign: "left",
+          headerRight: menuRight,
           tabBarIcon: ({ color, size }) => <AppIcon name={tabIcons.data} color={color} size={size} />,
         }}
       />
