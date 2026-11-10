@@ -9,8 +9,8 @@ import QuestionResult, { Bar, QuestionHeader, percent, type QuestionStats } from
 import ShareCard, { type ShareHero } from "@/components/results/ShareCard";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
-import Chip from "@/components/ui/Chip";
 import Segmented from "@/components/ui/Segmented";
+import SelectButton from "@/components/ui/SelectButton";
 import StatTile from "@/components/ui/StatTile";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
@@ -24,6 +24,13 @@ import { supabase } from "@/lib/supabase";
 type Tab = "questions" | "people" | "info";
 // 나눠 보는 기준: 전체 · 회원정보 그룹 · 다른 문항의 답(교차 분석)
 type Dim = "all" | GroupDim | "cross";
+
+// 나눠 보기 선택지
+const DIM_OPTIONS: { value: Dim; label: string }[] = [
+  { value: "all", label: "전체" },
+  ...GROUP_DIMS,
+  { value: "cross", label: "문항 답별" },
+];
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "questions", label: "문항별 결과" },
@@ -42,7 +49,7 @@ type Props = {
   showEarnings?: boolean;
 };
 
-// 전체 결과 (ys-131 열람 후 · ys-121 등록자): 핵심 인사이트 → 탭 [문항별 결과 | 응답자 | 조사 정보] (2026-11-01 정리)
+// 전체 결과 (ys-131 열람 후 · ys-121 등록자): 핵심 인사이트 → 탭 [문항별 결과 | 응답자 | 조사 정보] (2026-11-01 정리, 2026-11-10 나눠 보기·그룹 막대 정리)
 // 출처 복사·집계 CSV는 화면 아래 고정 바(ResultsActionBar)로 (2026-11-07)
 export default function ResultsView({ surveyId, full, title, questions = full.overall, showEarnings = true }: Props) {
   const [tab, setTab] = useState<Tab>("questions");
@@ -122,33 +129,32 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
 
       {tab === "questions" && (
         <>
-          {/* 나눠 보는 기준 */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-            <Chip label="전체" selected={dim === "all"} onPress={() => setDim("all")} />
-            {GROUP_DIMS.map((d) => (
-              <Chip key={d.value} label={d.label} selected={dim === d.value} onPress={() => setDim(d.value)} />
-            ))}
-            {crossable.length > 0 && (
-              <Chip label="문항 답별 ▾" selected={dim === "cross"} onPress={() => setDim("cross")} />
+          {/* 나눠 보는 기준: 버튼 하나 (문항 답별이면 기준 문항 버튼이 하나 더, 2026-11-10 정리) */}
+          <View style={styles.selects}>
+            <SelectButton
+              title="나눠 보기"
+              options={DIM_OPTIONS.filter((o) => o.value !== "cross" || crossable.length > 0)}
+              value={dim}
+              onChange={setDim}
+              defaultValue="all"
+              placeholder="나눠 보기"
+            />
+            {dim === "cross" && (
+              <SelectButton
+                title="어떤 문항의 답별로 나눠 볼까요?"
+                options={crossable.map(({ q, index }) => ({
+                  value: String(q.id),
+                  label: `Q${index + 1} ${q.text.length > 18 ? `${q.text.slice(0, 18)}…` : q.text}`,
+                }))}
+                value={crossId === null ? "" : String(crossId)}
+                onChange={(v) => pickCross(Number(v))}
+                defaultValue=""
+                placeholder="기준 문항 고르기"
+              />
             )}
-          </ScrollView>
-
-          {/* 교차 분석: 기준 문항 고르기 */}
-          {dim === "cross" && (
-            <Card style={styles.crossCard}>
-              <Text style={styles.crossTitle}>어떤 문항의 답별로 나눠 볼까요?</Text>
-              <View style={styles.crossChips}>
-                {crossable.map(({ q, index }) => (
-                  <Chip
-                    key={q.id}
-                    label={`Q${index + 1} ${q.text.length > 14 ? `${q.text.slice(0, 14)}…` : q.text}`}
-                    selected={crossId === q.id}
-                    onPress={() => pickCross(q.id)}
-                  />
-                ))}
-              </View>
-              <Text style={styles.label}>예: ‘도서관’이라고 답한 사람들끼리 다른 문항은 어떻게 답했는지</Text>
-            </Card>
+          </View>
+          {dim === "cross" && crossId === null && (
+            <Text style={styles.hint}>예: ‘도서관’이라고 답한 사람들끼리 다른 문항은 어떻게 답했는지 볼 수 있어요.</Text>
           )}
 
           {dim === "all" && questions.map((q, index) => <QuestionResult key={q.id} index={index} question={q} />)}
@@ -165,7 +171,7 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
               <ActivityIndicator color={colors.primary} />
             ) : (
               <>
-                <Text style={styles.crossHint}>Q{crossIndex + 1}의 답별로 나눠 봤어요</Text>
+                <Text style={styles.hint}>Q{crossIndex + 1}의 답별로 나눠 봤어요</Text>
                 {full.overall.map((q, index) =>
                   q.id === crossId ? null : <GroupedQuestion key={q.id} index={index} question={q} groups={cross.groups} />,
                 )}
@@ -202,10 +208,15 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
   );
 }
 
-// 문항 하나를 묶음별로 (회원정보 그룹 또는 교차 분석).
-// 접힘: 묶음마다 한 줄 (1위 답 · 비율, 척도는 평균) / 펼침: 묶음마다 전체 막대. 5명 미만 묶음은 맨 아래 한 줄로
+// 문항 하나를 묶음별로 (회원정보 그룹 또는 교차 분석). 2026-11-10 정리 (데이터 시각화: 강조형)
+// - 고르기: 묶음마다 100% 나눔 막대 한 줄. 고른 답 하나만 파랑으로 왼쪽 끝에 → 묶음끼리 길이로 바로 비교. 나머지 답은 회색 칸
+//   위 보기 버튼으로 강조할 답을 바꾼다 (처음엔 전체 1위 답)
+// - 척도: 묶음마다 평균 막대 + 전체 평균 세로선
+// - "모든 답 보기": 묶음마다 전체 막대 (표처럼 숫자 확인). 5명 미만 묶음은 맨 아래 한 줄로
 function GroupedQuestion({ index, question: q, groups }: { index: number; question: QuestionStats; groups: Group[] }) {
   const [open, setOpen] = useState(false);
+  const overallTop = [...q.options].sort((a, b) => b.count - a.count)[0];
+  const [focusId, setFocusId] = useState<number | null>(overallTop?.id ?? null);
   const shown = groups
     .map((g) => ({ g, s: g.questions.find((x) => x.id === q.id) }))
     .filter((r): r is { g: Group; s: QuestionStats } => !r.g.hidden && !!r.s && r.s.answered > 0);
@@ -220,37 +231,86 @@ function GroupedQuestion({ index, question: q, groups }: { index: number; questi
     );
   }
 
+  const focus = q.options.find((o) => o.id === focusId) ?? overallTop;
+
   return (
     <Card>
       <QuestionHeader index={index} question={q} />
+
+      {/* 고르기: 강조할 답 고르기 */}
+      {!open && q.type !== "scale" && q.options.length > 1 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.focusRow}>
+          {q.options.map((o) => {
+            const on = o.id === focus?.id;
+            return (
+              <Pressable key={o.id} onPress={() => setFocusId(o.id)} style={[styles.focusChip, on && styles.focusChipOn]} hitSlop={4}>
+                {on && <View style={styles.focusDot} />}
+                <Text style={[styles.focusText, on && styles.focusTextOn]} numberOfLines={1}>
+                  {o.text}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      )}
+
+      {/* 척도: 전체 평균 안내 */}
+      {!open && q.type === "scale" && q.scale?.avg != null && (
+        <View style={styles.avgLegend}>
+          <View style={styles.avgMarkLegend} />
+          <Text style={styles.label}>전체 평균 {q.scale.avg}점</Text>
+        </View>
+      )}
 
       {!open &&
         shown.map(({ g, s }) => {
           if (q.type === "scale") {
             const avg = s.scale?.avg ?? 0;
+            const overall = q.scale?.avg ?? null;
             return (
-              <View key={g.label} style={styles.line}>
-                <Text style={styles.lineLabel} numberOfLines={1}>
-                  {g.label} <Text style={styles.groupN}>{g.n}명</Text>
-                </Text>
-                <View style={styles.lineTrack}>
-                  <View style={[styles.lineFill, { width: `${(avg / 5) * 100}%` }]} />
+              <View key={g.label} style={styles.row}>
+                <View style={styles.rowTop}>
+                  <Text style={styles.rowLabel} numberOfLines={1}>
+                    {g.label} <Text style={styles.groupN}>{g.n}명</Text>
+                  </Text>
+                  <Text style={styles.rowValue}>{avg}점</Text>
                 </View>
-                <Text style={styles.lineValue}>{avg}점</Text>
+                <View style={styles.track}>
+                  <View style={[styles.fillPrimary, { width: `${(avg / 5) * 100}%` }]} />
+                  {overall != null && <View style={[styles.avgMark, { left: `${(overall / 5) * 100}%` }]} />}
+                </View>
               </View>
             );
           }
-          const top = [...s.options].sort((a, b) => b.count - a.count)[0];
-          const pct = top ? percent(top.count, s.answered) : 0;
+          // 고른 답을 맨 앞(왼쪽)에, 나머지는 원래 순서대로 회색 칸
+          const ordered = [
+            ...s.options.filter((o) => o.id === focus?.id),
+            ...s.options.filter((o) => o.id !== focus?.id && o.count > 0),
+          ];
+          const focusPct = percent(s.options.find((o) => o.id === focus?.id)?.count ?? 0, s.answered);
+          const sum = ordered.reduce((a, o) => a + o.count, 0) || 1;
           return (
-            <View key={g.label} style={styles.line}>
-              <Text style={styles.lineLabel} numberOfLines={1}>
-                {g.label} <Text style={styles.groupN}>{g.n}명</Text>
-              </Text>
-              <Text style={styles.lineTop} numberOfLines={1}>
-                {top?.text ?? "-"}
-              </Text>
-              <Text style={styles.lineValue}>{pct}%</Text>
+            <View key={g.label} style={styles.row}>
+              <View style={styles.rowTop}>
+                <Text style={styles.rowLabel} numberOfLines={1}>
+                  {g.label} <Text style={styles.groupN}>{g.n}명</Text>
+                </Text>
+                <Text style={styles.rowValue}>{focusPct}%</Text>
+              </View>
+              <View style={styles.stack}>
+                {ordered.map((o, i) =>
+                  o.count === 0 ? null : (
+                    <View
+                      key={o.id}
+                      style={[
+                        styles.segment,
+                        { flex: o.count / sum },
+                        o.id === focus?.id ? styles.segmentFocus : i % 2 === 0 ? styles.segmentRest : styles.segmentRestAlt,
+                      ]}
+                    />
+                  ),
+                )}
+              </View>
             </View>
           );
         })}
@@ -281,7 +341,7 @@ function GroupedQuestion({ index, question: q, groups }: { index: number; questi
 
       {shown.length > 0 && (
         <Pressable onPress={() => setOpen(!open)} hitSlop={8} style={styles.more}>
-          <Text style={styles.moreText}>{open ? "접기 ▴" : q.type === "scale" ? "점수 분포 보기 ▾" : "모든 답 보기 ▾"}</Text>
+          <Text style={styles.moreText}>{open ? "접기 ▴" : q.type === "scale" ? "점수 분포 보기 ▾" : "모든 답 숫자로 보기 ▾"}</Text>
         </Pressable>
       )}
     </Card>
@@ -293,9 +353,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: -10000,
     top: 0,
-  },
-  chips: {
-    gap: spacing.sm,
   },
   tiles: {
     flexDirection: "row",
@@ -319,63 +376,119 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.primary,
   },
-  crossCard: {
-    backgroundColor: colors.primarySoft,
-    borderColor: colors.primarySoft,
-  },
-  crossTitle: {
-    fontSize: fontSize.small,
-    fontWeight: "700",
-    color: colors.primary,
-  },
-  crossChips: {
+  selects: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: spacing.sm,
   },
-  crossHint: {
+  hint: {
     fontSize: fontSize.small,
-    fontWeight: "600",
     color: colors.textMuted,
     paddingHorizontal: spacing.xs,
   },
-  line: {
+  // 강조할 답 고르기
+  focusRow: {
+    gap: 6,
+  },
+  focusChip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    gap: 6,
     paddingVertical: 6,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  lineLabel: {
-    width: 104,
-    fontSize: fontSize.small,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  lineTop: {
-    flex: 1,
-    fontSize: fontSize.small,
-    color: colors.text,
-  },
-  lineTrack: {
-    flex: 1,
-    height: 8,
+    paddingHorizontal: 12,
     borderRadius: radius.pill,
     backgroundColor: colors.surfaceMuted,
+  },
+  focusChipOn: {
+    backgroundColor: colors.primarySoft,
+  },
+  focusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+  },
+  focusText: {
+    maxWidth: 160,
+    fontSize: fontSize.caption,
+    fontWeight: "600",
+    color: colors.textMuted,
+  },
+  focusTextOn: {
+    color: colors.text,
+    fontWeight: "700",
+  },
+  // 묶음 한 줄: 위 이름·값, 아래 막대
+  row: {
+    gap: 6,
+  },
+  rowTop: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  rowLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.text,
+  },
+  rowValue: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: colors.text,
+  },
+  // 100% 나눔 막대 (칸 사이 2px 흰 틈)
+  stack: {
+    flexDirection: "row",
+    height: 12,
+    gap: 2,
+    borderRadius: radius.pill,
     overflow: "hidden",
   },
-  lineFill: {
+  segment: {
+    height: "100%",
+  },
+  segmentFocus: {
+    backgroundColor: colors.primary,
+  },
+  segmentRest: {
+    backgroundColor: colors.chartMuted,
+  },
+  segmentRestAlt: {
+    backgroundColor: colors.border,
+  },
+  // 척도 평균 막대 + 전체 평균 세로선
+  track: {
+    height: 12,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceMuted,
+  },
+  fillPrimary: {
     height: "100%",
     borderRadius: radius.pill,
     backgroundColor: colors.primary,
   },
-  lineValue: {
-    minWidth: 40,
-    textAlign: "right",
-    fontSize: fontSize.small,
-    fontWeight: "800",
-    color: colors.primary,
+  avgMark: {
+    position: "absolute",
+    top: -3,
+    bottom: -3,
+    width: 2,
+    marginLeft: -1,
+    borderRadius: 1,
+    backgroundColor: colors.text,
+  },
+  avgLegend: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  avgMarkLegend: {
+    width: 2,
+    height: 12,
+    borderRadius: 1,
+    backgroundColor: colors.text,
   },
   group: {
     gap: 6,
