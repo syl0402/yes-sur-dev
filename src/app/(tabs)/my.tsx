@@ -56,8 +56,11 @@ type Tab = "surveys" | "ledger" | "data";
 type LedgerItem = {
   id: number;
   amount: number;
-  label: string;
-  date: string;
+  // 이유 (설문 응답 · 오늘의 질문 …)
+  reason: string;
+  // 설문 관련이면 설문 제목
+  title: string | null;
+  createdAt: string;
 };
 
 type MySurvey = {
@@ -160,8 +163,9 @@ async function fetchMy(): Promise<MyData> {
       return {
         id: r.id,
         amount: r.amount,
-        label: title ? `${reason} · ${title}` : reason,
-        date: formatDate(r.created_at),
+        reason,
+        title: title ?? null,
+        createdAt: r.created_at,
       };
     }),
     surveys,
@@ -370,18 +374,26 @@ export default function My() {
         (data.ledger.length === 0 ? (
           <EmptyState title="아직 포인트 내역이 없어요" message="설문에 답하면 여기에 쌓여요." emoji="🪙" />
         ) : (
-          <Card style={rowsCard}>
-            {data.ledger.map((item, i) => (
-              <ListRow
-                key={item.id}
-                first={i === 0}
-                title={item.label}
-                sub={item.date}
-                value={`${item.amount > 0 ? "+" : "-"}${formatPoints(Math.abs(item.amount))}`}
-                valueTone={item.amount < 0 ? "danger" : "primary"}
-              />
+          // 날짜별로 묶기 (최신 날짜부터): 날짜 소제목 + 그날 내역 카드 (2026-11-10, 은행·토스 앱 방식)
+          <View style={styles.ledger}>
+            {groupByDay(data.ledger).map((day) => (
+              <View key={day.key} style={styles.ledgerDay}>
+                <Text style={styles.ledgerDate}>{day.label}</Text>
+                <Card style={rowsCard}>
+                  {day.items.map((item, i) => (
+                    <ListRow
+                      key={item.id}
+                      first={i === 0}
+                      title={item.reason}
+                      sub={[item.title, formatClock(item.createdAt)].filter(Boolean).join(" · ")}
+                      value={`${item.amount > 0 ? "+" : "-"}${formatPoints(Math.abs(item.amount))}`}
+                      valueTone={item.amount > 0 ? "primary" : "text"}
+                    />
+                  ))}
+                </Card>
+              </View>
             ))}
-          </Card>
+          </View>
         ))}
 
       {/* 응답한·스크랩·열람한 결과를 한 곳에 (2026-11-09) */}
@@ -389,6 +401,36 @@ export default function My() {
       </View>
     </ScrollView>
   );
+}
+
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+
+// 포인트 내역을 날짜별로 (오늘 · 어제 · "11월 9일 토요일" · 다른 해면 "2025년 11월 9일")
+function groupByDay(items: LedgerItem[]) {
+  const today = new Date();
+  const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  const days: { key: string; label: string; items: LedgerItem[] }[] = [];
+  for (const item of items) {
+    const d = new Date(item.createdAt);
+    const key = dayKey(d);
+    let day = days.find((x) => x.key === key);
+    if (!day) {
+      const base = `${d.getMonth() + 1}월 ${d.getDate()}일 ${WEEKDAYS[d.getDay()]}요일`;
+      const label =
+        key === dayKey(today) ? "오늘" : key === dayKey(yesterday) ? "어제" : d.getFullYear() === today.getFullYear() ? base : `${d.getFullYear()}년 ${base}`;
+      day = { key, label, items: [] };
+      days.push(day);
+    }
+    day.items.push(item);
+  }
+  return days;
+}
+
+// 시각 "14:32"
+function formatClock(iso: string) {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
 // 바로가기 하나: 회색 둥근 네모 안 파란 아이콘 + 아래 이름
@@ -634,6 +676,18 @@ const styles = StyleSheet.create({
     fontSize: fontSize.caption,
     fontWeight: "600",
     color: colors.cardTitle,
+  },
+  ledger: {
+    gap: 20,
+  },
+  ledgerDay: {
+    gap: spacing.sm,
+  },
+  ledgerDate: {
+    paddingHorizontal: spacing.xs,
+    fontSize: fontSize.small,
+    fontWeight: "600",
+    color: colors.textMuted,
   },
   hubRow: {
     flexDirection: "row",
