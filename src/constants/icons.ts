@@ -81,6 +81,8 @@ export const uiIcons = {
   chevron: "chevron-forward",
   read: "book",
   campus: "school",
+  // 설문 탭 "내 설문" 칩
+  mine: "person",
   gift: "gift", // 피그마 bxs:gift (꽉 찬 선물)
   streak: "flame",
   alert: "alert-circle-outline",

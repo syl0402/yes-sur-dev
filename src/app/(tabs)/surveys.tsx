@@ -149,7 +149,13 @@ export default function Surveys() {
           value={category}
           onChange={setCategory}
         />
-        <View style={styles.filters}>
+        {/* 한 줄로 옆으로 넘기기 (2026-11-10: 칩이 다음 줄로 혼자 빠지지 않게) */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filterScroll}
+          contentContainerStyle={styles.filters}
+        >
           <SelectButton title="정렬" options={SORT_OPTIONS} value={sort} onChange={setSort} />
           <SelectButton
             title="소요시간"
@@ -166,8 +172,8 @@ export default function Surveys() {
             onPress={() => setScope(scope === "campus" ? "all" : "campus")}
           />
           <Chip icon={uiIcons.gift} label="보상" selected={rewardOnly} onPress={() => setRewardOnly(!rewardOnly)} />
-          <Chip label="내 설문" selected={mineOnly} onPress={() => setMineOnly(!mineOnly)} />
-        </View>
+          <Chip icon={uiIcons.mine} label="내 설문" selected={mineOnly} onPress={() => setMineOnly(!mineOnly)} />
+        </ScrollView>
 
         {pickedTags.length > 0 && (
           <View style={styles.tagFilter}>
@@ -246,11 +252,16 @@ const styles = StyleSheet.create({
     fontSize: fontSize.label,
     color: colors.text,
   },
+  // 화면 양 끝까지 넘어가게 (바깥 여백만큼 당기고 안쪽에서 다시 띄움)
+  filterScroll: {
+    marginHorizontal: -spacing.md,
+    flexGrow: 0,
+  },
   filters: {
     flexDirection: "row",
-    flexWrap: "wrap",
     alignItems: "center",
     gap: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
   tagFilter: {
     flexDirection: "row",
