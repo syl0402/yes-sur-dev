@@ -3,15 +3,16 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
+import AppIcon from "@/components/AppIcon";
 import SurveyListCard from "@/components/SurveyListCard";
 import Chip from "@/components/ui/Chip";
 import EmptyState from "@/components/ui/EmptyState";
 import Fab from "@/components/ui/Fab";
 import SelectButton from "@/components/ui/SelectButton";
-import { Text } from "@/components/ui/Text";
+import { Text, TextInput } from "@/components/ui/Text";
 import TextTabs from "@/components/ui/TextTabs";
 import { uiIcons } from "@/constants/icons";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import { addTag, decodeTags, encodeTags, formatTag, matchesTags, type Tag } from "@/lib/tags";
 import {
@@ -51,6 +52,9 @@ export default function Surveys() {
   const [rewardOnly, setRewardOnly] = useState(false);
   // 내가 올린 진행 중 설문만 (2026-11-09 개인 피드백 11번)
   const [mineOnly, setMineOnly] = useState(false);
+  // 검색: 제목 또는 #태그 이름에 들어 있으면 (2026-11-10, 데이터 탭과 같은 모양)
+  const [search, setSearch] = useState("");
+  const q = search.trim().replace(/^#/, "").toLowerCase();
   const [sort, setSort] = useState<SortKey>("recommended");
   // 카드의 #태그를 누를 때마다 필터에 더한다 (모두 붙은 설문만). 주소의 ?tags= 가 곧 필터 (홈 카드에서 와도 같게)
   const params = useLocalSearchParams<{ tags?: string }>();
@@ -92,7 +96,8 @@ export default function Surveys() {
               (scope === "all" || s.from_my_school) &&
               matchesTags(s.tags, pickedTags) &&
               (!rewardOnly || s.has_reward) &&
-              (!mineOnly || s.mine),
+              (!mineOnly || s.mine) &&
+              (q === "" || s.title.toLowerCase().includes(q) || s.tags.some((t) => t.name.toLowerCase().includes(q))),
           ),
           sort,
         );
@@ -100,6 +105,7 @@ export default function Surveys() {
   return (
     <View style={styles.screen}>
       <ScrollView
+        keyboardShouldPersistTaps="handled"
         style={styles.screen}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.container}
@@ -108,6 +114,18 @@ export default function Surveys() {
         }
       >
         {/* 카테고리: 글자 탭 / 정렬 · 소요시간 · 우리 학교 · 보상 · 내 설문: 한 줄 (2026-11-02 정리, 11-08 우리 학교 = 작성자 학교, 11-09 내 설문) */}
+        {/* 검색 (제목 · #태그): 돋보기 아이콘 + 입력칸 */}
+        <View style={styles.searchBox}>
+          <AppIcon name={uiIcons.search} size={18} color={colors.textSubtle} />
+          <TextInput
+            style={styles.search}
+            value={search}
+            onChangeText={setSearch}
+            placeholder="설문 제목이나 #태그로 찾아보세요"
+            returnKeyType="search"
+            autoCorrect={false}
+          />
+        </View>
         <TextTabs
           options={[{ value: "all", label: "전체" }, ...categories.map((c) => ({ value: c.key, label: c.name }))]}
           value={category}
@@ -160,7 +178,10 @@ export default function Surveys() {
               emoji="📣"
             />
           ) : (
-            <EmptyState title="조건에 맞는 설문이 없어요" message="필터를 바꿔 보세요." />
+            <EmptyState
+              title={q !== "" ? "검색 결과가 없어요" : "조건에 맞는 설문이 없어요"}
+              message={q !== "" ? "다른 단어로 찾아보거나 필터를 바꿔 보세요." : "필터를 바꿔 보세요."}
+            />
           )
         ) : (
           visible.map((s) => <SurveyListCard key={s.id} survey={s} onTagPress={(t) => setPickedTags(addTag(pickedTags, t))} />)
@@ -187,6 +208,22 @@ const styles = StyleSheet.create({
   },
   loading: {
     marginTop: spacing.lg,
+  },
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+  },
+  search: {
+    flex: 1,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: colors.text,
   },
   filters: {
     flexDirection: "row",
