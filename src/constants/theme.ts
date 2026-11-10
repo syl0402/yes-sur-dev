@@ -1,30 +1,31 @@
 // 앱 전체 색·글꼴·글자 크기·간격·둥글기·그림자. 화면에서는 여기 값만 쓴다 (디자인이 바뀌면 이 파일만 고친다).
 // 2026-10-31 디자인 시안(로고·마스코트·화면 시안) 반영: 메인 블루 #3157D5 · 서브 라임 #B7E65A · 텍스트 네이비 #17233C · 배경 #F5F7FF (2026-11-09 흰색으로 변경)
+// 2026-11-10 디자인팀 컬러 시스템(피그마 변수 Blue·Lime·Natural 50~900) 반영. 주석의 단계 이름 = 피그마 변수 이름
 
 export const colors = {
   // 브랜드
-  primary: "#3157D5",
+  primary: "#3157D5", // Blue 500
   // 대표 색을 옅게 (선택된 칩·뱃지·아이콘 바탕)
-  primarySoft: "#ECF0FC",
+  primarySoft: "#E3E9FF", // Blue 100
   // 대표 색 중간 밝기 (결과 막대에서 1위가 아닌 보기)
-  primaryMuted: "#A9BBEF",
+  primaryMuted: "#9FB2FF", // Blue 300
   // 강조 (별·포인트·완료 뱃지). 흰 바탕 위 글자색으로 쓰지 않는다 (잘 안 읽힘) → 바탕으로 쓰고 글자는 onAccent
-  accent: "#B7E65A",
-  accentSoft: "#F1FADF",
-  onAccent: "#17233C",
+  accent: "#A3EA16", // Lime 500
+  accentSoft: "#F0F8D5", // Lime 100
+  onAccent: "#202A40", // Natural 900
   // 연연두 바탕 위 글자 (완료 뱃지·적립 표시)
-  onAccentSoft: "#4F7A12",
+  onAccentSoft: "#506D23", // Lime 800 (700은 연연두 위 글자로 흐림)
 
   // 글자
-  text: "#17233C",
-  textMuted: "#6B7489",
-  textSubtle: "#A0A7B6",
+  text: "#202A40", // Natural 900
+  textMuted: "#70798D", // Natural 600
+  textSubtle: "#8B93A5", // Natural 500
 
   // 바탕
-  background: "#FFFFFF", // 화면 바탕 (2026-11-09 연파랑 #F5F7FF → 흰색)
+  background: "#FCFCFC", // 화면 바탕 Natural 30 (2026-11-09 흰색 → 2026-11-10 Natural 30)
   surface: "#FFFFFF", // 카드·입력칸·하단 탭
-  surfaceMuted: "#F2F4F8", // 카드 안 회색 상자·꺼진 칩
-  border: "#E3E7F0",
+  surfaceMuted: "#EFF1F7", // 카드 안 회색 상자·꺼진 칩 · Natural 100
+  border: "#E2E5EE", // Natural 200
 
   // 상태
   danger: "#E5484D",
@@ -35,17 +36,17 @@ export const colors = {
   // 목록 카드 (2026-11-09 피그마 카드 디자인 116:329): 제목 진회색 · 보조 글씨 회색 · 표시 바탕 파스텔 3색
   cardTitle: "#2F3133",
   cardSub: "#757B80",
-  pastelBlue: "#ECF0FB", // 카테고리
-  pastelLime: "#F2F9E3", // 우리 학교 · 신뢰도 높음
+  pastelBlue: "#E3E9FF", // 카테고리 · Blue 100
+  pastelLime: "#F0F8D5", // Lime 100 · 우리 학교 · 신뢰도 높음
   pastelPeach: "#FFE2D6", // 보상
-  disabled: "#C5CAD6",
+  disabled: "#CDD2DF", // Natural 300
   // 그래프: 강조하지 않는 막대 (1위만 파랑, 나머지는 이 회색, 2026-11-10)
-  chartMuted: "#CDD3DF",
+  chartMuted: "#CDD2DF", // Natural 300
   onPrimary: "#FFFFFF",
   // 파란 카드 위 흐린 흰색 (마이 포인트 카드 원 장식, 2026-11-10)
   onPrimarySoft: "rgba(255, 255, 255, 0.12)",
   // 목록 창 뒤를 어둡게 덮는 색
-  overlay: "rgba(23, 35, 60, 0.4)",
+  overlay: "rgba(32, 42, 64, 0.4)", // Natural 900 40%
 };
 
 // 그래프 파랑 4단계 (진함 → 옅음) + 미입력 회색. 응답자 구성처럼 순서가 있는 묶음을 한 막대에 나눌 때 (2026-11-10)
@@ -85,7 +86,7 @@ export const radius = {
 // 카드 그림자 (아주 옅게. 테두리와 함께 쓴다)
 export const shadow = {
   card: {
-    shadowColor: "#17233C",
+    shadowColor: "#202A40",
     shadowOpacity: 0.06,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
