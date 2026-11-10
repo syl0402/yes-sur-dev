@@ -3,6 +3,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
+import AppIcon from "@/components/AppIcon";
 import { listCardStyles as card } from "@/components/listCardStyles";
 import PrimaryButton from "@/components/PrimaryButton";
 import TagRow from "@/components/TagRow";
@@ -13,8 +14,8 @@ import EmptyState from "@/components/ui/EmptyState";
 import SelectButton from "@/components/ui/SelectButton";
 import { Text, TextInput } from "@/components/ui/Text";
 import TextTabs from "@/components/ui/TextTabs";
-import { bookmarkIcons } from "@/constants/icons";
-import { colors, fontSize, radius, spacing } from "@/constants/theme";
+import { bookmarkIcons, uiIcons } from "@/constants/icons";
+import { colors, radius, spacing } from "@/constants/theme";
 import { formatShortDate } from "@/lib/format";
 import { HUB_SORT_OPTIONS, type HubItem, type HubSort } from "@/lib/hub";
 import { fetchRules } from "@/lib/rules";
@@ -88,15 +89,18 @@ export default function Data() {
         <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} colors={[colors.primary]} />
       }
     >
-      {/* 검색 (제목) */}
-      <TextInput
-        style={styles.search}
-        value={search}
-        onChangeText={setSearch}
-        placeholder="🔍 궁금한 주제를 찾아보세요 (예: 아르바이트)"
-        returnKeyType="search"
-        autoCorrect={false}
-      />
+      {/* 검색 (제목): 돋보기 아이콘 + 입력칸 */}
+      <View style={styles.searchBox}>
+        <AppIcon name={uiIcons.search} size={18} color={colors.textSubtle} />
+        <TextInput
+          style={styles.search}
+          value={search}
+          onChangeText={setSearch}
+          placeholder="궁금한 주제를 찾아보세요 (예: 아르바이트)"
+          returnKeyType="search"
+          autoCorrect={false}
+        />
+      </View>
 
       {/* 카테고리: 글자 탭 / 정렬 · 인증 단체 · 스크랩: 한 줄 (2026-11-02 정리) */}
       <TextTabs
@@ -208,13 +212,20 @@ const styles = StyleSheet.create({
   loading: {
     marginTop: spacing.lg,
   },
-  search: {
-    paddingVertical: spacing.md,
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
-    fontSize: fontSize.body,
+    backgroundColor: colors.surface,
+  },
+  search: {
+    flex: 1,
+    paddingVertical: 14,
+    fontSize: 15,
     color: colors.text,
   },
   filters: {

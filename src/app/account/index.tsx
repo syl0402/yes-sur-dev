@@ -125,7 +125,7 @@ export default function AccountHome() {
         </View>
         {account.needsDemographics && (
           <Pressable onPress={() => router.push("/account/demographics")} hitSlop={8}>
-            <Text style={styles.link}>⚠️ 성별·출생연도 입력하기 ›</Text>
+            <Text style={styles.link}>성별·출생연도 입력하기 ›</Text>
           </Pressable>
         )}
         <Text style={styles.hint}>회원정보를 고치려면 ‘의견 보내기’로 문의해 주세요.</Text>

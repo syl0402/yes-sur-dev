@@ -109,7 +109,7 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
     <>
       <InsightCard insights={insights} />
       {Platform.OS !== "web" && (
-        <Button title="📷 결과 카드 이미지로 공유" variant="soft" onPress={shareImage} loading={sharing} />
+        <Button title="결과 카드 이미지로 공유" variant="soft" onPress={shareImage} loading={sharing} />
       )}
       {/* 공유용 카드: 화면 밖에 그려 두고 이미지로 찍는다 */}
       {Platform.OS !== "web" && (

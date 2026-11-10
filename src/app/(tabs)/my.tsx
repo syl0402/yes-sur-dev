@@ -16,7 +16,7 @@ import ProgressBar from "@/components/ui/ProgressBar";
 import { Text } from "@/components/ui/Text";
 import Segmented from "@/components/ui/Segmented";
 import TextTabs from "@/components/ui/TextTabs";
-import { type IconName, myIcons } from "@/constants/icons";
+import { type IconName, myIcons, uiIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { type AdminCounts, fetchAdminCounts, totalPending } from "@/lib/admin";
 import { showConfirm } from "@/lib/confirm";
@@ -197,7 +197,10 @@ export default function My() {
       {/* 운영자 계정에만: 처리 대기 건수 → 운영자 화면 */}
       {data.admin && (
         <Card onPress={() => router.push(ADMIN_HREF)} style={styles.adminCard}>
-          <Text style={styles.adminTitle}>🛠 운영 · 처리 대기 {totalPending(data.admin)}건</Text>
+          <View style={styles.iconLine}>
+            <AppIcon name={uiIcons.admin} size={18} color={colors.primary} />
+            <Text style={styles.adminTitle}>운영 · 처리 대기 {totalPending(data.admin)}건</Text>
+          </View>
           <Text style={styles.muted}>
             신고 {data.admin.reports} · 의견 {data.admin.feedback} · 단체 승인 {data.admin.orgs}
           </Text>
@@ -214,7 +217,12 @@ export default function My() {
           <View style={styles.profileMain}>
             <Text style={styles.name}>{data.name ? `${data.name}님` : "내 정보"}</Text>
             <Text style={styles.muted}>내 정보 · 계정 설정</Text>
-            {data.needsDemographics && <Text style={styles.warn}>⚠️ 성별·출생연도를 입력해 주세요</Text>}
+            {data.needsDemographics && (
+              <View style={styles.iconLine}>
+                <AppIcon name={uiIcons.alert} size={14} color={colors.primary} />
+                <Text style={styles.warn}>성별·출생연도를 입력해 주세요</Text>
+              </View>
+            )}
           </View>
           <AppIcon name={myIcons.forward} size={20} color={colors.textSubtle} />
         </Pressable>
@@ -385,7 +393,10 @@ function MySurveyCard({ survey: s }: { survey: MySurvey }) {
           onPress={() => router.push({ pathname: "/data/[id]", params: { id: String(s.id) } })}
           hitSlop={6}
         >
-          <Text style={styles.hubText}>📊 데이터 탭 공개 중 · 열람 {s.hubViews}회</Text>
+          <View style={styles.iconLine}>
+            <AppIcon name={uiIcons.chart} size={16} color={colors.primary} />
+            <Text style={styles.hubText}>데이터 탭 공개 중 · 열람 {s.hubViews}회</Text>
+          </View>
           <Text style={styles.hubLink}>데이터 탭에서 보기 ›</Text>
         </Pressable>
       )}
@@ -577,6 +588,13 @@ const styles = StyleSheet.create({
     fontSize: fontSize.caption,
     fontWeight: "600",
     color: colors.cardTitle,
+  },
+  // 아이콘 + 글자 한 줄
+  iconLine: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flexShrink: 1,
   },
   hubRow: {
     flexDirection: "row",

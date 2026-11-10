@@ -6,7 +6,9 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import RewardNotice from "@/components/RewardNotice";
 import Button from "@/components/ui/Button";
+import AppIcon from "@/components/AppIcon";
 import { Text } from "@/components/ui/Text";
+import { uiIcons } from "@/constants/icons";
 import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
@@ -66,7 +68,10 @@ export default function RewardContactsBox({ surveyId, note }: { surveyId: number
 
   return (
     <View style={styles.box}>
-      <Text style={styles.title}>🎁 보상 연락처 {phones === null ? "…" : `${phones.length}명`}</Text>
+      <View style={styles.titleRow}>
+        <AppIcon name={uiIcons.gift} size={16} color={colors.primary} />
+        <Text style={styles.title}>보상 연락처 {phones === null ? "…" : `${phones.length}명`}</Text>
+      </View>
       <RewardNotice note={note} />
       <Text style={styles.warn}>
         보상 지급에만 쓰고, 지급이 끝나면 꼭 지워 주세요. 번호는 남긴 날부터 일정 기간 뒤 자동으로 지워져요.
@@ -97,6 +102,11 @@ export default function RewardContactsBox({ surveyId, note }: { surveyId: number
 }
 
 const styles = StyleSheet.create({
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
   box: {
     padding: spacing.md,
     borderWidth: 1,

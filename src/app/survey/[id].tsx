@@ -219,7 +219,7 @@ export default function SurveyDetail() {
         {/* 내 진행 중 설문: 수정하기를 결과 보기 옆에 바로 (2026-11-08) */}
         {detail.isOwner && !detail.closed && (
           <Button
-            title="✏️ 수정하기"
+            title="수정하기"
             variant="outline"
             onPress={() => router.push({ pathname: "/survey/edit", params: { id: String(id) } })}
             style={styles.side}

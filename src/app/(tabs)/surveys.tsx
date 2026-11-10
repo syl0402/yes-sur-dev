@@ -10,6 +10,7 @@ import Fab from "@/components/ui/Fab";
 import SelectButton from "@/components/ui/SelectButton";
 import { Text } from "@/components/ui/Text";
 import TextTabs from "@/components/ui/TextTabs";
+import { uiIcons } from "@/constants/icons";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import { addTag, decodeTags, encodeTags, formatTag, matchesTags, type Tag } from "@/lib/tags";
@@ -127,7 +128,7 @@ export default function Surveys() {
             selected={scope === "campus"}
             onPress={() => setScope(scope === "campus" ? "all" : "campus")}
           />
-          <Chip label="🎁 보상" selected={rewardOnly} onPress={() => setRewardOnly(!rewardOnly)} />
+          <Chip icon={uiIcons.gift} label="보상" selected={rewardOnly} onPress={() => setRewardOnly(!rewardOnly)} />
           <Chip label="내 설문" selected={mineOnly} onPress={() => setMineOnly(!mineOnly)} />
         </View>
 

@@ -170,7 +170,7 @@ export default function SurveyEdit() {
       </View>
 
       <View style={formStyles.card}>
-        <Text style={formStyles.label}>🎁 응답자 보상 (선택)</Text>
+        <Text style={formStyles.label}>응답자 보상 (선택)</Text>
         <Text style={formStyles.hint}>
           {originalNote !== null
             ? "이미 연락처를 남긴 사람이 있을 수 있어 보상 안내는 지울 수 없고 수정만 할 수 있어요."

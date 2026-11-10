@@ -177,7 +177,7 @@ export default function SurveyResults() {
               style={styles.rawButton}
               onPress={() => router.push({ pathname: "/survey/edit", params: { id: String(surveyId) } })}
             >
-              <Text style={styles.rawText}>✏️ 설명·보상 안내 수정</Text>
+              <Text style={styles.rawText}>설명·보상 안내 수정</Text>
             </Pressable>
           )}
           {!results.closed && (

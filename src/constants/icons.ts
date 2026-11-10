@@ -46,6 +46,16 @@ export const myIcons = {
   forward: "chevron-forward",
 } satisfies Record<string, IconName>;
 
+// 화면 곳곳의 작은 표시 아이콘 (2026-11-10, 기능 이모지 → 선 아이콘)
+export const uiIcons = {
+  search: "search-outline",
+  gift: "gift-outline",
+  streak: "flame",
+  alert: "alert-circle-outline",
+  admin: "construct-outline",
+  chart: "bar-chart-outline",
+} satisfies Record<string, IconName>;
+
 // 결과 "핵심 인사이트" 아이콘 (2026-11-10, 이모지 → 선 아이콘). 키는 인사이트 문장을 만드는 쪽의 이모지
 export const insightIcons: Record<string, IconName> = {
   "💡": "bulb-outline",

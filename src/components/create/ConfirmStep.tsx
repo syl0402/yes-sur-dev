@@ -37,7 +37,7 @@ export default function ConfirmStep({ draft, rules, categoryName, cost, balance,
     <>
       <Text style={styles.title}>{draft.title.trim()}</Text>
       <Text style={formStyles.hint}>{categoryName}</Text>
-      {hasReward(draft) && <Text style={formStyles.hint}>🎁 보상: {(draft.rewardNote ?? "").trim()}</Text>}
+      {hasReward(draft) && <Text style={formStyles.hint}>보상: {(draft.rewardNote ?? "").trim()}</Text>}
 
       {!isOrg && (
         <View style={styles.box}>

@@ -3,7 +3,9 @@ import { useCallback, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import BalanceBar, { duelPcts } from "@/components/community/BalanceBar";
+import AppIcon from "@/components/AppIcon";
 import { Text } from "@/components/ui/Text";
+import { uiIcons } from "@/constants/icons";
 import type { PostGroup } from "@/lib/community";
 import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
@@ -85,7 +87,12 @@ export default function DailyCard({ onAnswered, onOpen, onLoaded, compact }: Pro
       <Pressable style={[styles.card, styles.compactCard]} onPress={onOpen} disabled={!onOpen}>
         <View style={styles.compactTop}>
           <Text style={styles.eyebrow}>오늘의 질문</Text>
-          {daily.rewarded && daily.streak > 0 && <Text style={styles.compactStreak}>🔥 연속 {daily.streak}일</Text>}
+          {daily.rewarded && daily.streak > 0 && (
+            <View style={styles.streakLine}>
+              <AppIcon name={uiIcons.streak} size={13} color={colors.hot} />
+              <Text style={styles.compactStreak}>연속 {daily.streak}일</Text>
+            </View>
+          )}
           <Text style={styles.compactMore}>
             {daily.comment_count > 0 ? `댓글 ${daily.comment_count} ` : ""}›
           </Text>
@@ -158,14 +165,17 @@ export default function DailyCard({ onAnswered, onOpen, onLoaded, compact }: Pro
       )}
 
       {daily.rewarded && (
+        <View style={styles.streakLine}>
+          {answered && <AppIcon name={uiIcons.streak} size={14} color={colors.hot} />}
         <Text style={styles.streak}>
           {answered
-            ? `🔥 연속 ${daily.streak}일째` +
+            ? `연속 ${daily.streak}일째` +
               (earned ? ` · +${formatPoints(earned.reward + earned.bonus)}${earned.bonus > 0 ? " (연속 보너스 포함)" : ""}` : "") +
               (toBonus < daily.streak_days ? ` · ${toBonus}일 더 하면 +${formatPoints(daily.streak_bonus)}` : "")
             : `답하면 +${formatPoints(daily.reward)} · ${daily.streak_days}일 연속이면 +${formatPoints(daily.streak_bonus)}` +
               (daily.streak > 0 ? ` · 지금 연속 ${daily.streak}일` : "")}
         </Text>
+        </View>
       )}
 
       {onOpen && (
@@ -179,6 +189,12 @@ export default function DailyCard({ onAnswered, onOpen, onLoaded, compact }: Pro
 }
 
 const styles = StyleSheet.create({
+  streakLine: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    flexShrink: 1,
+  },
   card: {
     padding: spacing.md,
     borderRadius: radius.lg,

@@ -166,7 +166,7 @@ export default function HubResult() {
                 detail: `${teaser.index}번 · ${teaser.question}`,
               },
             ]}
-            footer="🔒 열람하면 핵심 인사이트 · 문항별 그래프 · 계열별·문항 답별 나눠 보기를 볼 수 있어요"
+            footer="열람하면 핵심 인사이트 · 문항별 그래프 · 계열별·문항 답별 나눠 보기를 볼 수 있어요"
           />
         )}
         {!full && <CompositionChart groups={p.composition} compact />}

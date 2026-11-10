@@ -2,13 +2,18 @@
 import { StyleSheet, View } from "react-native";
 
 import LinkedText from "@/components/LinkedText";
+import AppIcon from "@/components/AppIcon";
 import { Text } from "@/components/ui/Text";
+import { uiIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 
 export default function RewardNotice({ note, hint }: { note: string; hint?: string }) {
   return (
     <View style={styles.box}>
-      <Text style={styles.title}>🎁 보상 안내</Text>
+      <View style={styles.titleRow}>
+        <AppIcon name={uiIcons.gift} size={16} color={colors.primary} />
+        <Text style={styles.title}>보상 안내</Text>
+      </View>
       <LinkedText style={styles.note} selectable>
         {note}
       </LinkedText>
@@ -18,6 +23,11 @@ export default function RewardNotice({ note, hint }: { note: string; hint?: stri
 }
 
 const styles = StyleSheet.create({
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
   box: {
     gap: spacing.xs,
     padding: spacing.md,
