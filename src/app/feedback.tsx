@@ -8,8 +8,9 @@ import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
 import PrimaryButton from "@/components/PrimaryButton";
+import Card from "@/components/ui/Card";
 import { Text, TextInput } from "@/components/ui/Text";
-import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { formatDate } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
@@ -126,9 +127,9 @@ export default function Feedback() {
 
       {mine.length > 0 && (
         <View style={styles.section}>
-          <Text style={formStyles.label}>내가 보낸 의견</Text>
+          <Text style={styles.groupTitle}>내가 보낸 의견</Text>
           {mine.map((f) => (
-            <View key={f.id} style={styles.item}>
+            <Card key={f.id}>
               <View style={styles.itemHead}>
                 <Text style={styles.meta}>
                   {CATEGORIES.find((c) => c.value === f.category)?.label ?? "기타"} · {formatDate(f.created_at)}
@@ -144,7 +145,7 @@ export default function Feedback() {
                   <Text style={styles.itemBody}>{f.reply}</Text>
                 </View>
               ) : null}
-            </View>
+            </Card>
           ))}
         </View>
       )}
@@ -158,12 +159,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    padding: spacing.lg,
+    padding: 20,
+    paddingBottom: spacing.xl,
     gap: spacing.md,
   },
   lead: {
-    fontSize: fontSize.body,
-    color: colors.text,
+    fontSize: 15,
+    lineHeight: 22,
+    color: colors.textMuted,
   },
   body: {
     minHeight: 140,
@@ -172,14 +175,10 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     gap: spacing.sm,
   },
-  item: {
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
-    gap: spacing.sm,
-    ...shadow.card,
+  groupTitle: {
+    fontSize: fontSize.small,
+    fontWeight: "600",
+    color: colors.textMuted,
   },
   itemHead: {
     flexDirection: "row",
@@ -199,14 +198,15 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   itemBody: {
-    fontSize: fontSize.body,
+    fontSize: 15,
+    lineHeight: 22,
     color: colors.text,
   },
   reply: {
-    padding: spacing.sm,
-    borderRadius: radius.sm,
+    padding: 14,
+    borderRadius: radius.md,
     backgroundColor: colors.surfaceMuted,
-    gap: 2,
+    gap: 4,
   },
   replyLabel: {
     fontSize: fontSize.small,

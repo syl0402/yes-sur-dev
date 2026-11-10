@@ -242,7 +242,7 @@ export default function Partnership() {
 
       {mine.length > 0 && (
         <View style={styles.section}>
-          <Text style={formStyles.label}>내가 보낸 문의</Text>
+          <Text style={styles.groupTitle}>내가 보낸 문의</Text>
           {mine.map((m) => (
             <View key={m.id} style={formStyles.card}>
               <View style={styles.itemHead}>
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    padding: spacing.lg,
+    padding: 20,
     gap: spacing.md,
     paddingBottom: spacing.xl,
   },
@@ -279,12 +279,12 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: fontSize.title,
-    fontWeight: "800",
+    fontWeight: "700",
     color: colors.text,
   },
   lead: {
-    fontSize: fontSize.body,
-    color: colors.text,
+    fontSize: 15,
+    color: colors.textMuted,
     lineHeight: 22,
   },
   body: {
@@ -303,6 +303,11 @@ const styles = StyleSheet.create({
   section: {
     marginTop: spacing.lg,
     gap: spacing.sm,
+  },
+  groupTitle: {
+    fontSize: fontSize.small,
+    fontWeight: "600",
+    color: colors.textMuted,
   },
   itemHead: {
     flexDirection: "row",
@@ -324,7 +329,8 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   itemBody: {
-    fontSize: fontSize.body,
+    fontSize: 15,
+    lineHeight: 22,
     color: colors.text,
   },
   termsText: {
