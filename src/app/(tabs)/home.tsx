@@ -1,4 +1,4 @@
-// ys-100 홈 · F-201, F-702 (2026-10-31 디자인: 포인트 카드 · 바로가기 · 오늘의 질문 · 마감 임박 설문 · 2026-11-10 피그마 홈 시안: 마스코트 카드 · 바로가기 4칸 · 빠른 탐색 · 추천 설문)
+// ys-100 홈 · F-201, F-702 (2026-10-31 디자인: 포인트 카드 · 바로가기 · 오늘의 질문 · 마감 임박 설문 · 2026-11-10 피그마 홈 시안: 마스코트 카드 · 바로가기 4칸 · 빠른 탐색 · 추천 설문 · 최신 & 마감 임박)
 import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
@@ -7,8 +7,8 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 import AppIcon from "@/components/AppIcon";
 import DailyCard from "@/components/DailyCard";
 import QuickExplore from "@/components/QuickExplore";
-import SurveyListCard from "@/components/SurveyListCard";
 import SurveyMiniCard from "@/components/SurveyMiniCard";
+import SurveyRowCard, { isClosingSoon } from "@/components/SurveyRowCard";
 import EmptyState from "@/components/ui/EmptyState";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { Text } from "@/components/ui/Text";
@@ -32,8 +32,18 @@ type HomeData = {
 // 포인트 카드 마스코트 (2026-11-10 피그마 홈 시안 145:3866 원본 그림)
 const MASCOT = require("../../../assets/images/mascot-cheer.png");
 
-// 홈에 보여줄 마감 임박 설문 개수
+// 추천 설문 가로 줄 개수
 const HOME_SURVEY_COUNT = 5;
+// 최신 설문 & 마감 임박: 모두 4개 중 마감 임박은 최대 2개 (2026-11-10 피그마 홈 시안)
+const FRESH_COUNT = 4;
+const CLOSING_MAX = 2;
+
+// 마감 임박(24시간 안) 먼저 최대 2개 → 나머지는 최근 등록 순으로 채운다
+function pickFresh(list: SurveyCard[]): SurveyCard[] {
+  const closing = sortSurveys(list.filter(isClosingSoon), "closing").slice(0, CLOSING_MAX);
+  const latest = sortSurveys(list, "latest").filter((s) => !closing.includes(s));
+  return [...closing, ...latest].slice(0, FRESH_COUNT);
+}
 
 // 이번 주 월요일 0시 (한국 시간)
 function weekStartKst(): string {
@@ -63,7 +73,7 @@ async function fetchHome(): Promise<HomeData> {
     balance: typeof balance === "number" ? balance : 0,
     weekEarned: (earned ?? []).reduce((sum, r) => sum + r.amount, 0),
     // 홈은 "지금 참여할 설문"이라 내 설문은 뺀다
-    surveys: sortSurveys(surveys.filter((s) => !s.mine), "closing").slice(0, HOME_SURVEY_COUNT),
+    surveys: pickFresh(surveys.filter((s) => !s.mine)),
     // 관심사 추천은 출시 후 (docs/QUESTIONS.md "관심사 기반 추천 설문"). 지금은 우리 학교 → 마감 가까운 순
     recommended: sortSurveys(surveys.filter((s) => !s.mine), "recommended").slice(0, HOME_SURVEY_COUNT),
   };
@@ -174,7 +184,7 @@ export default function Home() {
       <DailyCard onAnswered={() => fetchHome().then(setData)} onOpen={() => router.push("/community/daily")} />
 
       <SectionHeader
-        title="마감 임박 설문"
+        title="최신 설문 & 마감 임박"
         subtitle="놓치기 전에 참여해 보세요"
         actionLabel="전체 보기"
         onAction={() => router.navigate("/surveys")}
@@ -182,7 +192,7 @@ export default function Home() {
       {data.surveys.length === 0 ? (
         <EmptyState title="지금 참여할 수 있는 설문이 없어요" message="새 설문이 올라오면 여기에 보여요." />
       ) : (
-        data.surveys.map((s) => <SurveyListCard key={s.id} survey={s} />)
+        data.surveys.map((s) => <SurveyRowCard key={s.id} survey={s} />)
       )}
     </ScrollView>
   );

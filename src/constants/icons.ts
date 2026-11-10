@@ -23,6 +23,8 @@ export const homeIcons = {
   community: "chatbox-ellipses",
   // 추천 설문 카드의 올린 곳 (피그마 fa-solid:university)
   host: "business",
+  // 포인트 알약 앞 동전 (피그마 ri:copper-coin-fill과 비슷한 모양)
+  coin: "radio-button-on",
   time: "time-outline",
   // 목록 카드 소요 시간 (꽉 찬 시계, 2026-11-09 피그마)
   timeFill: "time",
