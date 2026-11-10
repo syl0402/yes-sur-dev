@@ -1,4 +1,4 @@
-// ys-100 홈 · F-201, F-702 (2026-10-31 디자인: 포인트 카드 · 바로가기 · 오늘의 질문 · 마감 임박 설문 · 2026-11-10 피그마 홈 시안: 마스코트 카드 · 바로가기 4칸)
+// ys-100 홈 · F-201, F-702 (2026-10-31 디자인: 포인트 카드 · 바로가기 · 오늘의 질문 · 마감 임박 설문 · 2026-11-10 피그마 홈 시안: 마스코트 카드 · 바로가기 4칸 · 빠른 탐색 · 추천 설문)
 import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
@@ -8,6 +8,7 @@ import AppIcon from "@/components/AppIcon";
 import DailyCard from "@/components/DailyCard";
 import QuickExplore from "@/components/QuickExplore";
 import SurveyListCard from "@/components/SurveyListCard";
+import SurveyMiniCard from "@/components/SurveyMiniCard";
 import EmptyState from "@/components/ui/EmptyState";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { Text } from "@/components/ui/Text";
@@ -24,6 +25,8 @@ type HomeData = {
   // 이번 주(월요일부터, 한국 시간) 모은 포인트
   weekEarned: number;
   surveys: SurveyCard[];
+  // 추천 설문 (설문 탭 "추천순" 위에서부터)
+  recommended: SurveyCard[];
 };
 
 // 포인트 카드 마스코트 (2026-11-10 피그마 홈 시안 145:3866 원본 그림)
@@ -61,6 +64,8 @@ async function fetchHome(): Promise<HomeData> {
     weekEarned: (earned ?? []).reduce((sum, r) => sum + r.amount, 0),
     // 홈은 "지금 참여할 설문"이라 내 설문은 뺀다
     surveys: sortSurveys(surveys.filter((s) => !s.mine), "closing").slice(0, HOME_SURVEY_COUNT),
+    // 관심사 추천은 출시 후 (docs/QUESTIONS.md "관심사 기반 추천 설문"). 지금은 우리 학교 → 마감 가까운 순
+    recommended: sortSurveys(surveys.filter((s) => !s.mine), "recommended").slice(0, HOME_SURVEY_COUNT),
   };
 }
 
@@ -142,6 +147,28 @@ export default function Home() {
 
       {/* 빠른 탐색: 카테고리 8칸 → 설문 탭 걸러 보기 (2026-11-10) */}
       <QuickExplore />
+
+      {/* 추천 설문: 옆으로 넘겨 보기 (2026-11-10 피그마 홈 시안) */}
+      {data.recommended.length > 0 && (
+        <View>
+          <SectionHeader
+            title="추천 설문"
+            subtitle="지금 참여하기 좋은 설문"
+            actionLabel="전체 보기"
+            onAction={() => router.navigate("/surveys")}
+          />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.carousel}
+            contentContainerStyle={styles.carouselContent}
+          >
+            {data.recommended.map((s) => (
+              <SurveyMiniCard key={s.id} survey={s} />
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       {/* 오늘의 질문 (예약된 날만). 답하면 포인트가 바뀌니 홈을 다시 불러온다 */}
       <DailyCard onAnswered={() => fetchHome().then(setData)} onOpen={() => router.push("/community/daily")} />
@@ -252,6 +279,16 @@ const styles = StyleSheet.create({
     fontSize: fontSize.subtitle,
     fontWeight: "700",
     color: colors.onPrimary,
+  },
+  // 화면 양 끝까지 넘어가게 (바깥 여백만큼 당기고 안쪽에서 다시 띄움). 그림자가 잘리지 않게 위아래 여유
+  carousel: {
+    marginHorizontal: -spacing.md,
+    marginTop: spacing.xs,
+  },
+  carouselContent: {
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   // 아래 구분선까지 (피그마: 바로가기 밑 얇은 선)
   shortcuts: {
