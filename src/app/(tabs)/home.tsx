@@ -37,6 +37,8 @@ type HomeData = {
   surveys: SurveyCard[];
   // 추천 설문 (설문 탭 "추천순" 위에서부터)
   recommended: SurveyCard[];
+  // 관심사를 골랐는지 (웰컴 미션 "나에 대해", 2026-11-12) → 추천 설문 문구
+  byInterest: boolean;
   // 웰컴 미션 (학생 · 미션 기간일 때만, 아니면 null)
   missions: MyMissions | null;
 };
@@ -52,6 +54,13 @@ const HOME_SURVEY_COUNT = 5;
 // 최신 설문 & 마감 임박: 모두 4개 중 마감 임박은 최대 2개 (2026-11-10 피그마 홈 시안)
 const FRESH_COUNT = 4;
 const CLOSING_MAX = 2;
+
+// 관심 카테고리 설문을 앞으로 (각 묶음 안의 순서는 그대로). 관심 설문이 적으면 나머지로 채워진다
+function interestFirst(list: SurveyCard[], interests: string[]): SurveyCard[] {
+  if (interests.length === 0) return list;
+  const mine = list.filter((s) => interests.includes(s.category_key));
+  return [...mine, ...list.filter((s) => !interests.includes(s.category_key))];
+}
 
 // 마감 임박(24시간 안) 먼저 최대 2개 → 나머지는 최근 등록 순으로 채운다
 function pickFresh(list: SurveyCard[]): SurveyCard[] {
@@ -71,7 +80,7 @@ function weekStartKst(): string {
 
 // 내 계정 종류·잔액·이번 주 적립, 그리고 내가 참여할 수 있는 마감 임박 설문 (모두 본인·대상 것만 읽힌다)
 async function fetchHome(): Promise<HomeData> {
-  const [{ data: profile }, { data: balance }, { data: earned }, surveys, missions] = await Promise.all([
+  const [{ data: profile }, { data: balance }, { data: earned }, surveys, missions, { data: extras }] = await Promise.all([
     supabase.from("profiles").select("account_type").maybeSingle(),
     supabase.rpc("get_my_balance"),
     supabase
@@ -82,7 +91,10 @@ async function fetchHome(): Promise<HomeData> {
       .gte("created_at", weekStartKst()),
     fetchOpenSurveys(),
     fetchMyMissions(),
+    // 내 관심 카테고리 (본인 것만 읽힘)
+    supabase.from("profile_extras").select("interests").maybeSingle(),
   ]);
+  const interests: string[] = extras?.interests ?? [];
   const isStudent = profile?.account_type === "student";
 
   return {
@@ -91,8 +103,9 @@ async function fetchHome(): Promise<HomeData> {
     weekEarned: (earned ?? []).reduce((sum, r) => sum + r.amount, 0),
     // 홈은 "지금 참여할 설문"이라 내 설문은 뺀다
     surveys: pickFresh(surveys.filter((s) => !s.mine)),
-    // 관심사 추천은 출시 후 (docs/QUESTIONS.md "관심사 기반 추천 설문"). 지금은 우리 학교 → 마감 가까운 순
-    recommended: sortSurveys(surveys.filter((s) => !s.mine), "recommended").slice(0, HOME_SURVEY_COUNT),
+    // 추천: 관심 카테고리 설문 먼저 → 그 안에서는 추천순(우리 학교 → 마감 가까운 순). 관심사가 없으면 추천순 그대로 (2026-11-12)
+    recommended: interestFirst(sortSurveys(surveys.filter((s) => !s.mine), "recommended"), interests).slice(0, HOME_SURVEY_COUNT),
+    byInterest: interests.length > 0,
     missions: isStudent && isMissionActive(missions) ? missions : null,
   };
 }
@@ -219,7 +232,7 @@ export default function Home() {
         <View>
           <SectionHeader
             title="추천 설문"
-            subtitle="지금 참여하기 좋은 설문"
+            subtitle={data.byInterest ? "지금 당신의 관심사에 맞는 설문" : "지금 참여하기 좋은 설문"}
             actionLabel="전체 보기"
             onAction={() => router.navigate("/surveys")}
           />
