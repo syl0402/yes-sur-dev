@@ -147,6 +147,14 @@ import { Text, TextInput } from "@/components/ui/Text";
 - 나누는 기준(푸망 방식): 메뉴 = 앱 안 이동·서비스 안내(홈·검색·옛썰 소개·의견 보내기·제휴 문의·약관·로그아웃) / 마이 탭 = 내 정보·내 기록
 - 로그아웃은 `confirmLogout` (`src/lib/logout.ts`): 확인 창 → 이 기기 알림 끄기 → 로그아웃. 내 정보 화면과 같이 씀
 
+### 웰컴 14일 미션 (`src/app/missions/`, `src/components/missions/`, `src/lib/missions.ts`, 2026-11-12)
+- DB: `20261112000001_welcome_missions.sql` (미션 표·진행·받은 기록·나에 대해). 1일차 = 미션 화면을 처음 연 날(`start_missions`), 하루 하나씩 열림, 열린 미션은 늦게 해도 됨
+- 화면: 홈 배너 `WelcomeBanner` · 미션 메인 `/missions`(길 `MissionRoad`) · 상세 시트 `MissionSheet` · 완료 팝업 `MissionComplete` · OX 퀴즈 `/missions/quiz` · 나에 대해 `/missions/about-me`
+- 지급: 미션 화면·홈에 오면 `claimReadyMissions`가 받기를 요청 → 서버 `claim_mission`이 조건(기존 활동 기록)·열림·중복 확인 후 지급 + 1주·14일 보너스. 앱은 금액을 정하지 않음
+- 앱을 켤 때 미션 기간이면 미션 화면을 한 번 띄움(첫 사용 안내 다음, "오늘 하루 보지 않기"), 이때 오늘의 질문 팝업은 안 띄움
+- 미션 문구·순서·횟수·보상 등급은 `missions` 표, 금액은 `point_rules`. 칸의 짧은 이름·분류·3단계 안내는 앱 `MISSION_LABELS`·`MISSION_GUIDES`(code 기준). OX 퀴즈 정답은 `missions.meta`(앱에서 못 읽음), 문제 글은 `quiz.tsx` — 순서를 같이 바꿀 것
+- 디자인 원본: `docs/design/welcome-mission/`
+
 ### 오류 자동 수집 Sentry (`src/lib/sentry.ts`, 2026-11-10)
 - 조직 `yessur` · 프로젝트 `react-native` (sentry.io). DSN = `EXPO_PUBLIC_SENTRY_DSN` (.env · EAS), 빌드 때 오류 위치 정보 올리기 = EAS 비밀 값 `SENTRY_AUTH_TOKEN`
 - 오류만 (화면 녹화·성능 추적 끔, `sendDefaultPii: false`). 개발 중·옛 APK(1.0.0)에서는 꺼짐. 루트 레이아웃을 `wrapWithSentry`로 감쌈
