@@ -21,21 +21,21 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import AppIcon from "@/components/AppIcon";
+import MissionComplete, { type Claimed } from "@/components/missions/MissionComplete";
 import MissionRoad from "@/components/missions/MissionRoad";
+import MissionSheet from "@/components/missions/MissionSheet";
 import { Text } from "@/components/ui/Text";
 import { missionIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { formatPoints } from "@/lib/format";
 import {
-  BONUS_LABELS,
   MISSION_DAYS,
   type Mission,
   type MyMissions,
   claimReadyMissions,
   doneCount,
   loadMissions,
-  missionHref,
   setMissionOffToday,
 } from "@/lib/missions";
 import { showNotice } from "@/lib/notice";
@@ -48,6 +48,10 @@ export default function Missions() {
   const { width } = useWindowDimensions();
   const [data, setData] = useState<MyMissions | null>(null);
   const [notStudent, setNotStudent] = useState(false);
+  // 상세 바텀시트로 연 미션
+  const [sheet, setSheet] = useState<Mission | null>(null);
+  // 방금 자동으로 받은 미션 (완료 팝업)
+  const [claimed, setClaimed] = useState<Claimed[]>([]);
 
   const load = useCallback(async () => {
     try {
@@ -56,12 +60,7 @@ export default function Missions() {
       const claimed = await claimReadyMissions(m);
       if (claimed.length > 0) {
         setData(await loadMissions());
-        // TODO(임시): 완료 팝업(Complete.dc.html) 만들기 전까지 알림 창 · 다음 단계에서 교체 · 2026-11-12
-        const lines = claimed.flatMap(({ mission, result }) => [
-          `DAY ${mission.day} ${mission.title} +${formatPoints(result.reward)}`,
-          ...result.bonuses.map((b) => `${BONUS_LABELS[b.code] ?? "보너스"} +${formatPoints(b.amount)}`),
-        ]);
-        showNotice("미션 완료! 포인트가 적립됐어요", lines.join("\n"));
+        setClaimed(claimed);
       } else {
         setData(m);
       }
@@ -86,14 +85,8 @@ export default function Missions() {
     close();
   };
 
-  // 오늘 칸 · 지난 미완료 칸: 그 기능 화면으로 (TODO(임시): 상세 바텀시트(Sheet.dc.html) 만들기 전까지 바로 이동 · 다음 단계 · 2026-11-12)
-  const openMission = (m: Mission) => {
-    if (m.code === "quiz" || m.code === "about_me") {
-      showNotice("곧 열려요", "이 미션 화면은 준비 중이에요.");
-      return;
-    }
-    router.push(missionHref(m));
-  };
+  // 오늘 칸 · 지난 미완료 칸: 상세 바텀시트 → [○○하러 가기]로 그 기능 화면
+  const openMission = (m: Mission) => setSheet(m);
 
   const done = data ? doneCount(data) : 0;
   const daysLeft = data ? Math.max(0, MISSION_DAYS - data.today_day + 1) : MISSION_DAYS;
@@ -171,6 +164,8 @@ export default function Missions() {
           </>
         )}
       </ScrollView>
+      <MissionSheet mission={sheet} onClose={() => setSheet(null)} />
+      {data && claimed.length > 0 && <MissionComplete items={claimed} missions={data} onDone={() => setClaimed([])} />}
     </View>
   );
 }

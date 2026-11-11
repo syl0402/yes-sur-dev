@@ -7,6 +7,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 import AppIcon from "@/components/AppIcon";
 import DailyPopup from "@/components/DailyPopup";
 import HomeHotVotes from "@/components/HomeHotVotes";
+import MissionComplete, { type Claimed } from "@/components/missions/MissionComplete";
 import WelcomeBanner from "@/components/missions/WelcomeBanner";
 import QuickExplore from "@/components/QuickExplore";
 import SurveyMiniCard from "@/components/SurveyMiniCard";
@@ -17,7 +18,13 @@ import { Text } from "@/components/ui/Text";
 import { type IconName, homeIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
-import { type MyMissions, fetchMyMissions, isMissionActive, isMissionOffToday } from "@/lib/missions";
+import {
+  type MyMissions,
+  claimReadyMissions,
+  fetchMyMissions,
+  isMissionActive,
+  isMissionOffToday,
+} from "@/lib/missions";
 import { hasSeenOnboarding, markOnboardingSeen } from "@/lib/onboarding";
 import { supabase } from "@/lib/supabase";
 import { type SurveyCard, fetchOpenSurveys, sortSurveys } from "@/lib/surveys";
@@ -92,24 +99,35 @@ async function fetchHome(): Promise<HomeData> {
 
 // 미션 기간이면 앱을 켤 때 한 번 미션 화면을 전체로 띄운다 (첫 사용 안내 다음, "오늘 하루 보지 않기"면 안 띄움)
 // 이때 오늘의 질문 팝업은 띄우지 않는다 (2026-11-12 결정: 미션 기간엔 미션 화면만)
-async function maybeOpenMissions(d: HomeData) {
-  if (!d.missions || missionShownThisLaunch) return;
+// 띄웠으면 true (그러면 자동 지급은 미션 화면이 한다)
+async function maybeOpenMissions(d: HomeData): Promise<boolean> {
+  if (!d.missions || missionShownThisLaunch) return false;
   const { data: auth } = await supabase.auth.getUser();
   const uid = auth.user?.id;
-  if (!uid || !hasSeenOnboarding(uid) || isMissionOffToday(uid)) return;
+  if (!uid || !hasSeenOnboarding(uid) || isMissionOffToday(uid)) return false;
   missionShownThisLaunch = true;
   router.push("/missions");
+  return true;
 }
 
 export default function Home() {
   const [data, setData] = useState<HomeData | null>(null);
+  // 미션을 하고 홈에 돌아왔을 때 자동으로 받은 미션 (완료 팝업, 2026-11-12)
+  const [claimed, setClaimed] = useState<{ items: Claimed[]; missions: MyMissions } | null>(null);
 
   // 탭에 돌아올 때마다 새로 불러온다 (응답 후 포인트·목록이 바로 바뀌게)
   useFocusEffect(
     useCallback(() => {
-      fetchHome().then((d) => {
+      fetchHome().then(async (d) => {
         setData(d);
-        maybeOpenMissions(d);
+        if (await maybeOpenMissions(d)) return;
+        // 조건을 채운 미션은 홈에서도 자동으로 받기 → 완료 팝업 (서버가 확인·지급)
+        if (!d.missions?.missions.some((m) => m.status === "ready")) return;
+        const items = await claimReadyMissions(d.missions);
+        if (items.length === 0) return;
+        const fresh = await fetchMyMissions();
+        if (fresh) setClaimed({ items, missions: fresh });
+        setData(await fetchHome());
       });
       // 학생이 이 폰에서 처음 들어왔으면 첫 사용 안내 (업데이트 후 기존 회원 포함, 한 번만)
       supabase.auth.getUser().then(({ data: auth }) => {
@@ -221,6 +239,7 @@ export default function Home() {
       {/* 오늘의 질문: 홈 카드 대신 하루 한 번 팝업 (2026-11-10). 답하면 포인트가 바뀌니 홈을 다시 불러온다 */}
       {/* 미션 기간에는 오늘의 질문 팝업 대신 미션 화면 (2026-11-12) */}
       <DailyPopup enabled={!data.missions} onAnswered={() => fetchHome().then(setData)} />
+      {claimed && <MissionComplete items={claimed.items} missions={claimed.missions} onDone={() => setClaimed(null)} />}
 
       <SectionHeader
         title="최신 설문 & 마감 임박"

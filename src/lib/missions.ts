@@ -2,6 +2,8 @@
 // 앱은 "보상 받기"만 요청한다. 완료 여부와 금액은 서버가 정한다
 import type { Href } from "expo-router";
 
+import type { IconName } from "@/constants/icons";
+
 import { supabase } from "@/lib/supabase";
 
 // locked: 아직 안 열림 · open: 열림(아직 안 함) · ready: 보상 받기 가능 · done: 받음
@@ -120,6 +122,18 @@ export const MISSION_LABELS: Record<string, { cat: string; short: string }> = {
   feedback_1: { cat: "마이", short: "의견\n보내기" },
 };
 
+// 분류별 아이콘 (완료 팝업 "내일 열리는 미션" 상자)
+export const CATEGORY_ICONS: Record<string, IconName> = {
+  OX퀴즈: "help-circle",
+  "오늘의 질문": "chatbubble-ellipses",
+  "설문 참여": "fig-document",
+  프로필: "fig-person",
+  커뮤니티: "fig-chat",
+  "데이터 허브": "fig-poll",
+  "설문 등록": "fig-pen",
+  마이: "mail",
+};
+
 export function missionLabel(m: Mission): { cat: string; short: string } {
   return MISSION_LABELS[m.code] ?? { cat: `DAY ${m.day}`, short: m.title };
 }
@@ -144,4 +158,26 @@ export function setMissionOffToday(userId: string) {
   } catch {
     // 저장 실패는 무시 (다음에 앱을 켜면 한 번 더 뜰 뿐)
   }
+}
+
+// 상세 바텀시트: 해 보는 방법 3단계 + 버튼 글자 (2026-11-12 디자인 시안 Sheet.dc.html). 표에 없는 미션은 기본 문구
+export const MISSION_GUIDES: Record<string, { steps: [string, string, string]; cta: string }> = {
+  quiz: { steps: ["OX 문제 5개를 읽어요", "O 또는 X를 골라요", "모두 맞히면 미션 완료!"], cta: "퀴즈 풀러 가기" },
+  daily_1: { steps: ["오늘의 질문을 읽어요", "둘 중 하나를 골라요", "답하면 미션 완료!"], cta: "답하러 가기" },
+  survey_1: { steps: ["설문 탭에서 관심 가는 설문을 골라요", "끝까지 성실하게 응답해요", "제출하면 미션 완료!"], cta: "설문 보러 가기" },
+  about_me: { steps: ["관심 카테고리를 골라요", "생활 정보도 골라요 (선택)", "저장하면 미션 완료!"], cta: "알려 주러 가기" },
+  vote_1: { steps: ["커뮤니티 탭에서 투표를 골라요", "궁금한 질문을 하나 열어요", "하나를 선택하면 미션 완료!"], cta: "투표하러 가기" },
+  data_view_1: { steps: ["데이터 탭에서 결과를 골라요", "무료 결과나 포인트로 열람해요", "결과를 열면 미션 완료!"], cta: "결과 보러 가기" },
+  survey_2: { steps: ["설문 탭에서 설문을 골라요", "끝까지 성실하게 응답해요", "응답한 설문이 2개가 되면 완료!"], cta: "설문 보러 가기" },
+  worldcup_1: { steps: ["커뮤니티 탭에서 월드컵을 골라요", "끝까지 하나씩 골라요", "우승을 정하면 미션 완료!"], cta: "월드컵 하러 가기" },
+  post_1: { steps: ["글 쓰기 화면을 열어요", "밸런스·골라 줘 같은 투표를 만들어요", "올리면 미션 완료!"], cta: "글 쓰러 가기" },
+  comment_1: { steps: ["커뮤니티 글이나 오늘의 질문을 열어요", "하고 싶은 말을 적어요", "댓글을 달면 미션 완료!"], cta: "댓글 달러 가기" },
+  survey_create_1: { steps: ["설문 등록 화면을 열어요", "질문을 만들고 대상을 정해요", "등록하면 미션 완료! (보상이 등록비보다 커요)"], cta: "설문 만들러 가기" },
+  survey_3: { steps: ["설문 탭에서 설문을 골라요", "끝까지 성실하게 응답해요", "응답한 설문이 3개가 되면 완료!"], cta: "설문 보러 가기" },
+  daily_3: { steps: ["오늘의 질문에 답해요", "하루에 한 번, 연속이 아니어도 돼요", "모두 3번 답하면 미션 완료!"], cta: "답하러 가기" },
+  feedback_1: { steps: ["의견 보내기 화면을 열어요", "불편한 점이나 바라는 점을 적어요", "보내면 미션 완료!"], cta: "의견 보내러 가기" },
+};
+
+export function missionGuide(m: Mission): { steps: [string, string, string]; cta: string } {
+  return MISSION_GUIDES[m.code] ?? { steps: ["아래 버튼을 눌러요", "미션 내용을 해요", "돌아오면 미션 완료!"], cta: "하러 가기" };
 }
