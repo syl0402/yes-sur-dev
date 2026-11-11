@@ -89,7 +89,9 @@ export default function Missions() {
   const openMission = (m: Mission) => setSheet(m);
 
   const done = data ? doneCount(data) : 0;
-  const daysLeft = data ? Math.max(0, MISSION_DAYS - data.today_day + 1) : MISSION_DAYS;
+  // 시작일(11/14) 전이면 today_day가 0 이하 → "미션 시작까지 n일" (2026-11-12, point_rules mission_launch_date)
+  const beforeStart = !!data && data.today_day < 1;
+  const daysLeft = data ? (beforeStart ? 1 - data.today_day : Math.max(0, MISSION_DAYS - data.today_day + 1)) : MISSION_DAYS;
   const roadWidth = Math.min(width, 430) - spacing.md * 2;
 
   return (
@@ -126,7 +128,7 @@ export default function Missions() {
                 <Text style={styles.bigTitleLime}>14일</Text> 웰컴 미션
               </Text>
               <Text style={styles.daysLeft}>
-                미션 종료까지 <Text style={styles.daysLeftPill}> {daysLeft}일 </Text> 남았어요!
+                {beforeStart ? "미션 시작까지" : "미션 종료까지"} <Text style={styles.daysLeftPill}> {daysLeft}일 </Text> 남았어요!
               </Text>
             </View>
 
