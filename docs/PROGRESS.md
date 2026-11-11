@@ -271,6 +271,8 @@
 | 항목 | 위치 | 바꿀 조건 | 추가 날짜 |
 | --- | --- | --- | --- |
 | 통합 검색은 앱에서 거르기 (세 목록을 불러와서) | `src/app/search.tsx` | 콘텐츠가 수천 개가 되면 서버 검색(RPC)으로 | 2026-11-10 |
+| 웰컴 미션 완료 알림 = 기본 알림 창 (완료 팝업 전) | `src/app/missions/index.tsx` | 완료 팝업(Complete.dc.html) 만들면 교체 | 2026-11-12 |
+| 웰컴 미션 칸 누르면 바로 기능 화면으로 · OX 퀴즈·나에 대해는 "준비 중" | `src/app/missions/index.tsx` | 상세 바텀시트(Sheet.dc.html)·퀴즈·나에 대해 화면 만들면 교체 | 2026-11-12 |
 | 트렌드 리포트 예고 배너 = 코드로 그린 임시 배너 (날짜 없이 "곧 공개") | `src/components/community/ReportTeaserBanner.tsx` | 디자인팀 배너 이미지가 오면 교체, 첫 리포트가 나오면 실제 리포트로 연결 | 2026-11-10 |
 | 커뮤니티 배너 이미지 2장·연결 탭(투표·월드컵)을 앱에 고정 | `src/components/community/CommunityBanner.tsx` | 운영자가 바꿔야 할 때 배너 표(DB) 추가 (출시 후) | 2026-11-10 |
 | 오늘의 질문 팝업 모양 = 개발팀 임시 시안 (마스코트 + 기존 오늘의 질문 카드) | `src/components/DailyPopup.tsx` | 디자인팀 팝업 시안이 오면 교체 | 2026-11-10 |

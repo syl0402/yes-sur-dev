@@ -51,14 +51,15 @@ function setOffToday(userId: string) {
   }
 }
 
-export default function DailyPopup({ onAnswered }: { onAnswered?: () => void }) {
+// enabled=false: 띄우지 않음 (웰컴 미션 기간에는 미션 화면이 대신 뜬다, 2026-11-12)
+export default function DailyPopup({ onAnswered, enabled = true }: { onAnswered?: () => void; enabled?: boolean }) {
   const [userId, setUserId] = useState<string | null>(null);
   // 알림 받기 줄을 보여 줄지
   const [showPush, setShowPush] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      if (shownThisLaunch) return;
+      if (!enabled || shownThisLaunch) return;
       let cancelled = false;
       (async () => {
         const { data: auth } = await supabase.auth.getUser();
@@ -88,7 +89,7 @@ export default function DailyPopup({ onAnswered }: { onAnswered?: () => void }) 
       return () => {
         cancelled = true;
       };
-    }, []),
+    }, [enabled]),
   );
 
   const close = () => setUserId(null);

@@ -43,6 +43,7 @@
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 | `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
 | `20261031000001_too_fast.sql` | 너무 빠른 응답(문항 수 × `min_seconds_per_question`초 미만)은 확인 문항 오답과 같게 반려, `submit_response`에 `reason`(attention·too_fast) | 2026-10-31 |
+| `20261112000001_welcome_missions.sql` | 웰컴 14일 미션: `missions`(조건 종류+횟수, 보상 등급)·`mission_progress`(1일차 = 미션 화면 처음 연 날)·`mission_claims`(사람·미션 고유)·`profile_extras`(관심사·거주·통학·아르바이트·학적, 본인만), point_rules `mission_s·m·l`·`mission_bonus_week·all`, 포인트 이유 `mission`·`mission_bonus`, 함수 `start_missions`·`get_my_missions`·`claim_mission`(서버가 조건 확인 → 지급 → 1주·14일 보너스)·`submit_mission_quiz`·`save_profile_extras` | 2026-11-12 |
 | `20261110000008_weekly_best_created_at.sql` | `get_weekly_best` 결과에 `created_at` 추가 (홈 인기 투표 NEW 표시용, 고르는 기준 그대로) | 2026-11-10 |
 | `20261110000006_question_options.sql` | 문항 옵션: `questions.is_required`(주관식만 false)·`shuffle_options`, `question_options.kind`(normal·none·other, 문항마다 특별 보기 1개씩). `create_survey` 문항에 required·shuffle·none·other, `submit_response` 선택 주관식 건너뛰기·기타 글(`other_text` 1~100자 → `text_value`)·해당 없음 단독, `get_survey_results` `other_texts`·보기 `kind`, `get_survey_raw` "기타 (직접 입력): 글", `get_survey_for_copy` 옵션 포함 | 2026-11-10 |
 | `20261110000005_tags_hobby.sql` | 태그 2개 추가: 취미(숨김 → 다시 켬)·여가시간(새로). '여행' 뒤, 트렌드·밈은 맨 뒤 → 23개 | 2026-11-10 |

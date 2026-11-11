@@ -77,6 +77,16 @@ const MESSAGES: Record<string, string> = {
   no_daily: "오늘의 질문이 없어요.",
   already_answered: "오늘의 질문에 이미 답했어요.",
   invalid_feedback: "종류를 고르고 내용을 적어 주세요.",
+
+  // 웰컴 미션 (2026-11-12)
+  students_only: "학생 계정만 참여할 수 있어요.",
+  mission_not_started: "미션을 먼저 시작해 주세요.",
+  mission_not_found: "없는 미션이에요.",
+  mission_locked: "아직 열리지 않은 미션이에요.",
+  mission_already_claimed: "이미 보상을 받은 미션이에요.",
+  mission_not_done: "아직 미션을 다 하지 않았어요.",
+  invalid_quiz_answers: "모든 문제에 답해 주세요.",
+  invalid_interests: "관심 카테고리를 하나 이상 골라 주세요.",
   feedback_limit: "오늘은 의견을 충분히 보내 주셨어요. 내일 다시 보내 주세요.",
 
   // 제휴·광고 문의 · 보상 연락처 (2026-11-07)

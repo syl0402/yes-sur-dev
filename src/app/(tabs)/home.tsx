@@ -1,4 +1,4 @@
-// ys-100 홈 · F-201, F-702 (2026-10-31 디자인: 포인트 카드 · 바로가기 · 오늘의 질문 · 마감 임박 설문 · 2026-11-10 피그마 홈 시안: 마스코트 카드 · 바로가기 4칸 · 빠른 탐색 · 추천 설문 · 최신 & 마감 임박 · 인기 투표 · 오늘의 질문 팝업)
+// ys-100 홈 · F-201, F-702 (2026-10-31 디자인: 포인트 카드 · 바로가기 · 오늘의 질문 · 마감 임박 설문 · 2026-11-10 피그마 홈 시안: 마스코트 카드 · 바로가기 4칸 · 빠른 탐색 · 추천 설문 · 최신 & 마감 임박 · 인기 투표 · 오늘의 질문 팝업 · 2026-11-12 웰컴 미션 배너)
 import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
@@ -7,6 +7,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 import AppIcon from "@/components/AppIcon";
 import DailyPopup from "@/components/DailyPopup";
 import HomeHotVotes from "@/components/HomeHotVotes";
+import WelcomeBanner from "@/components/missions/WelcomeBanner";
 import QuickExplore from "@/components/QuickExplore";
 import SurveyMiniCard from "@/components/SurveyMiniCard";
 import SurveyRowCard, { isClosingSoon } from "@/components/SurveyRowCard";
@@ -16,6 +17,7 @@ import { Text } from "@/components/ui/Text";
 import { type IconName, homeIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
+import { type MyMissions, fetchMyMissions, isMissionActive, isMissionOffToday } from "@/lib/missions";
 import { hasSeenOnboarding, markOnboardingSeen } from "@/lib/onboarding";
 import { supabase } from "@/lib/supabase";
 import { type SurveyCard, fetchOpenSurveys, sortSurveys } from "@/lib/surveys";
@@ -28,7 +30,12 @@ type HomeData = {
   surveys: SurveyCard[];
   // 추천 설문 (설문 탭 "추천순" 위에서부터)
   recommended: SurveyCard[];
+  // 웰컴 미션 (학생 · 미션 기간일 때만, 아니면 null)
+  missions: MyMissions | null;
 };
+
+// 이번에 앱을 켠 뒤 미션 화면을 자동으로 띄웠는지 (앱을 완전히 껐다 켜면 처음부터)
+let missionShownThisLaunch = false;
 
 // 포인트 카드 마스코트 (2026-11-10 피그마 홈 시안 145:3866 원본 그림)
 const MASCOT = require("../../../assets/images/mascot-cheer.png");
@@ -57,7 +64,7 @@ function weekStartKst(): string {
 
 // 내 계정 종류·잔액·이번 주 적립, 그리고 내가 참여할 수 있는 마감 임박 설문 (모두 본인·대상 것만 읽힌다)
 async function fetchHome(): Promise<HomeData> {
-  const [{ data: profile }, { data: balance }, { data: earned }, surveys] = await Promise.all([
+  const [{ data: profile }, { data: balance }, { data: earned }, surveys, missions] = await Promise.all([
     supabase.from("profiles").select("account_type").maybeSingle(),
     supabase.rpc("get_my_balance"),
     supabase
@@ -67,7 +74,9 @@ async function fetchHome(): Promise<HomeData> {
       .gt("amount", 0)
       .gte("created_at", weekStartKst()),
     fetchOpenSurveys(),
+    fetchMyMissions(),
   ]);
+  const isStudent = profile?.account_type === "student";
 
   return {
     isOrg: profile?.account_type === "org",
@@ -77,7 +86,19 @@ async function fetchHome(): Promise<HomeData> {
     surveys: pickFresh(surveys.filter((s) => !s.mine)),
     // 관심사 추천은 출시 후 (docs/QUESTIONS.md "관심사 기반 추천 설문"). 지금은 우리 학교 → 마감 가까운 순
     recommended: sortSurveys(surveys.filter((s) => !s.mine), "recommended").slice(0, HOME_SURVEY_COUNT),
+    missions: isStudent && isMissionActive(missions) ? missions : null,
   };
+}
+
+// 미션 기간이면 앱을 켤 때 한 번 미션 화면을 전체로 띄운다 (첫 사용 안내 다음, "오늘 하루 보지 않기"면 안 띄움)
+// 이때 오늘의 질문 팝업은 띄우지 않는다 (2026-11-12 결정: 미션 기간엔 미션 화면만)
+async function maybeOpenMissions(d: HomeData) {
+  if (!d.missions || missionShownThisLaunch) return;
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid || !hasSeenOnboarding(uid) || isMissionOffToday(uid)) return;
+  missionShownThisLaunch = true;
+  router.push("/missions");
 }
 
 export default function Home() {
@@ -86,7 +107,10 @@ export default function Home() {
   // 탭에 돌아올 때마다 새로 불러온다 (응답 후 포인트·목록이 바로 바뀌게)
   useFocusEffect(
     useCallback(() => {
-      fetchHome().then(setData);
+      fetchHome().then((d) => {
+        setData(d);
+        maybeOpenMissions(d);
+      });
       // 학생이 이 폰에서 처음 들어왔으면 첫 사용 안내 (업데이트 후 기존 회원 포함, 한 번만)
       supabase.auth.getUser().then(({ data: auth }) => {
         const uid = auth.user?.id;
@@ -135,17 +159,29 @@ export default function Home() {
               <Text style={styles.heroLabel}>내 포인트</Text>
               <Text style={styles.heroValue}>{formatPoints(data.balance)}</Text>
             </View>
-            <View style={styles.heroWeek}>
-              <AppIcon name={homeIcons.star} size={12} color={colors.accent} />
-              <Text style={styles.heroWeekText}>
-                {data.weekEarned > 0
-                  ? `이번 주 ${formatPoints(data.weekEarned)}를 모았어요`
-                  : "설문에 답하고 포인트를 모아 보세요"}
-              </Text>
-            </View>
+            {data.missions ? (
+              // 웰컴 기간: 라임 "웰컴 미션으로 최대 ○P 더 받을 수 있어요 ›" (2026-11-12 디자인 시안)
+              <Pressable onPress={() => router.push("/missions")} hitSlop={8} style={styles.heroWeek}>
+                <Text style={styles.heroMission}>
+                  웰컴 미션으로 최대 {formatPoints(Math.max(0, data.missions.total - data.missions.earned))} 더 받을 수 있어요 ›
+                </Text>
+              </Pressable>
+            ) : (
+              <View style={styles.heroWeek}>
+                <AppIcon name={homeIcons.star} size={12} color={colors.accent} />
+                <Text style={styles.heroWeekText}>
+                  {data.weekEarned > 0
+                    ? `이번 주 ${formatPoints(data.weekEarned)}를 모았어요`
+                    : "설문에 답하고 포인트를 모아 보세요"}
+                </Text>
+              </View>
+            )}
           </>
         )}
       </Pressable>
+
+      {/* 웰컴 미션 배너 (미션 기간 학생만) */}
+      {data.missions && <WelcomeBanner missions={data.missions} />}
 
       {/* 바로가기 4칸 (단체는 응답하지 않으니 설문 참여 없음) */}
       <View style={styles.shortcuts}>
@@ -183,7 +219,8 @@ export default function Home() {
       )}
 
       {/* 오늘의 질문: 홈 카드 대신 하루 한 번 팝업 (2026-11-10). 답하면 포인트가 바뀌니 홈을 다시 불러온다 */}
-      <DailyPopup onAnswered={() => fetchHome().then(setData)} />
+      {/* 미션 기간에는 오늘의 질문 팝업 대신 미션 화면 (2026-11-12) */}
+      <DailyPopup enabled={!data.missions} onAnswered={() => fetchHome().then(setData)} />
 
       <SectionHeader
         title="최신 설문 & 마감 임박"
@@ -251,16 +288,17 @@ const styles = StyleSheet.create({
     borderRadius: 89,
     backgroundColor: colors.onPrimaryPlanet,
   },
-  // 마스코트 발밑 그림자 (흰색 37% 타원, 살짝 기울임)
+  // 마스코트 발밑 그림자 (흰색 37% 타원 64 × 18, 살짝 기울임)
+  // 납작한 상자에 둥글기를 주면 알약 모양이 되므로, 동그라미를 위아래로 눌러 진짜 타원으로 만든다 (2026-11-11)
   heroShadow: {
     position: "absolute",
     right: 21,
-    bottom: 41,
+    bottom: 18,
     width: 64,
-    height: 18,
+    height: 64,
     borderRadius: 32,
     backgroundColor: colors.onPrimaryPlanet,
-    transform: [{ rotate: "-13deg" }],
+    transform: [{ rotate: "-13deg" }, { scaleY: 18 / 64 }],
   },
   // 마스코트 (피그마 151 × 110, -9.4도 기울임. 원본 그림 비율 1264 × 848)
   heroMascot: {
@@ -296,6 +334,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+  },
+  heroMission: {
+    fontSize: fontSize.small + 1,
+    fontWeight: "700",
+    color: colors.accent,
   },
   heroWeekText: {
     fontSize: fontSize.small,

@@ -72,6 +72,16 @@ export const menuIcons = {
   logout: "log-out-outline",
 } satisfies Record<string, IconName>;
 
+// 웰컴 미션 (2026-11-12)
+export const missionIcons = {
+  check: "checkmark",
+  lock: "lock-closed",
+  gift: "gift",
+  back: "chevron-back",
+  close: "close",
+  forward: "chevron-forward",
+} satisfies Record<string, IconName>;
+
 // 화면 곳곳의 작은 표시 아이콘 (2026-11-10, 기능 이모지 → 선 아이콘)
 export const uiIcons = {
   search: "fig-search",
