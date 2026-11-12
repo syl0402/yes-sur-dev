@@ -20,18 +20,21 @@ type Props = {
   survey: SurveyCard;
   // 태그를 눌렀을 때 (설문 탭: 그 자리에서 걸러 보기). 없으면 설문 탭으로 이동해서 걸러 보기
   onTagPress?: (tag: Tag) => void;
+  // 미리보기 (설문 등록 ④ "응답자에게 이렇게 보여요"): 눌러도 아무 일 없음 (2026-11-13)
+  preview?: boolean;
 };
 
-export default function SurveyListCard({ survey: s, onTagPress }: Props) {
+export default function SurveyListCard({ survey: s, onTagPress, preview }: Props) {
   const timeLeft = formatTimeLeft(s.closes_at);
   const created = formatShortDate(s.created_at);
   const ago = formatAgo(s.created_at);
-  const pressTag =
-    onTagPress ??
+  const pressTag = preview
+    ? () => {}
+    : onTagPress ??
     ((t: Tag) => router.navigate({ pathname: "/surveys", params: { tags: encodeTags([t]) } }));
   return (
     <Card
-      onPress={() => router.push({ pathname: "/survey/[id]", params: { id: String(s.id) } })}
+      onPress={preview ? undefined : () => router.push({ pathname: "/survey/[id]", params: { id: String(s.id) } })}
       style={[styles.card, s.mine && styles.mineCard]}
     >
       {/* 표시 알약 · 남은 시간 / 제목 / #태그 */}

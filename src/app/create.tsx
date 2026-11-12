@@ -39,7 +39,7 @@ import {
   TITLE_MIN,
   toRpcQuestions,
 } from "@/lib/surveyDraft";
-import { fetchTagSuggestions, fetchTags, formatTag, type Tag } from "@/lib/tags";
+import { fetchTagSuggestions, fetchTags, type Tag } from "@/lib/tags";
 
 const STEP_COUNT = 4;
 
@@ -96,6 +96,8 @@ type Setup = {
   // 학생 닉네임 (작성자 표시 고르기)
   nickname: string | null;
   hasSchool: boolean;
+  // 내 학교 이름 (확인 단계 미리보기 카드 "중앙대생만" 알약, 2026-11-13)
+  schoolName: string;
   balance: number;
   // 가장 작은 설문(1문항·최소 인원)의 등록비. 이것도 못 내면 작성 전에 안내한다
   minCost: number;
@@ -108,7 +110,7 @@ async function fetchSetup(): Promise<Setup> {
     fetchRules(CREATE_RULE_KEYS),
     supabase.from("survey_categories").select("id, name").order("sort_order"),
     fetchTags(),
-    supabase.from("profiles").select("account_type, university_id, nickname").maybeSingle(),
+    supabase.from("profiles").select("account_type, university_id, nickname, universities(name)").maybeSingle(),
     supabase.rpc("get_my_balance"),
     supabase.from("organizations").select("name, kind, universities(name)").maybeSingle(),
     fetchTagSuggestions(),
@@ -130,6 +132,9 @@ async function fetchSetup(): Promise<Setup> {
     orgName: isOrg ? orgName : null,
     nickname: isOrg ? null : (profile?.nickname ?? null),
     hasSchool: profile?.university_id != null,
+    schoolName:
+      ((Array.isArray(profile?.universities) ? profile?.universities[0] : profile?.universities) as { name: string } | null)
+        ?.name ?? "",
     balance: typeof balance === "number" ? balance : 0,
     minCost: isOrg ? rules.cost_survey_create_org : rules.price_1q * rules.survey_min_target,
   };
@@ -314,12 +319,6 @@ export default function CreateSurvey() {
     });
   };
 
-  // 확인 단계에 보일 "카테고리 · #태그"
-  const tagNames = setup.tags.filter((t) => (draft.tagIds ?? []).includes(t.id)).map((t) => formatTag(t.name));
-  const categoryName = [setup.categories.find((c) => c.id === draft.categoryId)?.name ?? "", ...tagNames]
-    .filter(Boolean)
-    .join(" · ");
-
   // 오른쪽 위 [임시저장]: 지금 내용을 이 폰 임시저장함에 저장
   const canSave = !isBlankDraft(draft) && !sending;
   const saveNow = () => {
@@ -383,13 +382,16 @@ export default function CreateSurvey() {
           <ConfirmStep
             draft={draft}
             rules={rules}
-            categoryName={categoryName}
+            category={setup.categories.find((c) => c.id === draft.categoryId)?.name ?? ""}
+            tags={setup.tags.filter((t) => (draft.tagIds ?? []).includes(t.id))}
+            schoolName={setup.schoolName}
             cost={cost}
             balance={setup.balance}
             isOrg={setup.isOrg}
             orgName={setup.orgName}
             nickname={setup.nickname}
             onChange={update}
+            onGoStep={setStep}
           />
         )}
       </ScrollView>
@@ -406,7 +408,7 @@ export default function CreateSurvey() {
           />
         )}
         <Button
-          title={(!stepOk && blockedReason(step, draft, rules, affordable)) || (step === STEP_COUNT ? "등록하기" : "다음")}
+          title={(!stepOk && blockedReason(step, draft, rules, affordable)) || (step === STEP_COUNT ? (cost > 0 ? `${formatPoints(cost)}로 등록하기` : "등록하기") : "다음")}
           onPress={goNext}
           disabled={!stepOk}
           loading={sending}
