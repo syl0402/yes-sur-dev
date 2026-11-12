@@ -1,6 +1,6 @@
 // ys-100 홈 · F-201, F-702 (2026-10-31 디자인: 포인트 카드 · 바로가기 · 오늘의 질문 · 마감 임박 설문 · 2026-11-10 피그마 홈 시안: 마스코트 카드 · 바로가기 4칸 · 빠른 탐색 · 추천 설문 · 최신 & 마감 임박 · 인기 투표 · 오늘의 질문 팝업 · 2026-11-12 웰컴 미션 배너)
 import { Image } from "expo-image";
-import { router, useFocusEffect } from "expo-router";
+import { type Href, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
@@ -22,6 +22,7 @@ import {
   type MyMissions,
   claimReadyMissions,
   fetchMyMissions,
+  setPendingStamp,
   isMissionActive,
   isMissionOffToday,
 } from "@/lib/missions";
@@ -42,6 +43,9 @@ type HomeData = {
   // 웰컴 미션 (학생 · 미션 기간일 때만, 아니면 null)
   missions: MyMissions | null;
 };
+
+// 포인트 내역 (points-history.tsx). 개발 서버가 경로 목록을 늦게 갱신해 타입 오류가 나는 일이 있어 Href로 고정
+const POINTS_HISTORY_HREF = "/points-history" as Href;
 
 // 이번에 앱을 켠 뒤 미션 화면을 자동으로 띄웠는지 (앱을 완전히 껐다 켜면 처음부터)
 let missionShownThisLaunch = false;
@@ -140,6 +144,8 @@ export default function Home() {
         if (items.length === 0) return;
         const fresh = await fetchMyMissions();
         if (fresh) setClaimed({ items, missions: fresh });
+        // 다음에 미션 화면을 열 때 그 칸에 도장
+        setPendingStamp(items[items.length - 1].mission.code);
         setData(await fetchHome());
       });
       // 학생이 이 폰에서 처음 들어왔으면 첫 사용 안내 (업데이트 후 기존 회원 포함, 한 번만)
@@ -173,7 +179,8 @@ export default function Home() {
       contentContainerStyle={styles.container}
     >
       {/* 내 포인트 (단체는 응답·적립이 없어서 안내로 대신). 누르면 마이 탭의 포인트 내역으로 */}
-      <Pressable style={styles.hero} onPress={() => router.navigate({ pathname: "/my", params: { tab: "ledger" } })} disabled={data.isOrg}>
+      {/* 누르면 포인트 내역 화면으로 바로 (2026-11-13 팀 제안: 마이 탭 대신) */}
+      <Pressable style={styles.hero} onPress={() => router.push(POINTS_HISTORY_HREF)} disabled={data.isOrg}>
         {/* 오른쪽 아래: 행성(큰 원) 위에 선 마스코트 (2026-11-10 피그마 홈 시안) */}
         <View style={styles.heroPlanet} />
         <View style={styles.heroShadow} />
@@ -190,23 +197,15 @@ export default function Home() {
               <Text style={styles.heroLabel}>내 포인트</Text>
               <Text style={styles.heroValue}>{formatPoints(data.balance)}</Text>
             </View>
-            {data.missions ? (
-              // 웰컴 기간: 라임 "웰컴 미션으로 최대 ○P 더 받을 수 있어요 ›" (2026-11-12 디자인 시안)
-              <Pressable onPress={() => router.push("/missions")} hitSlop={8} style={styles.heroWeek}>
-                <Text style={styles.heroMission}>
-                  웰컴 미션으로 최대 {formatPoints(Math.max(0, data.missions.total - data.missions.earned))} 더 받을 수 있어요 ›
-                </Text>
-              </Pressable>
-            ) : (
-              <View style={styles.heroWeek}>
-                <AppIcon name={homeIcons.star} size={12} color={colors.accent} />
-                <Text style={styles.heroWeekText}>
-                  {data.weekEarned > 0
-                    ? `이번 주 ${formatPoints(data.weekEarned)}를 모았어요`
-                    : "설문에 답하고 포인트를 모아 보세요"}
-                </Text>
-              </View>
-            )}
+            {/* 이번 주 모은 포인트 (2026-11-13: 웰컴 미션 문구 대신 원래대로. 미션은 아래 배너로) */}
+            <View style={styles.heroWeek}>
+              <AppIcon name={homeIcons.star} size={12} color={colors.accent} />
+              <Text style={styles.heroWeekText}>
+                {data.weekEarned > 0
+                  ? `이번 주 ${formatPoints(data.weekEarned)}를 모았어요`
+                  : "설문에 답하고 포인트를 모아 보세요"}
+              </Text>
+            </View>
           </>
         )}
       </Pressable>
@@ -366,11 +365,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-  },
-  heroMission: {
-    fontSize: fontSize.small + 1,
-    fontWeight: "700",
-    color: colors.accent,
   },
   heroWeekText: {
     fontSize: fontSize.small,
