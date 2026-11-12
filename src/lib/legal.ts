@@ -8,6 +8,8 @@ export const LEGAL_URLS = {
   terms: "https://vaulted-request-542.notion.site/40907def8cbd80218caed27f52f8007f",
   privacy: "https://vaulted-request-542.notion.site/40907def8cbd802f9b65e1ea7dd7bc1b",
   deletion: "https://vaulted-request-542.notion.site/40907def8cbd8006b238ebc61ed8eaba",
+  // 아동 안전 표준 (2026-11-13 게시, Google Play 아동 안전 표준 선언 URL. 앱 화면에는 아직 링크 없음)
+  childSafety: "https://vaulted-request-542.notion.site/41607def8cbd80afa788db85dbd3557d",
 };
 
 export type LegalDoc = keyof typeof LEGAL_URLS;

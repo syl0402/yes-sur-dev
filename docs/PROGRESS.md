@@ -395,6 +395,8 @@ update organizations set reject_reason = '사유' where id = (select id from aut
 
 ## 출시 전에 할 일
 
+- [x] **2026-11-13 Play 비공개 테스트 심사 제출** (1.0.1 빌드 3, 테스터 이메일 목록 · 대한민국). 통과일 = 테스트 시작일. 앞으로 Play 테스터용 원격 업데이트는 `--channel production`도 함께 (팀원 APK는 preview)
+- [ ] 다음에 앱을 다시 빌드할 때 (2026-11-13): `npx expo install --check`로 Expo 부품 15개 버전 맞추기 (expo doctor 경고, 마지막 숫자만 낮음 · 지금 빌드는 정상)
 - [ ] **테스트 시작일 아침 (Google 검토 통과 → 테스터 들어오기 전)**: `supabase/seed/test_start.sql` 1~6번 차례로 실행 (미션 시작일·미리보기 초기화, 개발 설문 전부 삭제, 개발용 오늘의 질문 삭제, result_min_count 5, 공식 설문 10개). 전날까지 팀 메일로 단체 가입 + dev_tools 11번. 아래 11/13·11/14 항목들을 이 파일로 묶음 (2026-11-13)
 - [ ] 글자 크기 정리 (2026-11-12): 화면에 숫자로 직접 쓴 글자 크기(24·23·20 등, 약 86곳)를 `theme.ts` fontSize에 이름 붙여 한꺼번에 정리. 규칙 "글꼴은 theme.ts에서만" 맞추기
 - [ ] 아래 선택 창 통일 (2026-11-12): `YearPicker`·`SelectButton`도 공용 `BottomSheet`로 (지금은 각자 모양)

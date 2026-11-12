@@ -31,10 +31,13 @@ delete from public.point_ledger
    and split_part(ref_id, ':', 1) in (
      select s.id::text from public.surveys s
        join public.profiles p on p.id = s.owner_id
-      where p.role is distinct from 'admin');
+      where p.role is distinct from 'admin' and s.id <> 98);
+-- 98 = 학생이 올린 식습관 설문 (2026-11-13 남기기로 함)
 delete from public.surveys s
  using public.profiles p
- where p.id = s.owner_id and p.role is distinct from 'admin';
+ where p.id = s.owner_id and p.role is distinct from 'admin' and s.id <> 98;
+-- 심사 기간에 데이터 탭을 채우려고 다시 올린 [예시] 설문(demo_hub.sql)은 작성자와 상관없이 지운다 (2026-11-13)
+delete from public.surveys where title like '[예시]%';
 -- 작성자 프로필이 없는(탈퇴한) 설문도 지운다
 delete from public.surveys s
  where not exists (select 1 from public.profiles p where p.id = s.owner_id);
@@ -43,8 +46,28 @@ select (select count(*) from public.surveys) as surveys_left_official_only,
        (select count(*) from public.surveys s join public.profiles p on p.id = s.owner_id where p.role = 'admin') as official;
 
 
+-- ── 2-1. 공식 설문 마감 연장 (테스트 시작 때 진행 중이어야 함, 2026-11-13) ──────
+-- 진행 중인 공식 설문 중 마감이 7일 안으로 남은 것은 오늘부터 7일 뒤로 미룬다 (이미 마감 처리된 것은 그대로)
+update public.surveys s
+   set closes_at = now() + interval '7 days'
+  from public.profiles p
+ where p.id = s.owner_id and p.role = 'admin'
+   and s.status = 'open'
+   and s.response_count < s.target_responses
+   and (s.closes_at is null or s.closes_at < now() + interval '7 days');
+
+select s.id, left(s.title, 30) as title, s.status,
+       to_char(s.closes_at at time zone 'Asia/Seoul', 'MM-DD HH24:MI') as closes
+  from public.surveys s join public.profiles p on p.id = s.owner_id
+ where p.role = 'admin'
+ order by s.id;
+
+
 -- ── 3. 개발용 오늘의 질문 지우기 (어제까지) ─────────────────────────
--- 오늘·앞으로의 질문(기획팀 검토본)은 남긴다. 지운 질문의 답·댓글도 같이 지워진다
+-- 오늘·앞으로의 질문(기획팀 검토본)은 남긴다. 답은 같이 지워지고, 댓글은 연결이 따로라 먼저 지운다
+delete from public.comments
+ where target_type = 'daily'
+   and target_id in (select id from public.daily_questions where day < (now() at time zone 'Asia/Seoul')::date);
 delete from public.daily_questions
  where day < (now() at time zone 'Asia/Seoul')::date;
 
@@ -58,8 +81,10 @@ select key, value from public.point_rules where key = 'result_min_count';
 
 
 -- ── 5. 공식 설문 10개 올리기 ────────────────────────────────────────
--- ⚠️ 2번 결과의 official이 0일 때만. 이미 공식 설문이 있으면 건너뛴다 (두 번 올리면 같은 설문이 둘)
--- supabase/seed/official_surveys.sql 파일 전체를 복사해서 실행 (한 번만!)
+-- 11/9에 올린 공식 9개와는 다른 설문 10개 (3일 마감 3개 → 테스트 3일째쯤 데이터 탭 첫 결과)
+-- ⚠️ 한 번만! 아래 결과가 0이면 실행, 1 이상이면 이미 올린 것이라 건너뛴다
+select count(*) as already_uploaded from public.surveys where title = '점심, 주로 어디서 먹어요?';
+-- → 0이면 supabase/seed/official_surveys.sql 파일 전체를 복사해서 실행
 
 
 -- ── 6. 최종 확인 ────────────────────────────────────────────────────

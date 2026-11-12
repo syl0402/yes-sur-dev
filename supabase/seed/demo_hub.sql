@@ -130,6 +130,13 @@ begin
       end loop;
     end loop;
 
+    -- 3-1. 확인 문항(5문항 이상이면 서버가 자동으로 넣음)에 정답 (2026-11-13: 안 넣으면 결과에서 모든 응답이 빠져 "응답 0명")
+    insert into public.answers (response_id, question_id, option_ids)
+    select r.id, q.id, array[q.correct_option_id]
+      from public.responses r
+      join public.questions q on q.survey_id = r.survey_id and q.is_attention_check
+     where r.survey_id = v_id and r.status = 'confirmed';
+
     -- 4. 응답 수 맞추고 마감 (마감 시각은 며칠 전으로)
     update public.surveys
        set response_count = (select count(*) from public.responses where survey_id = v_id and status = 'confirmed'),
