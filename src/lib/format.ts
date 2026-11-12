@@ -47,6 +47,15 @@ export function formatDate(iso: string): string {
   return `${d.getFullYear()}.${mm}.${dd}`;
 }
 
+// 마감 D-day: "D-4" / 하루가 안 남았으면 "오늘" / 지났으면 "마감" / 마감일이 없으면 "-" (2026-11-12 설문 상세 시안)
+export function formatDday(closesAt: string | null): string {
+  if (!closesAt) return "-";
+  const ms = new Date(closesAt).getTime() - Date.now();
+  if (ms <= 0) return "마감";
+  const days = Math.floor(ms / (24 * 60 * 60 * 1000));
+  return days >= 1 ? `D-${days}` : "오늘";
+}
+
 // 마감까지 남은 시간: "3일 남음" / "5시간 남음" / "곧 마감" / "마감" (마감일이 없으면 빈 문자열)
 export function formatTimeLeft(closesAt: string | null): string {
   if (!closesAt) return "";

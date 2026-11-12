@@ -47,6 +47,8 @@ export const passwordIcons = {
 // 화면 위쪽 뒤로 가기·나가기 (2026-11-03, "나가기" 글자 대신 화살표로 통일)
 export const headerIcons = {
   back: "arrow-back",
+  // 설문 응답 나가기 X (2026-11-12 설문 흐름 시안)
+  close: "close",
 } satisfies Record<string, IconName>;
 
 // 마이 탭 바로가기 (2026-11-10, 이모지 → 아이콘)
@@ -104,6 +106,11 @@ export const uiIcons = {
   alert: "alert-circle-outline",
   admin: "construct-outline",
   chart: "bar-chart-outline",
+  // 설문 상세·응답 (2026-11-12 설문 흐름 시안): 인증 단체 · 응답 대상 · 결과 공개 안내 · 고른 보기 체크
+  verified: "checkmark-circle",
+  audience: "people-outline",
+  privacy: "shield-checkmark-outline",
+  check: "checkmark",
 } satisfies Record<string, IconName>;
 
 // 결과 "핵심 인사이트" 아이콘 (2026-11-10, 이모지 → 선 아이콘). 키는 인사이트 문장을 만드는 쪽의 이모지

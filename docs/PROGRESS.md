@@ -283,7 +283,6 @@
 | 단체 설문은 "나만 보기" 불가 (결과 공개 조건으로 무료) | `supabase/migrations/20261030000013_org_public.sql` (트리거), `src/components/create/SettingsStep.tsx`, `src/app/survey/results.tsx`, `src/app/signup/terms.tsx`(단체 약관 문구) | Q14 기획팀 답이 오면 "나만 보기 = 유료"로 | 2026-10-30 |
 | 첫 사용 안내 그림 (이모지 + 글자) | `src/app/onboarding.tsx` | 디자인 시안(11/7)이 오면 그림으로 | 2026-10-31 |
 | 빈 화면 그림 (이모지) | `src/components/ui/EmptyState.tsx` | 디자인팀 마스코트(옛썰이) PNG를 받으면 그림으로 | 2026-10-31 |
-| 응답 완료 화면 그림 (🎉·🤔 이모지) | `src/app/survey/done.tsx` | 디자인팀 마스코트 PNG를 받으면 그림으로 | 2026-10-31 |
 | 예시 월드컵 2개 (학식 메뉴 8강, 시험 끝나면 16강) | `supabase/seed/worldcups.sql` | 기획팀이 테스트용 월드컵 목록을 주면 교체 | 2026-11-01 |
 | 탭 아이콘 (Ionicons 기본) | `src/constants/icons.ts` | 디자인팀 아이콘 확정 시 이름만 교체 (직접 그린 아이콘은 `AppIcon.tsx`) | 2026-10-29 |
 | 다크 모드 꺼 둠 (`userInterfaceStyle: "light"`) | `app.json` (JSON이라 주석 불가) | 다크 모드 디자인이 생기면 `"automatic"`으로 | 2026-10-27 |

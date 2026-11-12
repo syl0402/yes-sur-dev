@@ -12,7 +12,16 @@ import { errorMessage } from "@/lib/errors";
 import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
 
-export default function RewardContactForm({ surveyId, note }: { surveyId: number; note: string }) {
+// onSaved: 번호를 남긴 뒤 (응답 완료 화면 바텀시트를 닫고 카드를 "남겼어요"로 바꾼다, 2026-11-12)
+export default function RewardContactForm({
+  surveyId,
+  note,
+  onSaved,
+}: {
+  surveyId: number;
+  note: string;
+  onSaved?: () => void;
+}) {
   const [phone, setPhone] = useState("");
   const [consent, setConsent] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
@@ -43,6 +52,7 @@ export default function RewardContactForm({ surveyId, note }: { surveyId: number
     }
     setPhone("");
     setLeft(true);
+    onSaved?.();
   };
 
   const keep = keepDays !== null ? `남긴 날부터 ${keepDays}일 뒤 자동 삭제` : "일정 기간 뒤 자동 삭제";
@@ -94,7 +104,6 @@ const styles = StyleSheet.create({
   wrap: {
     alignSelf: "stretch",
     gap: spacing.sm,
-    marginTop: spacing.lg,
   },
   done: {
     fontSize: fontSize.small,

@@ -1,17 +1,16 @@
-// ys-112 설문 응답 · F-301~302 (2026-10-31 디자인: 진행 카드 · 질문 카드 · 선택지 카드 · 아래 이전/다음 · 2026-11-10 선택 주관식·기타·해당 없음·섞기)
+// ys-112 설문 응답 · F-301~302 (2026-10-31 디자인 · 2026-11-10 선택 주관식·기타·해당 없음·섞기
+// · 2026-11-12 설문 흐름 시안 respond/Answer: X · 제목 · +nP 칩 / 칸 진행바 / 문항이 오른쪽에서 들어옴 / 이전은 2번부터)
 import { Stack, router, useLocalSearchParams, usePreventRemove } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import Animated, { FadeInRight } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import AppIcon from "@/components/AppIcon";
 import BottomBar from "@/components/ui/BottomBar";
 import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
 import OptionRow from "@/components/ui/OptionRow";
-import ProgressBar from "@/components/ui/ProgressBar";
 import { Text, TextInput } from "@/components/ui/Text";
 import HeaderBack from "@/components/ui/HeaderBack";
-import { homeIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
@@ -113,6 +112,7 @@ function toRpcAnswer(q: Question, a: Answer | undefined) {
 export default function SurveyRespond() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const surveyId = Number(id);
+  const insets = useSafeAreaInsets();
 
   // undefined = 불러오는 중
   const [questions, setQuestions] = useState<Question[] | undefined>(undefined);
@@ -142,8 +142,10 @@ export default function SurveyRespond() {
   // 나가기(상단 버튼·안드로이드 뒤로·밀어서 뒤로) 전에 확인. 임시저장이 없어서 답이 사라진다
   const allowLeave = usePreventRemove(true, ({ repeat }) => {
     showConfirm({
-      title: "응답을 그만둘까요?",
-      message: "고른 답은 저장되지 않아요.",
+      title: "설문을 그만할까요?",
+      message: info
+        ? `지금 나가면 답한 내용이 저장되지 않고\n${formatPoints(info.reward_points)}도 받을 수 없어요.`
+        : "지금 나가면 답한 내용이 저장되지 않아요.",
       okLabel: "나가기",
       cancelLabel: "계속하기",
       destructive: true,
@@ -245,45 +247,51 @@ export default function SurveyRespond() {
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen
-        options={{
-          title: info?.title ?? "설문 응답",
-          headerBackVisible: false,
-          headerLeft: () => <HeaderBack onPress={() => router.back()} />,
-        }}
-      />
+      {/* 위쪽 줄은 직접 그린다: 기본 헤더는 아이폰(iOS 26)에서 버튼마다 유리 거품이 씌워져
+          +nP 알약이 두 겹으로 보였다 (2026-11-12). X · 제목 · +nP 한 줄 (시안 respond/Answer) */}
+      <Stack.Screen options={{ title: info?.title ?? "설문 응답", headerShown: false }} />
+      <View style={[styles.topBar, { paddingTop: insets.top }]}>
+        <View style={styles.topRow}>
+          <View style={styles.closeButton}>
+            <HeaderBack icon="close" label="설문 나가기" onPress={() => router.back()} />
+          </View>
+          <Text style={styles.topTitle} numberOfLines={1}>
+            {info?.title ?? ""}
+          </Text>
+          {info && (
+            <View style={styles.pointChip}>
+              <Text style={styles.pointChipText}>+{formatPoints(info.reward_points)}</Text>
+            </View>
+          )}
+        </View>
+      </View>
 
-      {/* 아이폰 반투명 헤더·키보드 밑으로 내용이 숨지 않게 자동으로 띄운다 */}
+      {/* 키보드 밑으로 입력칸이 숨지 않게 자동으로 띄운다 */}
       <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
         automaticallyAdjustKeyboardInsets
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.container}
       >
-        {/* 진행: 현재 문항 n / 전체 */}
-        <Card>
-          <View style={styles.progressTop}>
-            <Text style={styles.progressLabel}>현재 문항</Text>
-            <Text style={styles.progressCount}>
-              {index + 1} / {questions.length}
-            </Text>
+        {/* 진행: 문항 수만큼 칸 (답한 칸 파랑 · 지금 칸 연파랑) + n / 전체 */}
+        <View style={styles.progressRow}>
+          <View style={styles.segments}>
+            {questions.map((q, i) => (
+              <View
+                key={q.id}
+                style={[
+                  styles.segment,
+                  i === index ? styles.segmentNow : isAnswered(q, answers[q.id]) && answers[q.id] ? styles.segmentDone : null,
+                ]}
+              />
+            ))}
           </View>
-          <ProgressBar value={(index + 1) / questions.length} />
-        </Card>
+          <Text style={styles.progressCount}>
+            <Text style={styles.progressNow}>{index + 1}</Text> / {questions.length}
+          </Text>
+        </View>
 
-        {info && (
-          <View style={styles.metaRow}>
-            <View style={styles.meta}>
-              <AppIcon name={homeIcons.time} size={14} color={colors.textMuted} />
-              <Text style={styles.metaText}>예상 소요 약 {info.est_minutes}분</Text>
-            </View>
-            <View style={styles.reward}>
-              <Text style={styles.rewardText}>지급 예정 {formatPoints(info.reward_points)}</Text>
-            </View>
-          </View>
-        )}
-
-        <Card style={styles.questionCard}>
+        {/* 문항이 바뀔 때마다 오른쪽에서 살짝 밀려 들어온다 (동작 줄이기 설정이면 바로) */}
+        <Animated.View key={question.id} entering={FadeInRight.duration(300)} style={styles.questionArea}>
           <Text style={styles.qNumber}>
             Q{index + 1}
             {question.required ? "" : " · 선택"}
@@ -321,22 +329,27 @@ export default function SurveyRespond() {
           {question.type === "scale" && (
             <View style={styles.scaleBox}>
               <View style={styles.scaleRow}>
-                {SCALE_VALUES.map((v) => {
+                {SCALE_VALUES.map((v, i) => {
                   const on = answer?.scale === v;
                   return (
                     <Pressable
                       key={v}
-                      style={[styles.scaleButton, on && styles.scaleButtonOn]}
+                      style={({ pressed }) => [styles.scaleButton, on && styles.scaleButtonOn, pressed && styles.pressed]}
                       onPress={() => setAnswer({ scale: v })}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: on }}
+                      accessibilityLabel={`${v}점, ${SCALE_LABELS[i]}`}
                     >
                       <Text style={[styles.scaleText, on && styles.scaleTextOn]}>{v}</Text>
                     </Pressable>
                   );
                 })}
               </View>
+              {/* 아래 이름표: 양 끝 + 가운데 */}
               <View style={styles.scaleLabels}>
-                <Text style={styles.hint}>{SCALE_LABELS[0]}</Text>
-                <Text style={styles.hint}>{SCALE_LABELS[SCALE_LABELS.length - 1]}</Text>
+                <Text style={styles.scaleLabel}>{SCALE_LABELS[0]}</Text>
+                <Text style={styles.scaleLabel}>보통</Text>
+                <Text style={styles.scaleLabel}>{SCALE_LABELS[SCALE_LABELS.length - 1]}</Text>
               </View>
             </View>
           )}
@@ -356,25 +369,22 @@ export default function SurveyRespond() {
               </Text>
             </View>
           )}
-        </Card>
-
-        <View style={styles.notice}>
-          <Text style={styles.noticeText}>
-            ✓ 성실하게 응답해 주세요. 성의 없는 응답은 확인 후 포인트가 지급되지 않을 수 있어요.
-          </Text>
-        </View>
+        </Animated.View>
       </ScrollView>
 
+      {/* 이전은 2번 문항부터. 답해야 다음(자동으로 넘어가지 않음). 마지막은 "제출하고 nP 받기" */}
       <BottomBar>
+        {index > 0 && (
+          <Button
+            title="이전"
+            variant="outline"
+            onPress={() => setIndex(index - 1)}
+            disabled={sending}
+            style={styles.prevButton}
+          />
+        )}
         <Button
-          title="이전"
-          variant="outline"
-          onPress={() => setIndex(index - 1)}
-          disabled={index === 0 || sending}
-          style={styles.prevButton}
-        />
-        <Button
-          title={isLast ? "제출" : "다음"}
+          title={isLast ? (info ? `제출하고 ${formatPoints(info.reward_points)} 받기` : "제출하기") : "다음"}
           onPress={isLast ? confirmSubmit : () => setIndex(index + 1)}
           disabled={!isAnswered(question, answer)}
           loading={sending}
@@ -398,74 +408,102 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    padding: spacing.md,
-    gap: spacing.md,
+    paddingTop: spacing.sm,
+    paddingHorizontal: 20,
+    paddingBottom: spacing.xl,
   },
-  progressTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  topBar: {
+    backgroundColor: colors.background,
   },
-  progressLabel: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
-  },
-  progressCount: {
-    fontSize: fontSize.small,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  metaRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: spacing.xs,
-  },
-  meta: {
+  topRow: {
+    height: 56,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
+    paddingLeft: 6,
+    paddingRight: spacing.md,
   },
-  metaText: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
+  // X 버튼 터치 영역 44×44
+  closeButton: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  reward: {
-    paddingVertical: spacing.xs,
+  topTitle: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  pointChip: {
+    paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: radius.pill,
     backgroundColor: colors.accentSoft,
   },
-  rewardText: {
+  pointChipText: {
     fontSize: fontSize.small,
-    fontWeight: "700",
+    fontWeight: "800",
     color: colors.onAccentSoft,
   },
-  questionCard: {
-    padding: spacing.lg,
+  progressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
   },
-  qNumber: {
+  segments: {
+    flex: 1,
+    flexDirection: "row",
+    gap: 4,
+  },
+  segment: {
+    flex: 1,
+    height: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primarySoft,
+  },
+  segmentNow: {
+    backgroundColor: colors.primaryMuted,
+  },
+  segmentDone: {
+    backgroundColor: colors.primary,
+  },
+  progressCount: {
     fontSize: fontSize.small,
     fontWeight: "700",
+    color: colors.iconStrong,
+  },
+  progressNow: {
+    color: colors.primary,
+  },
+  questionArea: {
+    paddingTop: 36,
+  },
+  qNumber: {
+    fontSize: fontSize.label,
+    fontWeight: "800",
     color: colors.primary,
   },
   question: {
-    fontSize: fontSize.title,
-    fontWeight: "700",
+    marginTop: spacing.sm,
+    fontSize: 23,
+    fontWeight: "800",
+    lineHeight: 31,
     color: colors.text,
-    lineHeight: 30,
   },
   hint: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
+    marginTop: spacing.sm,
+    fontSize: fontSize.label,
+    color: colors.iconStrong,
   },
   options: {
-    marginTop: spacing.sm,
-    gap: spacing.sm,
+    marginTop: spacing.lg,
+    gap: 10,
   },
   scaleBox: {
-    marginTop: spacing.sm,
-    gap: spacing.sm,
+    marginTop: 28,
+    gap: 10,
   },
   scaleRow: {
     flexDirection: "row",
@@ -473,32 +511,40 @@ const styles = StyleSheet.create({
   },
   scaleButton: {
     flex: 1,
-    paddingVertical: spacing.md,
+    height: 60,
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     backgroundColor: colors.surface,
-    alignItems: "center",
   },
   scaleButtonOn: {
     borderColor: colors.primary,
-    backgroundColor: colors.primarySoft,
+    backgroundColor: colors.primary,
+  },
+  pressed: {
+    transform: [{ scale: 0.97 }],
   },
   scaleText: {
-    fontSize: fontSize.body,
-    fontWeight: "600",
+    fontSize: 19,
+    fontWeight: "700",
     color: colors.text,
   },
   scaleTextOn: {
     fontWeight: "800",
-    color: colors.primary,
+    color: colors.onPrimary,
   },
   scaleLabels: {
     flexDirection: "row",
     justifyContent: "space-between",
   },
+  scaleLabel: {
+    fontSize: fontSize.small,
+    color: colors.iconStrong,
+  },
   textBox: {
-    marginTop: spacing.sm,
+    marginTop: spacing.lg,
     gap: spacing.sm,
   },
   textInput: {
@@ -506,7 +552,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
     fontSize: fontSize.body,
     color: colors.text,
     textAlignVertical: "top",
@@ -518,25 +565,15 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.primary,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     fontSize: fontSize.body,
     color: colors.text,
   },
-  notice: {
-    padding: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceMuted,
-  },
-  noticeText: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
-    lineHeight: 19,
-  },
   prevButton: {
-    flex: 1,
+    width: 104,
   },
   nextButton: {
-    flex: 2,
+    flex: 1,
   },
   muted: {
     fontSize: fontSize.body,

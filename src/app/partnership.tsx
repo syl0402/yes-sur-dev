@@ -8,7 +8,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
 import PrimaryButton from "@/components/PrimaryButton";
-import OptionRow from "@/components/ui/OptionRow";
+import CheckRow from "@/components/ui/CheckRow";
 import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
@@ -217,12 +217,8 @@ export default function Partnership() {
         </Text>
       </View>
 
-      <OptionRow
-        label="[필수] 개인정보 수집 동의"
-        selected={consent}
-        onPress={() => setConsent(!consent)}
-        multiple
-      />
+      {/* 동의 체크는 다른 화면(보상 연락처)과 같은 작은 체크 줄 (2026-11-12) */}
+      <CheckRow label="[필수] 개인정보 수집 동의" checked={consent} onPress={() => setConsent(!consent)} />
       <Pressable onPress={() => setShowTerms(!showTerms)} hitSlop={8}>
         <Text style={styles.termsLink}>{showTerms ? "내용 접기 ▴" : "내용 보기 ▾"}</Text>
       </Pressable>

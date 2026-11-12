@@ -1,37 +1,41 @@
-// ys-111 설문 상세 · F-205
+// ys-111 설문 상세 · F-205 (2026-11-12 설문 흐름 시안 respond/Main: 요약 3칸 · 남은 자리 막대 · 이런 설문이에요 · 받을 수 있는 보상)
 import { Stack, router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
+import AppIcon from "@/components/AppIcon";
+import LinkedText from "@/components/LinkedText";
 import PrimaryButton from "@/components/PrimaryButton";
-import Button from "@/components/ui/Button";
 import ReportLink from "@/components/ReportLink";
-import RewardNotice from "@/components/RewardNotice";
 import Badge from "@/components/ui/Badge";
 import BottomBar from "@/components/ui/BottomBar";
-import Card from "@/components/ui/Card";
-import StatTile from "@/components/ui/StatTile";
+import Button from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
+import { homeIcons, uiIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
-import { formatAgo, formatPoints, formatTimeLeft } from "@/lib/format";
+import { formatAgo, formatDday, formatPoints } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { fetchSurveyReward } from "@/lib/rewards";
 import { supabase } from "@/lib/supabase";
 import { formatHost, remainingSpots, schoolShort } from "@/lib/surveys";
 
-// 응답 전 결과 공개 안내 (결과 공개 범위별)
+// 응답 전 결과 공개 안내 (결과 공개 범위별) + 성의 없는 응답 안내
 const VISIBILITY_NOTICE: Record<"public" | "campus" | "private", string> = {
-  public: "이 설문 결과는 개인을 알 수 없게 묶어서 데이터 허브에 공개돼요. 주관식 답은 공개되지 않아요.",
-  campus: "이 설문 결과는 개인을 알 수 없게 묶어서 우리 학교 학생에게만 공개돼요. 주관식 답은 공개되지 않아요.",
-  private: "이 설문 결과는 등록자만 봐요.",
+  public: "결과는 개인을 알 수 없게 묶어서 데이터 허브에 공개돼요. 주관식 답은 공개되지 않아요.",
+  campus: "결과는 개인을 알 수 없게 묶어서 우리 학교 학생에게만 공개돼요. 주관식 답은 공개되지 않아요.",
+  private: "결과는 등록자만 봐요.",
 };
+const CAREFUL_NOTICE = "너무 빠르거나 성의 없는 응답은 포인트를 받을 수 없어요.";
 
 type Detail = {
   title: string;
   description: string | null;
   question_count: number;
+  // 문항 구성 (응답 대상만 문항이 읽힌다. 못 읽으면 둘 다 0)
+  choiceCount: number;
+  textCount: number;
   est_minutes: number;
   reward_points: number;
   target_responses: number;
@@ -61,7 +65,7 @@ async function fetchDetail(id: number): Promise<Detail | null> {
   const { data: auth } = await supabase.auth.getUser();
   const myId = auth.user?.id;
 
-  const [{ data: survey }, { data: response }, { data: profile }] = await Promise.all([
+  const [{ data: survey }, { data: response }, { data: profile }, { data: questions }] = await Promise.all([
     supabase
       .from("surveys")
       .select(
@@ -71,6 +75,7 @@ async function fetchDetail(id: number): Promise<Detail | null> {
       .maybeSingle(),
     supabase.from("responses").select("status").eq("survey_id", id).maybeSingle(),
     supabase.from("profiles").select("account_type, universities(name)").maybeSingle(),
+    supabase.from("questions").select("type").eq("survey_id", id),
   ]);
   const uniRaw = profile?.universities as unknown;
   const schoolName = ((Array.isArray(uniRaw) ? uniRaw[0] : uniRaw) as { name: string } | null)?.name ?? "";
@@ -79,11 +84,14 @@ async function fetchDetail(id: number): Promise<Detail | null> {
 
   const raw = survey.survey_categories as unknown;
   const category = (Array.isArray(raw) ? raw[0] : raw) as { name: string } | null;
+  const types = (questions ?? []).map((q) => q.type as string);
 
   return {
     title: survey.title,
     description: survey.description,
     question_count: survey.question_count,
+    choiceCount: types.filter((t) => t !== "text").length,
+    textCount: types.filter((t) => t === "text").length,
     est_minutes: survey.est_minutes,
     reward_points: survey.reward_points,
     target_responses: survey.target_responses,
@@ -106,6 +114,14 @@ async function fetchDetail(id: number): Promise<Detail | null> {
       remainingSpots(survey) <= 0 ||
       (survey.closes_at !== null && new Date(survey.closes_at).getTime() <= Date.now()),
   };
+}
+
+// "객관식 3문항 · 주관식 없음" (문항을 못 읽으면 전체 문항 수만)
+function composition(d: Detail): string {
+  if (d.choiceCount + d.textCount === 0) return `${d.question_count}문항`;
+  const choice = d.choiceCount > 0 ? `객관식 ${d.choiceCount}문항` : "객관식 없음";
+  const text = d.textCount > 0 ? `주관식 ${d.textCount}문항` : "주관식 없음";
+  return `${choice} · ${text}`;
 }
 
 export default function SurveyDetail() {
@@ -142,6 +158,8 @@ export default function SurveyDetail() {
   }
 
   const spots = remainingSpots(detail);
+  const filled = detail.target_responses > 0 ? Math.min(detail.response_count / detail.target_responses, 1) : 0;
+  const points = formatPoints(detail.reward_points);
 
   // 삭제: 돌려줄 금액은 서버가 정하고 알려 준다
   const confirmDelete = () =>
@@ -171,47 +189,113 @@ export default function SurveyDetail() {
       <Stack.Screen options={{ title: "설문 상세" }} />
 
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
-        <Card>
+        {/* 맨 위: 카테고리 · 교내 알약 → 제목 → 작성자(인증 단체) */}
+        <View style={styles.head}>
           <View style={styles.badges}>
-            {detail.categoryName ? <Badge label={detail.categoryName} /> : null}
+            {detail.categoryName ? <Badge label={detail.categoryName} tone="blue" /> : null}
             {detail.audience === "campus" && (
-              <Badge label={detail.schoolName ? `${schoolShort(detail.schoolName)}생만` : "학교 학생만"} tone="accent" />
+              <Badge label={detail.schoolName ? `${schoolShort(detail.schoolName)}생만` : "우리 학교 학생만"} tone="lime" />
             )}
             {detail.closed && <Badge label="마감" tone="muted" />}
           </View>
           <Text style={styles.title}>{detail.title}</Text>
-          {detail.description ? <Text style={styles.description}>{detail.description}</Text> : null}
-          <Text style={styles.host}>
-            {detail.host_verified ? `${formatHost(detail)} 인증 단체` : `작성 · ${formatHost(detail)}`} · 등록 {formatAgo(detail.createdAt)}
-          </Text>
-        </Card>
-
-        {reward && (
-          <RewardNotice
-            note={reward}
-            hint={detail.isOwner ? undefined : "응답을 마치면 보상 받을 연락처를 남길 수 있어요. (선택)"}
-          />
-        )}
-
-        <View style={styles.stats}>
-          <StatTile label="포인트" value={`+${formatPoints(detail.reward_points)}`} />
-          <StatTile label="소요 시간" value={`약 ${detail.est_minutes}분`} />
-          <StatTile label="남은 자리" value={`${spots}명`} />
+          <View style={styles.hostRow}>
+            <Text style={styles.host}>{formatHost(detail)}</Text>
+            {detail.host_verified && (
+              <View style={styles.verified}>
+                <AppIcon name={uiIcons.verified} size={14} color={colors.primary} />
+                <Text style={styles.verifiedText}>인증 단체</Text>
+              </View>
+            )}
+            <Text style={styles.host}>· {formatAgo(detail.createdAt)}</Text>
+          </View>
         </View>
 
-        <Card>
-          <InfoRow label="문항 수" value={`${detail.question_count}문항`} />
-          <InfoRow label="마감" value={formatTimeLeft(detail.closes_at) || "기한 없음"} />
-          <InfoRow
-            label="응답 대상"
-            value={detail.audience === "campus" ? `${detail.schoolName || "우리 학교"} 학생만` : "전체 대학생"}
-          />
-        </Card>
+        {/* 요약 3칸: 포인트 · 소요 시간 · 마감 */}
+        <View style={styles.summary}>
+          <SummaryCell label="포인트" value={`+${points}`} strong />
+          <SummaryCell label="소요 시간" value={`${detail.est_minutes}분`} divided />
+          <SummaryCell label="마감" value={formatDday(detail.closes_at)} />
+        </View>
+        <View style={styles.audienceRow}>
+          <AppIcon name={uiIcons.audience} size={15} color={colors.textSubtle} />
+          <Text style={styles.audienceText}>
+            응답 대상{" "}
+            <Text style={styles.audienceValue}>
+              {detail.audience === "campus" ? `${detail.schoolName || "우리 학교"} 학생만` : "전체 대학생"}
+            </Text>
+          </Text>
+        </View>
+
+        {/* 남은 자리 막대 (목표 인원이 차면 자동 마감) */}
+        <View style={styles.box}>
+          <View style={styles.spotsTop}>
+            <Text style={styles.spotsTitle}>
+              {detail.closed ? (
+                "마감된 설문이에요"
+              ) : (
+                <>
+                  선착순 <Text style={styles.spotsStrong}>{spots}자리</Text> 남았어요
+                </>
+              )}
+            </Text>
+            <Text style={styles.spotsCount}>
+              {detail.response_count} / {detail.target_responses}명 응답
+            </Text>
+          </View>
+          <View style={styles.track}>
+            <View style={[styles.fill, { width: `${filled * 100}%` }]} />
+          </View>
+        </View>
+
+        {/* 이런 설문이에요: 설명 + 문항 구성 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>이런 설문이에요</Text>
+          {detail.description ? (
+            <LinkedText style={styles.description} selectable>
+              {detail.description}
+            </LinkedText>
+          ) : null}
+          <Text style={styles.compose}>{composition(detail)}</Text>
+        </View>
+
+        {/* 받을 수 있는 보상: 포인트(모두) / 작성자 보상(안내 글 + 응답 후 연락처) */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>받을 수 있는 보상</Text>
+          <View style={[styles.box, styles.rewardBox]}>
+            <View style={styles.rewardRow}>
+              <View style={[styles.rewardIcon, styles.rewardIconBlue]}>
+                <AppIcon name={homeIcons.coin} size={22} color={colors.primary} />
+              </View>
+              <View style={styles.rewardMain}>
+                <Text style={styles.rewardTitle}>포인트 {points}</Text>
+                <Text style={styles.rewardSub}>응답하면 바로 자동 적립</Text>
+              </View>
+              <Badge label="모두" tone="blue" />
+            </View>
+            {reward && (
+              <View style={[styles.rewardRow, styles.rewardRowLine]}>
+                <View style={[styles.rewardIcon, styles.rewardIconLime]}>
+                  <AppIcon name={uiIcons.gift} size={20} color={colors.onAccentSoft} />
+                </View>
+                <View style={styles.rewardMain}>
+                  <LinkedText style={styles.rewardNote} selectable>
+                    {reward}
+                  </LinkedText>
+                  {!detail.isOwner && <Text style={styles.rewardSub}>응답 후 연락처를 남기면 받을 수 있어요 (선택)</Text>}
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
 
         {/* 응답 전에 결과가 어디까지 공개되는지 알린다 (2026-10-30 결정) */}
         {!detail.isOwner && (
-          <View style={styles.notice}>
-            <Text style={styles.noticeText}>ⓘ {VISIBILITY_NOTICE[detail.result_visibility]}</Text>
+          <View style={styles.noticeRow}>
+            <AppIcon name={uiIcons.privacy} size={16} color={colors.textSubtle} />
+            <Text style={styles.noticeText}>
+              {VISIBILITY_NOTICE[detail.result_visibility]} {CAREFUL_NOTICE}
+            </Text>
           </View>
         )}
 
@@ -249,7 +333,7 @@ export default function SurveyDetail() {
             <PrimaryButton title="마감된 설문이에요" onPress={() => {}} disabled />
           ) : (
             <PrimaryButton
-              title={detail.rejected ? "다시 응답하기" : `참여하고 ${formatPoints(detail.reward_points)} 받기`}
+              title={detail.rejected ? "다시 응답하기" : `${detail.est_minutes}분 만에 ${points} 받기`}
               onPress={join}
             />
           )}
@@ -259,11 +343,12 @@ export default function SurveyDetail() {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+// 요약 칸 하나 (작은 이름표 + 큰 값). divided면 양옆에 세로 선
+function SummaryCell({ label, value, strong, divided }: { label: string; value: string; strong?: boolean; divided?: boolean }) {
   return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+    <View style={[styles.cell, divided && styles.cellDivided]}>
+      <Text style={styles.cellLabel}>{label}</Text>
+      <Text style={[styles.cellValue, strong && styles.cellValueStrong]}>{value}</Text>
     </View>
   );
 }
@@ -282,55 +367,210 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: spacing.md,
-    gap: spacing.md,
+    paddingBottom: spacing.xl,
+    gap: 12,
+  },
+  head: {
+    paddingTop: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    paddingBottom: spacing.sm,
+    gap: 10,
   },
   badges: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: spacing.xs,
+    gap: 6,
   },
   title: {
-    fontSize: fontSize.title,
-    fontWeight: "700",
+    marginTop: spacing.xs,
+    fontSize: 24,
+    fontWeight: "800",
+    lineHeight: 32,
     color: colors.text,
-    lineHeight: 30,
   },
-  description: {
-    fontSize: fontSize.body,
-    color: colors.text,
-    lineHeight: 24,
+  hostRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 6,
   },
   host: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
+    fontSize: fontSize.label,
+    color: colors.iconStrong,
   },
-  stats: {
+  verified: {
     flexDirection: "row",
-    gap: spacing.sm,
+    alignItems: "center",
+    gap: 2,
   },
-  infoRow: {
+  verifiedText: {
+    fontSize: fontSize.caption,
+    fontWeight: "700",
+    color: colors.primary,
+  },
+  summary: {
+    flexDirection: "row",
+    paddingVertical: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.xl,
+    backgroundColor: colors.surface,
+  },
+  cell: {
+    flex: 1,
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  cellDivided: {
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: colors.border,
+  },
+  cellLabel: {
+    fontSize: fontSize.caption,
+    color: colors.iconStrong,
+  },
+  cellValue: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: colors.text,
+  },
+  cellValueStrong: {
+    color: colors.primary,
+  },
+  audienceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: spacing.xs,
+  },
+  audienceText: {
+    fontSize: fontSize.small,
+    color: colors.iconStrong,
+  },
+  audienceValue: {
+    fontWeight: "700",
+    color: colors.text,
+  },
+  box: {
+    gap: 10,
+    paddingVertical: spacing.md,
+    paddingHorizontal: 18,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.xl,
+    backgroundColor: colors.surface,
+  },
+  spotsTop: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingVertical: 2,
+    alignItems: "baseline",
+    gap: spacing.sm,
   },
-  infoLabel: {
-    fontSize: fontSize.body,
-    color: colors.textMuted,
-  },
-  infoValue: {
-    fontSize: fontSize.body,
+  spotsTitle: {
+    flexShrink: 1,
+    fontSize: 15,
+    fontWeight: "700",
     color: colors.text,
-    fontWeight: "600",
   },
-  notice: {
-    padding: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceMuted,
+  spotsStrong: {
+    color: colors.primary,
+  },
+  spotsCount: {
+    fontSize: fontSize.caption,
+    color: colors.iconStrong,
+  },
+  track: {
+    height: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primarySoft,
+    overflow: "hidden",
+  },
+  fill: {
+    height: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primary,
+  },
+  section: {
+    marginTop: spacing.md,
+    gap: 10,
+  },
+  sectionTitle: {
+    paddingHorizontal: spacing.xs,
+    fontSize: 17,
+    fontWeight: "800",
+    color: colors.text,
+  },
+  description: {
+    paddingHorizontal: spacing.xs,
+    fontSize: 15,
+    lineHeight: 25,
+    color: colors.textStrong,
+  },
+  compose: {
+    paddingHorizontal: spacing.xs,
+    fontSize: fontSize.small,
+    color: colors.iconStrong,
+  },
+  rewardBox: {
+    gap: 0,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+  },
+  rewardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 14,
+  },
+  rewardRowLine: {
+    alignItems: "flex-start",
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  rewardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rewardIconBlue: {
+    backgroundColor: colors.primarySoft,
+  },
+  rewardIconLime: {
+    backgroundColor: colors.accentSoft,
+  },
+  rewardMain: {
+    flex: 1,
+    gap: 2,
+  },
+  rewardTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  rewardNote: {
+    fontSize: 15,
+    fontWeight: "600",
+    lineHeight: 22,
+    color: colors.text,
+  },
+  rewardSub: {
+    fontSize: fontSize.small,
+    color: colors.iconStrong,
+  },
+  noticeRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.xs,
   },
   noticeText: {
+    flex: 1,
     fontSize: fontSize.small,
-    color: colors.textMuted,
-    lineHeight: 19,
+    lineHeight: 21,
+    color: colors.iconStrong,
   },
   action: {
     flex: 1,
