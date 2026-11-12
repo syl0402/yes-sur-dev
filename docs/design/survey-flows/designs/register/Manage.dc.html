@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>내 설문 관리</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+</style>
+</helmet>
+<div style="width: 390px; height: 900px; box-sizing: border-box; background: #F7F8FC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; position: relative; padding-top: 44px; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; padding: 0 6px">
+    <button aria-label="뒤로" style="width: 44px; height: 44px; border: none; background: transparent; display: flex; align-items: center; justify-content: center; padding: 0">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </button>
+    <div style="flex: 1; text-align: center; font-size: 17px; font-weight: 700">내 설문</div>
+    <button aria-label="더보기 (미리보기·CSV 받기·삭제)" style="width: 44px; height: 44px; border: none; background: transparent; display: flex; align-items: center; justify-content: center; padding: 0">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#202A40" aria-hidden="true"><circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle></svg>
+    </button>
+  </div>
+
+  <div style="padding: 12px 20px 0">
+    <div style="display: flex; gap: 6px">
+      <span style="background: #F0F8D5; color: #506D23; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px">진행 중 · D-6</span>
+      <span style="background: #E3E9FF; color: #2949B5; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px">생활</span>
+    </div>
+    <h1 style="margin: 12px 0 0; font-size: 23px; font-weight: 900">시험 기간 카페 이용 설문조사</h1>
+  </div>
+
+  <div style="margin: 18px 16px 0; background: #FFFFFF; border: 1px solid #E2E5EE; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline">
+      <span style="font-size: 15px; font-weight: 700">응답 현황</span>
+      <span style="font-size: 26px; font-weight: 900">0<span style="font-size: 16px; color: #545E73; font-weight: 700"> / 10명</span></span>
+    </div>
+    <div style="height: 10px; background: #E3E9FF; border-radius: 999px"></div>
+    <div style="font-size: 13px; color: #545E73">11월 19일 (목) 마감 · 응답자 +30P</div>
+  </div>
+
+  <div style="margin: 12px 16px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+    <button style="height: 76px; border: 1px solid #E2E5EE; border-radius: 16px; background: #FFFFFF; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #202A40; font-size: 13px; font-weight: 700">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3157D5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"></path></svg>링크 공유
+    </button>
+    <button style="height: 76px; border: 1px solid #E2E5EE; border-radius: 16px; background: #FFFFFF; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #202A40; font-size: 13px; font-weight: 700">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3157D5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg>수정하기
+    </button>
+    <button style="height: 76px; border: 1px solid #E2E5EE; border-radius: 16px; background: #FFFFFF; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #202A40; font-size: 13px; font-weight: 700">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#545E73" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"></rect></svg>응답 마감
+    </button>
+  </div>
+
+  <div style="margin: 28px 20px 0; display: flex; justify-content: space-between; align-items: baseline">
+    <h2 style="margin: 0; font-size: 17px; font-weight: 900">결과</h2>
+    <span style="font-size: 13px; color: #545E73">전체 공개 · <a href="#" style="font-weight: 700">변경</a></span>
+  </div>
+  <div style="margin: 12px 16px 0; background: #FFFFFF; border: 1px solid #E2E5EE; border-radius: 20px; padding: 28px 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center">
+    <div style="width: 96px; height: 96px; border-radius: 50%; background: #F1F4FF; display: flex; align-items: flex-end; justify-content: center; overflow: hidden">
+      <img src="/_blob/1213dd006a16de9be8ccd69e3263bb60" alt="" style="width: 96px; height: auto; margin-bottom: -4px">
+    </div>
+    <span style="margin-top: 6px; font-size: 16px; font-weight: 700">첫 응답을 기다리고 있어요</span>
+    <span style="font-size: 13px; color: #545E73; line-height: 1.55">응답이 들어오면 문항별 결과가 여기에 바로 보여요</span>
+    <button style="margin-top: 10px; height: 44px; padding: 0 18px; border: none; border-radius: 12px; background: #E3E9FF; color: #2949B5; font-size: 14px; font-weight: 700; font-family: inherit">링크 공유하고 빨리 모으기</button>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>홈 – 대표 사진 카드</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+</style>
+</helmet>
+<div style="width: 390px; height: 980px; box-sizing: border-box; background: #F7F8FC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; padding-top: 44px; overflow: hidden">
+
+  <div style="padding: 16px 20px 0">
+    <div style="font-size: 20px; font-weight: 900">추천 설문</div>
+    <div style="margin-top: 4px; font-size: 13px; color: #545E73">지금 당신의 관심사에 맞는 설문</div>
+  </div>
+  <div style="margin-top: 14px; padding-left: 16px; display: flex; gap: 12px; overflow: hidden">
+    <sc-for list="{{rec}}" as="c" hint-placeholder-count="3">
+      <div style="width: 232px; flex-shrink: 0; background: #FFFFFF; border-radius: 20px; overflow: hidden; box-shadow: 0 2px 10px rgba(32,42,64,0.05); display: flex; flex-direction: column">
+        <sc-if value="{{c.photo}}" hint-placeholder-val="{{true}}">
+          <div style="height: 120px; background: {{c.photoBg}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="11" r="2"></circle><path d="M21 16l-5-5-8 8"></path></svg>
+            <span style="font-size: 11px; font-weight: 700; color: #FFFFFF">대표 사진</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{c.noPhoto}}" hint-placeholder-val="{{false}}">
+          <div style="height: 120px; background: #E3E9FF; display: flex; align-items: flex-end; justify-content: center; overflow: hidden">
+            <img src="{{c.mascot}}" alt="" style="width: 104px; height: auto; margin-bottom: 6px">
+          </div>
+        </sc-if>
+        <div style="padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; gap: 6px">
+            <span style="background: #E3E9FF; color: #2949B5; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">{{c.cat}}</span>
+            <sc-if value="{{c.school}}" hint-placeholder-val="{{false}}"><span style="background: #F0F8D5; color: #506D23; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">중앙대생만</span></sc-if>
+          </div>
+          <div style="font-size: 16px; font-weight: 900; line-height: 1.35; height: 43px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">{{c.title}}</div>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span style="font-size: 12px; color: #545E73">약 {{c.min}}분 · {{c.due}}</span>
+            <span style="color: #3157D5; font-size: 15px; font-weight: 900">+{{c.p}}P</span>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="padding: 32px 20px 0">
+    <div style="font-size: 20px; font-weight: 900">최신 설문 &amp; 마감 임박</div>
+    <div style="margin-top: 4px; font-size: 13px; color: #545E73">놓치기 전에 참여해 보세요</div>
+  </div>
+  <div style="margin: 14px 16px 0; display: flex; flex-direction: column; gap: 10px">
+    <sc-for list="{{latest}}" as="c" hint-placeholder-count="4">
+      <div style="background: #FFFFFF; border-radius: 18px; padding: 12px 14px 12px 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 10px rgba(32,42,64,0.05)">
+        <sc-if value="{{c.photo}}" hint-placeholder-val="{{true}}">
+          <div style="width: 52px; height: 52px; border-radius: 12px; background: {{c.photoBg}}; flex-shrink: 0; display: flex; align-items: center; justify-content: center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="11" r="2"></circle><path d="M21 16l-5-5-8 8"></path></svg>
+          </div>
+        </sc-if>
+        <sc-if value="{{c.noPhoto}}" hint-placeholder-val="{{false}}">
+          <div style="width: 52px; height: 52px; border-radius: 12px; background: #F1F4FF; flex-shrink: 0; display: flex; align-items: flex-end; justify-content: center; overflow: hidden">
+            <img src="{{c.mascot}}" alt="" style="width: 44px; height: auto; margin-bottom: 2px">
+          </div>
+        </sc-if>
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.title}}</span>
+          <span style="font-size: 12px; color: {{c.metaColor}}">{{c.meta}}</span>
+        </div>
+        <span style="background: #3157D5; color: #FFFFFF; font-size: 13px; font-weight: 900; padding: 6px 10px; border-radius: 10px; flex-shrink: 0">+{{c.p}}P</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":980}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var CHEER = '/_blob/1213dd006a16de9be8ccd69e3263bb60', GRAD = '/_blob/e034c34cbf642dad7a1bf434a4ef29ea';
+    var fix = function (c) { c.noPhoto = !c.photo; c.school = !!c.school; return c; };
+    var rec = [
+      { cat: '생활', title: '시험 기간 카페 이용 설문', min: 1, due: 'D-7', p: 30, photo: true, photoBg: '#6F8BEB' },
+      { cat: '진로·취업', title: '대외활동·인턴 경험 조사', min: 1, due: 'D-6', p: 10, school: true, photo: false, mascot: GRAD },
+      { cat: '생활', title: '자취생 식습관 및 식비 조사', min: 1, due: 'D-10', p: 30, photo: true, photoBg: '#6F942D' }
+    ].map(fix);
+    var latest = [
+      { title: '대외활동·인턴 경험 조사', meta: '약 1분 · 42분 전 등록', metaColor: '#545E73', p: 10, photo: false, mascot: GRAD },
+      { title: 'MBTI 성격 유형과 대인관계 스타일', meta: '약 2분 · 마감 3시간 전', metaColor: '#B42318', p: 30, photo: false, mascot: CHEER },
+      { title: '시험 기간 카페 이용 설문', meta: '약 1분 · 11.12 등록', metaColor: '#545E73', p: 30, photo: true, photoBg: '#6F8BEB' },
+      { title: "20대 번아웃 및 '갓생' 압박감", meta: '약 2분 · 11.9 등록', metaColor: '#545E73', p: 30, photo: true, photoBg: '#2949B5' }
+    ].map(fix);
+    return { rec: rec, latest: latest };
+  }
+}
+</script>
+</body>
+</html>

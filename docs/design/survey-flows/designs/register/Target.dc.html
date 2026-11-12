@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>설문 등록 3단계 – 대상·공개·보상</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.fadein{animation:fadeIn .25s ease-out both}
+@media (prefers-reduced-motion: reduce){*{animation:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 1420px; box-sizing: border-box; background: #FFFFFF; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; position: relative; padding-top: 44px; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; padding: 0 6px">
+    <a href="Questions.dc.html" aria-label="이전 단계" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </a>
+    <div style="flex: 1; text-align: center; font-size: 17px; font-weight: 700">설문 등록</div>
+    <button style="height: 44px; border: none; background: transparent; color: #3157D5; font-size: 14px; font-weight: 700; font-family: inherit; padding: 0 12px">임시저장</button>
+  </div>
+  <div style="padding: 10px 20px 0; display: flex; align-items: center; gap: 10px">
+    <div style="flex: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px">
+      <div style="height: 6px; border-radius: 999px; background: #3157D5"></div>
+      <div style="height: 6px; border-radius: 999px; background: #3157D5"></div>
+      <div style="height: 6px; border-radius: 999px; background: #3157D5"></div>
+      <div style="height: 6px; border-radius: 999px; background: #E3E9FF"></div>
+    </div>
+    <span style="font-size: 14px; font-weight: 700; color: #545E73">3 / 4</span>
+  </div>
+
+  <div style="padding: 0 20px">
+    <h1 style="margin: 24px 0 0; font-size: 24px; font-weight: 900">대상 · 공개 · 보상</h1>
+
+    <div style="margin-top: 26px; font-size: 14px; font-weight: 700; color: #545E73">누가 응답하나요</div>
+    <div style="margin-top: 10px; background: #EFF1F7; border-radius: 14px; padding: 4px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px">
+      <sc-for list="{{targets}}" as="t" hint-placeholder-count="2">
+        <button onClick="{{t.pick}}" style="height: 44px; border: none; border-radius: 11px; background: {{t.bg}}; color: {{t.color}}; font-size: 15px; font-weight: 700; font-family: inherit; box-shadow: {{t.shadow}}">{{t.label}}</button>
+      </sc-for>
+    </div>
+    <div style="margin-top: 8px; font-size: 13px; color: #545E73">{{targetHint}}</div>
+
+    <div style="margin-top: 30px; font-size: 14px; font-weight: 700; color: #545E73">몇 명 받을까요</div>
+    <div style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between">
+      <button onClick="{{minus}}" aria-label="1명 줄이기" style="width: 48px; height: 48px; border: none; border-radius: 50%; background: #EFF1F7; font-size: 22px; color: #374158; font-family: inherit">−</button>
+      <span style="font-size: 40px; font-weight: 900; letter-spacing: -1px">{{n}}<span style="font-size: 20px; font-weight: 700">명</span></span>
+      <button onClick="{{plus}}" aria-label="1명 늘리기" style="width: 48px; height: 48px; border: none; border-radius: 50%; background: #EFF1F7; font-size: 22px; color: #374158; font-family: inherit">+</button>
+    </div>
+    <div style="margin-top: 12px; display: flex; justify-content: center; gap: 6px">
+      <sc-for list="{{quick}}" as="q" hint-placeholder-count="4">
+        <button onClick="{{q.pick}}" style="height: 34px; border: 1px solid {{q.border}}; border-radius: 999px; background: {{q.bg}}; color: {{q.color}}; font-size: 13px; font-weight: 700; font-family: inherit; padding: 0 12px">{{q.label}}</button>
+      </sc-for>
+    </div>
+    <div style="margin-top: 10px; text-align: center; font-size: 13px; color: #545E73">10~300명 · 목표 인원이 모이면 자동으로 마감돼요</div>
+
+    <div style="margin-top: 14px; border-radius: 16px; background: {{costBg}}; padding: 14px 16px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <span style="font-size: 15px; font-weight: 700">등록비</span>
+        <span style="font-size: 20px; font-weight: 900; color: {{costColor}}">{{cost}}P</span>
+      </div>
+      <sc-if value="{{ok}}" hint-placeholder-val="{{true}}">
+        <div style="margin-top: 4px; font-size: 13px; color: #545E73; text-align: right">등록 후 내 포인트 {{after}}P</div>
+      </sc-if>
+      <sc-if value="{{short}}" hint-placeholder-val="{{false}}">
+        <div class="fadein" style="margin-top: 4px; display: flex; justify-content: space-between; align-items: center">
+          <span style="font-size: 13px; color: #B42318">내 포인트 197P · {{lack}}P 모자라요</span>
+          <button onClick="{{fit}}" style="height: 34px; border: none; border-radius: 10px; background: #3157D5; color: #FFFFFF; font-size: 13px; font-weight: 700; font-family: inherit; padding: 0 10px">13명으로</button>
+        </div>
+      </sc-if>
+      <button onClick="{{toggleCalc}}" style="margin-top: 8px; height: 32px; border: none; background: transparent; color: #3157D5; font-size: 13px; font-weight: 700; font-family: inherit; padding: 0">{{calcLabel}}</button>
+      <sc-if value="{{showCalc}}" hint-placeholder-val="{{false}}">
+        <div class="fadein" style="margin-top: 6px; border-top: 1px solid #E2E5EE; padding-top: 10px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #374158">
+          <div style="display: flex; justify-content: space-between"><span>3문항 · 약 1분 → 3분 이내 구간</span><span>1명당 15P</span></div>
+          <div style="display: flex; justify-content: space-between"><span>목표 인원</span><span>× {{n}}명</span></div>
+          <div style="display: flex; justify-content: space-between; font-weight: 700; color: #202A40"><span>등록비</span><span>{{cost}}P</span></div>
+          <div style="color: #545E73">응답자는 30P를 받아요. 차액은 앱이 채워요.</div>
+          <a href="#" style="margin-top: 2px; font-weight: 700">등록비는 어떻게 정해지나요? ›</a>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="margin-top: 30px; font-size: 14px; font-weight: 700; color: #545E73">언제까지 받을까요</div>
+    <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{dayOpts}}" as="d" hint-placeholder-count="3">
+        <button onClick="{{d.pick}}" style="height: 44px; border: 1px solid {{d.border}}; border-radius: 12px; background: {{d.bg}}; color: {{d.color}}; font-size: 15px; font-weight: 700; font-family: inherit">{{d.label}}</button>
+      </sc-for>
+    </div>
+    <div style="margin-top: 8px; font-size: 13px; color: #545E73">{{dueLabel}} 밤 12시 마감 · 등록한 때부터 세요</div>
+
+    <div style="margin-top: 30px; font-size: 14px; font-weight: 700; color: #545E73">결과를 누구에게 보여줄까요</div>
+    <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px">
+      <sc-for list="{{pubs}}" as="p" hint-placeholder-count="3">
+        <button onClick="{{p.pick}}" style="box-sizing: border-box; width: 100%; border: {{p.border}}; background: {{p.bg}}; border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; text-align: left; font-family: inherit; color: #202A40">
+          <span style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 50%; border: {{p.ring}}; flex-shrink: 0"></span>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 15px; font-weight: 700">{{p.label}}</span>
+            <span style="font-size: 12px; color: #545E73">{{p.desc}}</span>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="margin-top: 8px; font-size: 12px; line-height: 1.5; color: #545E73">마감 후 응답이 5개 이상이면 데이터 허브에 올라가요. 주관식 답과 개인별 답은 공개되지 않아요.</div>
+
+    <div style="margin-top: 30px; display: flex; align-items: center; justify-content: space-between">
+      <div style="display: flex; flex-direction: column; gap: 3px">
+        <span style="font-size: 15px; font-weight: 700">경품도 줄래요 <span style="font-weight: 500; color: #545E73">(선택)</span></span>
+        <span style="font-size: 13px; color: #545E73">포인트와 별개로 기프티콘 등</span>
+      </div>
+      <button onClick="{{togglePrize}}" role="switch" aria-checked="{{prizeAria}}" aria-label="경품 주기" style="width: 48px; height: 28px; border: none; border-radius: 999px; background: {{switchBg}}; position: relative; padding: 0"><span style="position: absolute; left: {{knobLeft}}px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; transition: left .15s ease"></span></button>
+    </div>
+    <sc-if value="{{prize}}" hint-placeholder-val="{{false}}">
+      <div class="fadein" style="margin-top: 12px; background: #F7F8FC; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+          <sc-for list="{{methods}}" as="m" hint-placeholder-count="2">
+            <button onClick="{{m.pick}}" style="height: 40px; border: 1px solid {{m.border}}; border-radius: 10px; background: #FFFFFF; color: {{m.color}}; font-size: 14px; font-weight: 700; font-family: inherit">{{m.label}}</button>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 6px">
+          <input aria-label="경품" placeholder="경품 (예: 커피 기프티콘)" style="flex: 1; min-width: 0; height: 46px; box-sizing: border-box; border: 1px solid #E2E5EE; border-radius: 10px; padding: 0 12px; font-size: 14px; font-family: inherit; outline-color: #3157D5">
+          <input aria-label="인원" value="10명" style="width: 72px; height: 46px; box-sizing: border-box; border: 1px solid #E2E5EE; border-radius: 10px; padding: 0 10px; font-size: 14px; font-family: inherit; text-align: center; outline-color: #3157D5">
+        </div>
+        <span style="font-size: 12px; color: #545E73">응답자는 응답 후 연락처를 남겨 응모해요</span>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-top: 1px solid #EFF1F7; padding: 12px 16px 30px; display: flex; gap: 10px">
+    <a href="Questions.dc.html" style="width: 96px; height: 56px; box-sizing: border-box; border: 1px solid #E2E5EE; border-radius: 16px; color: #545E73; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0">이전</a>
+    <sc-if value="{{ok}}" hint-placeholder-val="{{true}}">
+      <a href="Review.dc.html" style="flex: 1; height: 56px; border-radius: 16px; background: #3157D5; color: #FFFFFF; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">다음</a>
+    </sc-if>
+    <sc-if value="{{short}}" hint-placeholder-val="{{false}}">
+      <button disabled style="flex: 1; height: 56px; border: none; border-radius: 16px; background: #EFF1F7; color: #545E73; font-size: 15px; font-weight: 700; font-family: inherit">인원을 줄여 주세요</button>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1420}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { target: 'all', n: 10, days: 7, prize: false, method: 'draw', pub: 'all', calc: false }; }
+  renderVals() {
+    var self = this, st = this.state, PTS = 197, PER = 15;
+    var cost = st.n * PER, after = PTS - cost, ok = after >= 0;
+    var setN = function (v) { self.setState({ n: Math.max(10, Math.min(300, v)) }); };
+    var seg = function (on) { return { bg: on ? '#FFFFFF' : 'transparent', color: on ? '#3157D5' : '#545E73', shadow: on ? '0 1px 3px rgba(32,42,64,0.12)' : 'none' }; };
+    var targets = [{ k: 'all', label: '전체 대학생' }, { k: 'school', label: '중앙대생만' }].map(function (t) {
+      return Object.assign({ label: t.label, pick: function () { self.setState({ target: t.k }); } }, seg(st.target === t.k));
+    });
+    var pill = function (on) { return { bg: on ? '#3157D5' : '#FFFFFF', color: on ? '#FFFFFF' : '#374158', border: on ? '#3157D5' : '#E2E5EE' }; };
+    var quick = [10, 30, 50, 100].map(function (v) {
+      return Object.assign({ label: v + '명', pick: function () { setN(v); } }, pill(st.n === v));
+    });
+    var base = new Date(2026, 10, 12), names = ['일', '월', '화', '수', '목', '금', '토'];
+    var due = new Date(base.getTime() + st.days * 86400000);
+    var dayOpts = [3, 7, 14].map(function (d) {
+      return Object.assign({ label: d + '일', pick: function () { self.setState({ days: d }); } }, pill(st.days === d));
+    });
+    var pubs = [
+      { k: 'all', label: '전체 공개', desc: '데이터 허브에 올라가요 · 열람될 때마다 40P를 받아요' },
+      { k: 'school', label: '중앙대만 공개', desc: '중앙대 학생만 데이터 허브에서 볼 수 있어요' },
+      { k: 'none', label: '비공개', desc: '나만 볼 수 있어요 · 열람 포인트는 없어요' }
+    ].map(function (p) {
+      var on = st.pub === p.k;
+      return { label: p.label, desc: p.desc, border: on ? '2px solid #3157D5' : '1px solid #E2E5EE', bg: on ? '#F1F4FF' : '#FFFFFF',
+        ring: on ? '6px solid #3157D5' : '2px solid #CDD2DF', pick: function () { self.setState({ pub: p.k }); } };
+    });
+    var methods = [{ k: 'draw', label: '추첨' }, { k: 'first', label: '선착순' }].map(function (m) {
+      var on = st.method === m.k;
+      return { label: m.label, border: on ? '#3157D5' : '#E2E5EE', color: on ? '#3157D5' : '#545E73', pick: function () { self.setState({ method: m.k }); } };
+    });
+    return {
+      targets: targets, targetHint: st.target === 'all' ? '옛썰을 쓰는 모든 대학생에게 보여요' : '중앙대 학생에게만 보이고, 카드에 학교 이름이 표시돼요',
+      n: st.n, quick: quick,
+      minus: function () { setN(self.state.n - 1); }, plus: function () { setN(self.state.n + 1); },
+      fit: function () { setN(Math.floor(PTS / PER)); },
+      cost: cost, after: after, lack: -after, ok: ok, short: !ok,
+      costBg: ok ? '#F7F8FC' : '#FEF3F2', costColor: ok ? '#202A40' : '#B42318',
+      showCalc: st.calc, calcLabel: st.calc ? '계산 내역 접기' : '어떻게 계산됐나요? ›',
+      toggleCalc: function () { self.setState({ calc: !self.state.calc }); },
+      dayOpts: dayOpts, dueLabel: (due.getMonth() + 1) + '월 ' + due.getDate() + '일 (' + names[due.getDay()] + ')',
+      pubs: pubs,
+      prize: st.prize, prizeAria: st.prize ? 'true' : 'false',
+      switchBg: st.prize ? '#3157D5' : '#CDD2DF', knobLeft: st.prize ? 23 : 3,
+      togglePrize: function () { self.setState({ prize: !self.state.prize }); },
+      methods: methods
+    };
+  }
+}
+</script>
+</body>
+</html>

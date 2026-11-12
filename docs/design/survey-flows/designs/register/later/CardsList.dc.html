@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>설문 탭 – 대표 사진 카드</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+</style>
+</helmet>
+<div style="width: 390px; height: 980px; box-sizing: border-box; background: #F7F8FC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; padding-top: 44px; overflow: hidden">
+  <div style="padding: 10px 20px 0; font-size: 24px; font-weight: 900">설문조사</div>
+  <div style="padding: 18px 20px 0; font-size: 13px; color: #545E73">전체 설문 16개</div>
+
+  <div style="margin: 12px 16px 0; display: flex; flex-direction: column; gap: 12px">
+    <sc-for list="{{cards}}" as="c" hint-placeholder-count="4">
+      <div style="background: #FFFFFF; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 10px rgba(32,42,64,0.05)">
+        <div style="display: flex; gap: 14px">
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; gap: 6px; align-items: center">
+              <span style="background: #E3E9FF; color: #2949B5; font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 999px">{{c.cat}}</span>
+              <sc-if value="{{c.school}}" hint-placeholder-val="{{false}}"><span style="background: #F0F8D5; color: #506D23; font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 999px">중앙대생만</span></sc-if>
+              <span style="font-size: 12px; color: #545E73; margin-left: auto">{{c.due}}</span>
+            </div>
+            <div style="font-size: 17px; font-weight: 900; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">{{c.title}}</div>
+          </div>
+          <sc-if value="{{c.photo}}" hint-placeholder-val="{{true}}">
+            <div style="width: 84px; height: 84px; border-radius: 14px; background: {{c.photoBg}}; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="11" r="2"></circle><path d="M21 16l-5-5-8 8"></path></svg>
+              <span style="font-size: 10px; font-weight: 700; color: #FFFFFF">대표 사진</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{c.noPhoto}}" hint-placeholder-val="{{false}}">
+            <div style="width: 84px; height: 84px; border-radius: 14px; background: #F1F4FF; flex-shrink: 0; display: flex; align-items: flex-end; justify-content: center; overflow: hidden">
+              <img src="{{c.mascot}}" alt="" style="width: 72px; height: auto; margin-bottom: 4px">
+            </div>
+          </sc-if>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #EFF1F7; padding-top: 12px">
+          <span style="font-size: 13px; color: #545E73">약 {{c.min}}분 · {{c.org}}</span>
+          <span style="background: #3157D5; color: #FFFFFF; font-size: 14px; font-weight: 900; padding: 6px 12px; border-radius: 10px">+{{c.p}}P</span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":980}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var CHEER = '/_blob/1213dd006a16de9be8ccd69e3263bb60', GRAD = '/_blob/e034c34cbf642dad7a1bf434a4ef29ea';
+    var cards = [
+      { cat: '생활', title: '시험 기간 카페 이용 설문', due: '7일 남음', min: 1, org: '중앙대 경영학과 학생회', p: 30, photo: true, photoBg: '#6F8BEB' },
+      { cat: '진로·취업', title: '대외활동·인턴 경험 조사', due: '6일 남음', min: 1, org: '중앙대 경영학과 학생회', p: 10, school: true, photo: false, mascot: GRAD },
+      { cat: '생활', title: '대학생 자취생/기숙사생 식습관 및 식비 조사', due: '10일 남음', min: 1, org: '옛썰러', p: 30, photo: true, photoBg: '#6F942D' },
+      { cat: '취향·문화', title: 'MBTI 성격 유형과 대인관계 스타일', due: '3일 남음', min: 2, org: '옛썰러', p: 30, photo: false, mascot: CHEER }
+    ].map(function (c) { c.noPhoto = !c.photo; c.school = !!c.school; return c; });
+    return { cards: cards };
+  }
+}
+</script>
+</body>
+</html>

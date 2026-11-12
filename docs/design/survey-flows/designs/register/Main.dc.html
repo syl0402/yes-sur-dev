@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>설문 등록 1단계 – 기본 정보</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+</style>
+</helmet>
+<div style="width: 390px; height: 1020px; box-sizing: border-box; background: #FFFFFF; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; position: relative; padding-top: 44px; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; padding: 0 6px">
+    <button aria-label="나가기" style="width: 44px; height: 44px; border: none; background: transparent; display: flex; align-items: center; justify-content: center; padding: 0">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </button>
+    <div style="flex: 1; text-align: center; font-size: 17px; font-weight: 700">설문 등록</div>
+    <button style="height: 44px; border: none; background: transparent; color: #3157D5; font-size: 14px; font-weight: 700; font-family: inherit; padding: 0 12px">임시저장</button>
+  </div>
+  <div style="padding: 10px 20px 0; display: flex; align-items: center; gap: 10px">
+    <div style="flex: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px">
+      <div style="height: 6px; border-radius: 999px; background: #3157D5"></div>
+      <div style="height: 6px; border-radius: 999px; background: #E3E9FF"></div>
+      <div style="height: 6px; border-radius: 999px; background: #E3E9FF"></div>
+      <div style="height: 6px; border-radius: 999px; background: #E3E9FF"></div>
+    </div>
+    <span style="font-size: 14px; font-weight: 700; color: #545E73">1 / 4</span>
+  </div>
+
+  <div style="padding: 28px 20px 0">
+    <h1 style="margin: 0; font-size: 24px; font-weight: 900">어떤 설문인가요?</h1>
+    <button style="margin-top: 6px; border: none; background: transparent; padding: 6px 0; color: #3157D5; font-size: 14px; font-weight: 700; font-family: inherit">템플릿으로 시작하기 ›</button>
+  </div>
+
+  <div style="padding: 16px 20px 0; display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <label for="title" style="font-size: 14px; font-weight: 700; color: #545E73">제목</label>
+      <input id="title" value="{{title}}" onChange="{{onTitle}}" maxlength="60" placeholder="예: 시험 기간 카페 이용 설문" style="height: 54px; box-sizing: border-box; border: none; border-bottom: 2px solid {{titleLine}}; padding: 0 2px; font-size: 19px; font-weight: 700; font-family: inherit; color: #202A40; outline: none">
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <label for="desc" style="font-size: 14px; font-weight: 700; color: #545E73">설명 <span style="font-weight: 500">(선택)</span></label>
+      <textarea id="desc" maxlength="500" placeholder="누가, 왜 하는 설문인지 적어 주세요" style="height: 84px; box-sizing: border-box; border: 1px solid #E2E5EE; border-radius: 14px; padding: 12px 14px; font-size: 15px; line-height: 1.5; font-family: inherit; color: #202A40; resize: none; outline-color: #3157D5"></textarea>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <span style="font-size: 14px; font-weight: 700; color: #545E73">카테고리</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{cats}}" as="c" hint-placeholder-count="8">
+          <button onClick="{{c.pick}}" style="height: 40px; border: none; border-radius: 999px; background: {{c.bg}}; color: {{c.color}}; font-size: 14px; font-weight: {{c.weight}}; font-family: inherit; padding: 0 16px">{{c.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <sc-if value="{{hasCat}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 14px; font-weight: 700; color: #545E73">태그 <span style="font-weight: 500">(선택 · {{tagCount}}/3)</span></span>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{tags}}" as="t" hint-placeholder-count="6">
+            <button onClick="{{t.pick}}" style="height: 36px; box-sizing: border-box; border: 1px solid {{t.border}}; border-radius: 999px; background: {{t.bg}}; color: {{t.color}}; font-size: 13px; font-weight: 500; font-family: inherit; padding: 0 12px">#{{t.label}}</button>
+          </sc-for>
+          <button style="height: 36px; border: none; background: transparent; color: #3157D5; font-size: 13px; font-weight: 700; font-family: inherit; padding: 0 6px">더보기</button>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; padding: 10px 16px 30px">
+    <sc-if value="{{ready}}" hint-placeholder-val="{{false}}">
+      <a href="Questions.dc.html" style="height: 56px; border-radius: 16px; background: #3157D5; color: #FFFFFF; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">다음</a>
+    </sc-if>
+    <sc-if value="{{notReady}}" hint-placeholder-val="{{true}}">
+      <button disabled style="width: 100%; height: 56px; border: none; border-radius: 16px; background: #EFF1F7; color: #545E73; font-size: 15px; font-weight: 700; font-family: inherit">{{reason}}</button>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1020}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { title: '', cat: null, tags: [] }; }
+  renderVals() {
+    var self = this, st = this.state;
+    var CATS = ['학업', '진로·취업', '생활', '소비·브랜드', '취향·문화', '연애·관계', '사회·이슈', '기타'];
+    var SUGGEST = {
+      '학업': ['과제·팀플', '시험·성적', '수강신청', '학식', '동아리·학회', '통학'],
+      '진로·취업': ['대외활동·인턴', '자격증', '알바·과외', '시험·성적', '돈관리·재테크', '동아리·학회'],
+      '생활': ['자취·기숙사', '통학', '학식', '음식·카페', '알바·과외', '돈관리·재테크'],
+      '소비·브랜드': ['음식·카페', '패션·뷰티', '돈관리·재테크', '트렌드·밈', '여행', '취미'],
+      '취향·문화': ['취미', '여가시간', '여행', '트렌드·밈', 'MBTI', '음식·카페'],
+      '연애·관계': ['썸·연애', '인간관계', 'MBTI', '축제·MT', '동아리·학회', '여가시간'],
+      '사회·이슈': ['트렌드·밈', '돈관리·재테크', '통학', '자취·기숙사', '알바·과외', '인간관계'],
+      '기타': ['MBTI', '취미', '여가시간', '트렌드·밈', '음식·카페', '여행']
+    };
+    var cats = CATS.map(function (c) {
+      var on = st.cat === c;
+      return { label: c, bg: on ? '#3157D5' : '#EFF1F7', color: on ? '#FFFFFF' : '#374158', weight: on ? 700 : 500,
+        pick: function () { self.setState({ cat: c, tags: [] }); } };
+    });
+    var tags = (st.cat ? SUGGEST[st.cat] : []).map(function (t) {
+      var on = st.tags.indexOf(t) >= 0;
+      return { label: t, bg: on ? '#E3E9FF' : '#FFFFFF', border: on ? '#3157D5' : '#E2E5EE', color: on ? '#2949B5' : '#374158',
+        pick: function () {
+          var cur = self.state.tags.slice(), i = cur.indexOf(t);
+          if (i >= 0) cur.splice(i, 1); else if (cur.length < 3) cur.push(t);
+          self.setState({ tags: cur });
+        } };
+    });
+    var hasTitle = st.title.trim().length > 0, ready = hasTitle && !!st.cat;
+    return {
+      title: st.title, titleLine: hasTitle ? '#3157D5' : '#E2E5EE',
+      onTitle: function (e) { self.setState({ title: e.target.value.slice(0, 60) }); },
+      cats: cats, hasCat: !!st.cat, tags: tags, tagCount: st.tags.length,
+      ready: ready, notReady: !ready,
+      reason: !hasTitle ? '제목을 써 주세요' : '카테고리를 골라 주세요'
+    };
+  }
+}
+</script>
+</body>
+</html>

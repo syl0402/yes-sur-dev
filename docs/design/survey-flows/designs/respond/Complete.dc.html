@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>응답 완료</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+@keyframes hop{0%{transform:translateY(0)}25%{transform:translateY(-26px) rotate(-4deg)}50%{transform:translateY(0) scale(1.06,.94)}70%{transform:translateY(-10px) rotate(3deg)}100%{transform:translateY(0)}}
+@keyframes popIn{0%{opacity:0;transform:scale(.3)}60%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes sparkle{0%{opacity:0;transform:scale(.2) rotate(0)}50%{opacity:1}100%{opacity:0;transform:scale(1.3) rotate(90deg)}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes dimIn{from{opacity:0}to{opacity:1}}
+.hop{animation:hop .9s ease-out .1s both}
+.pop{animation:popIn .55s cubic-bezier(.2,.9,.3,1.3) both}
+.fadeup{animation:fadeUp .45s ease-out both}
+.spark{animation:sparkle .9s ease-out .2s both}
+.sheet{animation:slideUp .4s cubic-bezier(.2,.8,.2,1) both}
+.dim{animation:dimIn .25s ease-out both}
+.tap{transition:transform .15s ease}.tap:active{transform:scale(.97)}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 1180px; box-sizing: border-box; background: #F7F8FC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; position: relative; padding-top: 44px; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700">응답 완료</div>
+
+  <div style="display: flex; flex-direction: column; align-items: center; padding: 16px 20px 0">
+    <div style="position: relative; width: 168px; height: 150px; display: flex; justify-content: center; align-items: flex-end">
+      <div class="pop" style="position: absolute; left: 14px; top: 0; width: 140px; height: 140px; border-radius: 50%; background: #E3E9FF"></div>
+      <img class="hop" src="/_blob/4d3a14f0285c3628ffe01af0a6be6fd4" alt="옛썰 캐릭터" style="position: relative; width: 168px; height: auto">
+      <svg class="spark" width="30" height="30" viewBox="0 0 24 24" aria-hidden="true" style="position: absolute; left: -8px; top: 10px"><path d="M12 2l2 8 8 2-8 2-2 8-2-8-8-2 8-2z" fill="#A3EA16"></path></svg>
+      <svg class="spark" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" style="position: absolute; right: -4px; top: 36px; animation-delay: .4s"><path d="M12 2l2 8 8 2-8 2-2 8-2-8-8-2 8-2z" fill="#3157D5"></path></svg>
+    </div>
+    <span class="pop" style="margin-top: 18px; background: #A3EA16; color: #202A40; font-size: 20px; font-weight: 900; padding: 8px 20px; border-radius: 999px; animation-delay: .35s">+10P 적립!</span>
+    <h1 class="fadeup" style="margin: 16px 0 0; font-size: 24px; font-weight: 900; animation-delay: .5s">응답해 주셔서 고마워요</h1>
+    <p class="fadeup" style="margin: 6px 0 0; font-size: 15px; color: #545E73; animation-delay: .6s">학생회가 제휴 카페를 고를 때 참고할게요</p>
+    <div class="fadeup" style="margin-top: 18px; display: flex; align-items: center; gap: 10px; background: #FFFFFF; border: 1px solid #E2E5EE; border-radius: 999px; padding: 10px 20px; animation-delay: .65s">
+      <span style="font-size: 14px; color: #545E73">내 포인트</span>
+      <span style="font-size: 20px; font-weight: 900; color: #3157D5; min-width: 64px; text-align: right">{{pts}}P</span>
+    </div>
+  </div>
+
+  <div class="fadeup" style="margin: 28px 16px 0; animation-delay: .8s">
+    <sc-if value="{{notEntered}}" hint-placeholder-val="{{true}}">
+      <button class="tap" onClick="{{openSheet}}" style="width: 100%; box-sizing: border-box; border: none; background: #F0F8D5; border-radius: 20px; padding: 16px; display: flex; align-items: center; gap: 12px; text-align: left; font-family: inherit; color: #202A40">
+        <div style="width: 44px; height: 44px; border-radius: 14px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#506D23" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"></path></svg>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 3px">
+          <span style="font-size: 16px; font-weight: 700">경품 응모하기 <span style="font-size: 12px; font-weight: 500; color: #506D23">(선택)</span></span>
+          <span style="font-size: 13px; color: #374158">카페 음료 기프티콘 · 추첨 10명</span>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#506D23" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+      </button>
+    </sc-if>
+    <sc-if value="{{entered}}" hint-placeholder-val="{{false}}">
+      <div class="pop" style="background: #FFFFFF; border: 2px solid #A3EA16; border-radius: 20px; padding: 16px; display: flex; align-items: center; gap: 12px">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #A3EA16; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 3px">
+          <span style="font-size: 16px; font-weight: 700">경품 응모 완료</span>
+          <span style="font-size: 13px; color: #545E73">당첨되면 문자로 알려드려요</span>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+
+  <div class="fadeup" style="margin: 12px 16px 0; background: #FFFFFF; border: 1px solid #E2E5EE; border-radius: 20px; padding: 16px; display: flex; align-items: center; gap: 12px; animation-delay: .9s">
+    <div style="width: 44px; height: 44px; border-radius: 14px; background: #E3E9FF; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3157D5" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"></path></svg>
+    </div>
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 3px">
+      <span style="font-size: 15px; font-weight: 700">다른 학생들은 어떻게 답했을까?</span>
+      <span style="font-size: 13px; color: #545E73">마감 후 데이터 허브에 결과가 공개돼요</span>
+    </div>
+    <sc-if value="{{notNotified}}" hint-placeholder-val="{{true}}">
+      <button onClick="{{notify}}" style="height: 36px; padding: 0 12px; border: none; border-radius: 10px; background: #E3E9FF; color: #2949B5; font-size: 13px; font-weight: 700; font-family: inherit; flex-shrink: 0">알림 받기</button>
+    </sc-if>
+    <sc-if value="{{notified}}" hint-placeholder-val="{{false}}">
+      <span class="pop" style="font-size: 13px; font-weight: 700; color: #3157D5; flex-shrink: 0">알림 설정됨</span>
+    </sc-if>
+  </div>
+
+  <div class="fadeup" style="margin: 32px 20px 0; animation-delay: 1s">
+    <h2 style="margin: 0; font-size: 18px; font-weight: 900">이어서 하기 좋은 설문</h2>
+    <p style="margin: 4px 0 0; font-size: 13px; color: #545E73">비슷한 학생들이 많이 참여했어요</p>
+  </div>
+  <div class="fadeup" style="margin: 12px 16px 0; display: flex; flex-direction: column; gap: 10px; animation-delay: 1.05s">
+    <a href="Main.dc.html" style="background: #FFFFFF; border: 1px solid #E2E5EE; border-radius: 18px; padding: 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #202A40">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 15px; font-weight: 700">학식 메뉴 만족도 조사</span>
+        <span style="font-size: 13px; color: #545E73">약 2분 · 중앙대생만 · D-2</span>
+      </div>
+      <span style="background: #3157D5; color: #FFFFFF; font-size: 14px; font-weight: 900; padding: 8px 12px; border-radius: 12px">+20P</span>
+    </a>
+    <a href="Main.dc.html" style="background: #FFFFFF; border: 1px solid #E2E5EE; border-radius: 18px; padding: 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #202A40">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 15px; font-weight: 700">대학생 통학 시간 설문</span>
+        <span style="font-size: 13px; color: #545E73">약 1분 · 전체 대학생 · D-5</span>
+      </div>
+      <span style="background: #3157D5; color: #FFFFFF; font-size: 14px; font-weight: 900; padding: 8px 12px; border-radius: 12px">+10P</span>
+    </a>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-top: 1px solid #E2E5EE; padding: 12px 16px 30px; display: flex; gap: 10px">
+    <a href="#" style="width: 104px; height: 56px; box-sizing: border-box; border: 1px solid #E2E5EE; border-radius: 16px; font-size: 16px; font-weight: 700; color: #545E73; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0">홈으로</a>
+    <a href="Main.dc.html" style="flex: 1; height: 56px; background: #3157D5; border-radius: 16px; font-size: 17px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; justify-content: center; text-decoration: none">다음 설문 하기</a>
+  </div>
+
+  <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{false}}">
+    <div class="dim" style="position: absolute; inset: 0; background: rgba(32,42,64,0.6)"></div>
+    <div class="sheet" style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-radius: 28px 28px 0 0; padding: 12px 24px 34px; display: flex; flex-direction: column">
+      <div style="align-self: center; width: 40px; height: 5px; border-radius: 999px; background: #CDD2DF"></div>
+      <h2 style="margin: 22px 0 0; font-size: 22px; font-weight: 900">경품 응모</h2>
+      <p style="margin: 6px 0 0; font-size: 14px; color: #545E73">카페 음료 기프티콘 · 추첨 10명 · 마감 후 발표</p>
+
+      <label for="phone" style="margin-top: 22px; font-size: 14px; font-weight: 700">휴대폰 번호</label>
+      <input id="phone" type="tel" inputmode="numeric" value="{{phone}}" onChange="{{onPhone}}" placeholder="010-0000-0000" style="margin-top: 8px; height: 54px; box-sizing: border-box; border: 1px solid #CDD2DF; border-radius: 14px; padding: 0 16px; font-size: 16px; font-family: inherit; color: #202A40; outline-color: #3157D5">
+
+      <div style="margin-top: 16px; display: flex; align-items: center; gap: 10px">
+        <input id="agree" type="checkbox" checked="{{agree}}" onChange="{{toggleAgree}}" style="width: 22px; height: 22px; margin: 0; accent-color: #3157D5">
+        <label for="agree" style="flex: 1; font-size: 14px">개인정보 제3자 제공 동의 <span style="color: #545E73">(응모 시 필수)</span></label>
+        <a href="#" style="font-size: 13px; color: #545E73; padding: 8px 0">내용 보기</a>
+      </div>
+      <p style="margin: 8px 0 0; font-size: 12px; line-height: 1.5; color: #545E73">번호는 설문 등록 단체에 경품 발송용으로만 전달돼요.</p>
+
+      <sc-if value="{{canEnter}}" hint-placeholder-val="{{false}}">
+        <button class="tap" onClick="{{enter}}" style="margin-top: 20px; height: 56px; border: none; border-radius: 16px; background: #3157D5; color: #FFFFFF; font-size: 17px; font-weight: 700; font-family: inherit">응모하기</button>
+      </sc-if>
+      <sc-if value="{{cannotEnter}}" hint-placeholder-val="{{true}}">
+        <button disabled style="margin-top: 20px; height: 56px; border: none; border-radius: 16px; background: #E2E5EE; color: #545E73; font-size: 16px; font-weight: 700; font-family: inherit">번호 입력과 동의가 필요해요</button>
+      </sc-if>
+      <button onClick="{{closeSheet}}" style="margin-top: 4px; height: 44px; border: none; background: transparent; color: #545E73; font-size: 15px; font-family: inherit">다음에 할게요</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { pts: 177, sheet: false, phone: '', agree: false, entered: false, notified: false }; }
+  componentDidMount() {
+    var self = this;
+    this.t0 = setTimeout(function () {
+      self.iv = setInterval(function () {
+        if (self.state.pts >= 187) { clearInterval(self.iv); return; }
+        self.setState({ pts: self.state.pts + 1 });
+      }, 60);
+    }, 700);
+  }
+  componentWillUnmount() { clearTimeout(this.t0); clearInterval(this.iv); }
+  renderVals() {
+    var self = this, st = this.state;
+    var digits = (st.phone || '').replace(/[^0-9]/g, '');
+    var ok = digits.length >= 10 && st.agree;
+    return {
+      pts: st.pts,
+      notEntered: !st.entered, entered: st.entered,
+      notNotified: !st.notified, notified: st.notified,
+      sheetOpen: st.sheet, phone: st.phone, agree: st.agree,
+      canEnter: ok, cannotEnter: !ok,
+      openSheet: function () { self.setState({ sheet: true }); },
+      closeSheet: function () { self.setState({ sheet: false }); },
+      onPhone: function (e) { self.setState({ phone: e.target.value }); },
+      toggleAgree: function (e) { self.setState({ agree: e.target.checked }); },
+      enter: function () { self.setState({ sheet: false, entered: true }); },
+      notify: function () { self.setState({ notified: true }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

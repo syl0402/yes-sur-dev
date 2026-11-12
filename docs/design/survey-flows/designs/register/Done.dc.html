@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>설문 등록 완료</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+@keyframes hop{0%{transform:translateY(0)}25%{transform:translateY(-26px) rotate(-4deg)}50%{transform:translateY(0) scale(1.06,.94)}70%{transform:translateY(-10px) rotate(3deg)}100%{transform:translateY(0)}}
+@keyframes popIn{0%{opacity:0;transform:scale(.3)}60%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.hop{animation:hop .9s ease-out .1s both}
+.pop{animation:popIn .55s cubic-bezier(.2,.9,.3,1.3) both}
+.fadeup{animation:fadeUp .45s ease-out both}
+@media (prefers-reduced-motion: reduce){*{animation:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F7F8FC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; position: relative; padding-top: 44px; overflow: hidden">
+
+  <div style="display: flex; flex-direction: column; align-items: center; padding: 56px 24px 0">
+    <div style="position: relative; width: 168px; height: 150px; display: flex; justify-content: center; align-items: flex-end">
+      <div class="pop" style="position: absolute; left: 14px; top: 0; width: 140px; height: 140px; border-radius: 50%; background: #E3E9FF"></div>
+      <img class="hop" src="/_blob/1213dd006a16de9be8ccd69e3263bb60" alt="옛썰 캐릭터" style="position: relative; width: 168px; height: auto">
+    </div>
+    <h1 class="fadeup" style="margin: 24px 0 0; font-size: 26px; font-weight: 900; animation-delay: .3s">설문을 올렸어요!</h1>
+    <p class="fadeup" style="margin: 8px 0 0; font-size: 15px; color: #545E73; text-align: center; line-height: 1.55; animation-delay: .4s">10명이 모이면 자동으로 마감돼요</p>
+  </div>
+
+  <div class="fadeup" style="margin: 36px 16px 0; background: #F0F8D5; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 12px; animation-delay: .6s">
+    <span style="font-size: 15px; font-weight: 700; text-align: center">단톡방에 공유하면 더 빨리 모여요</span>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+      <button style="height: 46px; border: none; border-radius: 12px; background: #FFFFFF; color: #202A40; font-size: 14px; font-weight: 700; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 6px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"></path></svg>링크 복사
+      </button>
+      <button style="height: 46px; border: none; border-radius: 12px; background: #FFFFFF; color: #202A40; font-size: 14px; font-weight: 700; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 6px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"></path></svg>공유하기
+      </button>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-top: 1px solid #E2E5EE; padding: 12px 16px 30px; display: flex; gap: 10px">
+    <a href="#" style="width: 96px; height: 56px; box-sizing: border-box; border: 1px solid #E2E5EE; border-radius: 16px; color: #545E73; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0">홈으로</a>
+    <a href="Manage.dc.html" style="flex: 1; height: 56px; border-radius: 16px; background: #3157D5; color: #FFFFFF; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">내 설문 관리</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
