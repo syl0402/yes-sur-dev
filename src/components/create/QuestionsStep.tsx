@@ -1,10 +1,15 @@
-import { Pressable, StyleSheet, View } from "react-native";
+// 작성 ② 문항 (2026-11-10 선택 주관식·해당 없음·기타·보기 섞기
+// · 2026-11-13 설문 흐름 시안 register/Questions: 편집 중인 문항만 펼치고 나머지는 한 줄 요약 · 답변 방식은 아래 창 ·
+//   위/아래/복제/삭제 아이콘 · 보기 섞기는 "옵션 더보기" 안). 기능은 그대로, 모양만
+import { useState } from "react";
+import { Pressable, StyleSheet, Switch, View } from "react-native";
 
-import Chips from "@/components/create/Chips";
+import AppIcon from "@/components/AppIcon";
 import { formStyles } from "@/components/create/formStyles";
-import CheckRow from "@/components/ui/CheckRow";
+import BottomSheet from "@/components/ui/BottomSheet";
 import { Text, TextInput } from "@/components/ui/Text";
-import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
+import { questionIcons } from "@/constants/icons";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import {
   type DraftQuestion,
   NONE_OPTION_LABEL,
@@ -16,6 +21,7 @@ import {
   SCALE_LABELS,
   type SurveyDraft,
   isChoice,
+  makeRequestId,
   newQuestion,
 } from "@/lib/surveyDraft";
 
@@ -25,15 +31,24 @@ type Props = {
   onChange: (patch: Partial<SurveyDraft>) => void;
 };
 
-const TYPE_OPTIONS = (Object.keys(QUESTION_TYPE_LABELS) as QuestionType[]).map((t) => ({
-  value: t,
-  label: QUESTION_TYPE_LABELS[t],
-}));
+// 답변 방식 고르기 창의 설명 (지금 있는 4종만. 순위·긴 주관식·사진은 테스트 후 검토)
+const TYPE_DESC: Record<QuestionType, string> = {
+  single: "보기 중 하나만 골라요",
+  multi: "해당하는 것을 모두 골라요",
+  scale: "1~5점 중에서 골라요",
+  text: "응답자가 글로 직접 써요",
+};
+const TYPE_ORDER: QuestionType[] = ["single", "multi", "scale", "text"];
 
-// 작성 ② 문항 카드 목록 (추가·수정·삭제·순서 바꾸기 · 2026-11-10 선택 주관식·해당 없음·기타·보기 섞기)
 export default function QuestionsStep({ draft, rules, onChange }: Props) {
   const questions = draft.questions;
   const maxQuestions = rules.survey_max_questions;
+  // 펼친 문항 (key). 없으면 첫 문항
+  const [openKey, setOpenKey] = useState<string | null>(questions[0]?.key ?? null);
+  // 답변 방식 창을 연 문항 번호
+  const [typeSheetFor, setTypeSheetFor] = useState<number | null>(null);
+  // 옵션 더보기를 연 문항 (key)
+  const [moreKey, setMoreKey] = useState<string | null>(null);
 
   const setQuestions = (next: DraftQuestion[]) => onChange({ questions: next });
   const update = (index: number, patch: Partial<DraftQuestion>) =>
@@ -46,7 +61,27 @@ export default function QuestionsStep({ draft, rules, onChange }: Props) {
     setQuestions(next);
   };
 
-  const remove = (index: number) => setQuestions(questions.filter((_, i) => i !== index));
+  const remove = (index: number) => {
+    const next = questions.filter((_, i) => i !== index);
+    setQuestions(next);
+    // 지운 문항이 펼쳐져 있었으면 그 자리(없으면 앞) 문항을 펼친다
+    setOpenKey(next[Math.min(index, next.length - 1)]?.key ?? null);
+  };
+
+  // 복제: 바로 아래에 같은 내용으로 (새 번호) → 복제본을 펼친다
+  const duplicate = (index: number) => {
+    const copy = { ...questions[index], key: makeRequestId(), options: [...questions[index].options] };
+    const next = [...questions];
+    next.splice(index + 1, 0, copy);
+    setQuestions(next);
+    setOpenKey(copy.key);
+  };
+
+  const add = () => {
+    const q = newQuestion();
+    setQuestions([...questions, q]);
+    setOpenKey(q.key);
+  };
 
   // 고르기 문항으로 바꿀 때 보기가 2개보다 적으면 빈 칸을 채워 둔다
   const changeType = (index: number, type: QuestionType) => {
@@ -55,113 +90,236 @@ export default function QuestionsStep({ draft, rules, onChange }: Props) {
     update(index, { type, options });
   };
 
+  const full = questions.length >= maxQuestions;
+  const openIndex = Math.max(
+    0,
+    questions.findIndex((q) => q.key === openKey),
+  );
+
   return (
     <>
-      <Text style={formStyles.hint}>
-        문항 {questions.length} / {maxQuestions}개 · 문항이 {rules.attention_min_questions}개 이상이면 성실한 응답 확인용
-        문항이 자동으로 1개 들어가요.
+      <Text style={styles.guide}>
+        문항이 {rules.attention_min_questions}개 이상이면 성실한 응답인지 확인하는 문항이 자동으로 1개 들어가요. 최대{" "}
+        {maxQuestions}문항.
       </Text>
 
-      {questions.map((q, index) => (
-        <View key={q.key} style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>문항 {index + 1}</Text>
-            <View style={styles.cardActions}>
-              <SmallButton label="↑" onPress={() => move(index, -1)} disabled={index === 0} />
-              <SmallButton label="↓" onPress={() => move(index, 1)} disabled={index === questions.length - 1} />
-              <SmallButton label="삭제" onPress={() => remove(index)} disabled={questions.length === 1} danger />
-            </View>
-          </View>
-
-          <Chips options={TYPE_OPTIONS} selected={q.type} onSelect={(type) => changeType(index, type)} />
-
-          <TextInput
-            style={formStyles.input}
-            value={q.text}
-            onChangeText={(text) => update(index, { text })}
-            placeholder="질문을 입력해 주세요"
-            maxLength={QUESTION_TEXT_MAX}
-            multiline
-          />
-
-          {isChoice(q.type) && (
-            <View style={formStyles.section}>
-              {q.options.map((option, oi) => (
-                <View key={oi} style={styles.optionRow}>
-                  <TextInput
-                    style={[formStyles.input, styles.optionInput]}
-                    value={option}
-                    onChangeText={(text) =>
-                      update(index, { options: q.options.map((o, j) => (j === oi ? text : o)) })
-                    }
-                    placeholder={`보기 ${oi + 1}`}
-                    maxLength={OPTION_TEXT_MAX}
-                  />
-                  {q.options.length > 2 && (
-                    <SmallButton
-                      label="✕"
-                      onPress={() => update(index, { options: q.options.filter((_, j) => j !== oi) })}
-                    />
-                  )}
-                </View>
-              ))}
-              {/* 해당 없음·기타: 문구 고정, 항상 맨 아래 (2026-11-10) */}
-              {q.none && <FixedOption label={NONE_OPTION_LABEL} onRemove={() => update(index, { none: false })} />}
-              {q.other && <FixedOption label={OTHER_OPTION_LABEL} onRemove={() => update(index, { other: false })} />}
-              {/* 보기 추가: 점선 버튼 한 줄 / 그 아래 해당 없음·기타 알약 버튼 (구글폼 "옵션 추가 또는 '기타' 추가"처럼) */}
-              {q.options.length < rules.survey_max_options && (
-                <Pressable
-                  style={styles.addOption}
-                  onPress={() => update(index, { options: [...q.options, ""] })}
-                  hitSlop={4}
-                >
-                  <Text style={styles.addText}>+ 보기 추가</Text>
-                </Pressable>
-              )}
-              {(!q.none || !q.other) && (
-                <View style={styles.quickRow}>
-                  {!q.none && <QuickAdd label="+ 해당 없음" onPress={() => update(index, { none: true })} />}
-                  {!q.other && <QuickAdd label="+ 기타 (직접 입력)" onPress={() => update(index, { other: true })} />}
-                </View>
-              )}
-              <View style={styles.divider} />
-              <CheckRow
-                label="보기 순서 섞기"
-                checked={q.shuffle === true}
-                onPress={() => update(index, { shuffle: q.shuffle !== true })}
-              />
-              {q.shuffle === true && (
-                <Text style={formStyles.hint}>응답자마다 보기 순서가 달라요. 해당 없음·기타는 늘 맨 아래예요.</Text>
-              )}
-            </View>
-          )}
-
-          {q.type === "scale" && (
-            <Text style={formStyles.hint}>
-              응답자는 1({SCALE_LABELS[0]}) ~ 5({SCALE_LABELS[4]}) 중에서 골라요.
-            </Text>
-          )}
-          {q.type === "text" && (
-            <>
-              <Text style={formStyles.hint}>
-                응답자가 글로 답해요 (최대 {rules.answer_text_max}자). 주관식 답은 등록자만 볼 수 있어요.
+      {questions.map((q, index) =>
+        index !== openIndex ? (
+          // 접힌 문항: 한 줄 요약 (누르면 펼침)
+          <Pressable key={q.key} style={styles.summary} onPress={() => setOpenKey(q.key)}>
+            <Text style={styles.qNumber}>Q{index + 1}</Text>
+            <View style={styles.summaryMain}>
+              <Text style={[styles.summaryTitle, !q.text.trim() && styles.summaryEmpty]} numberOfLines={1}>
+                {q.text.trim() || "질문을 아직 안 썼어요"}
               </Text>
-              <CheckRow
-                label="필수 문항 (끄면 응답자가 비워 두고 넘어갈 수 있어요)"
-                checked={q.required !== false}
-                onPress={() => update(index, { required: q.required === false })}
+              <Text style={styles.summaryType}>{QUESTION_TYPE_LABELS[q.type]}</Text>
+            </View>
+          </Pressable>
+        ) : (
+          // 펼친 문항: 파란 테두리
+          <View key={q.key} style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.qNumber}>Q{index + 1}</Text>
+              <Pressable style={styles.typeChip} onPress={() => setTypeSheetFor(index)} hitSlop={4}>
+                <Text style={styles.typeChipText}>{QUESTION_TYPE_LABELS[q.type]}</Text>
+                <AppIcon name={questionIcons.caret} size={14} color={colors.textStrong} />
+              </Pressable>
+              <View style={styles.spacer} />
+              <IconButton icon={questionIcons.up} label="위로 옮기기" onPress={() => move(index, -1)} disabled={index === 0} />
+              <IconButton
+                icon={questionIcons.down}
+                label="아래로 옮기기"
+                onPress={() => move(index, 1)}
+                disabled={index === questions.length - 1}
               />
-            </>
-          )}
-        </View>
-      ))}
+              <IconButton icon={questionIcons.copy} label="문항 복제" onPress={() => duplicate(index)} disabled={full} />
+              <IconButton
+                icon={questionIcons.remove}
+                label="문항 삭제"
+                onPress={() => remove(index)}
+                disabled={questions.length === 1}
+                danger
+              />
+            </View>
 
-      {questions.length < maxQuestions && (
-        <Pressable style={styles.addQuestion} onPress={() => setQuestions([...questions, newQuestion()])}>
-          <Text style={styles.addText}>+ 문항 추가</Text>
+            <TextInput
+              style={[formStyles.input, styles.questionInput]}
+              value={q.text}
+              onChangeText={(text) => update(index, { text })}
+              placeholder="질문을 입력해 주세요"
+              maxLength={QUESTION_TEXT_MAX}
+              multiline
+            />
+
+            {isChoice(q.type) && (
+              <View style={styles.options}>
+                {q.options.map((option, oi) => (
+                  <View key={oi} style={styles.optionRow}>
+                    <View style={[styles.mark, q.type === "multi" && styles.markSquare]} />
+                    <TextInput
+                      style={styles.optionInput}
+                      value={option}
+                      onChangeText={(text) => update(index, { options: q.options.map((o, j) => (j === oi ? text : o)) })}
+                      placeholder={`보기 ${oi + 1}`}
+                      maxLength={OPTION_TEXT_MAX}
+                    />
+                    {q.options.length > 2 && (
+                      <Pressable
+                        onPress={() => update(index, { options: q.options.filter((_, j) => j !== oi) })}
+                        hitSlop={8}
+                        accessibilityLabel="보기 빼기"
+                      >
+                        <Text style={styles.removeX}>✕</Text>
+                      </Pressable>
+                    )}
+                  </View>
+                ))}
+                {/* 해당 없음·기타: 문구 고정, 항상 맨 아래 (2026-11-10) */}
+                {q.none && <FixedOption label={NONE_OPTION_LABEL} multi={q.type === "multi"} onRemove={() => update(index, { none: false })} />}
+                {q.other && <FixedOption label={OTHER_OPTION_LABEL} multi={q.type === "multi"} onRemove={() => update(index, { other: false })} />}
+                {q.options.length < rules.survey_max_options && (
+                  <Pressable style={styles.addOption} onPress={() => update(index, { options: [...q.options, ""] })} hitSlop={4}>
+                    <Text style={styles.addOptionText}>+ 보기 추가</Text>
+                  </Pressable>
+                )}
+                {(!q.none || !q.other) && (
+                  <View style={styles.quickRow}>
+                    {!q.none && <QuickAdd label="+ 해당 없음" onPress={() => update(index, { none: true })} />}
+                    {!q.other && <QuickAdd label="+ 기타 (직접 입력)" onPress={() => update(index, { other: true })} />}
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* 척도·주관식: 응답자에게 보일 모양 미리보기 */}
+            {q.type === "scale" && (
+              <View style={styles.preview}>
+                <View style={styles.scaleRow}>
+                  {[1, 2, 3, 4, 5].map((v) => (
+                    <View key={v} style={styles.scaleCell}>
+                      <Text style={styles.scaleText}>{v}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View style={styles.scaleLabels}>
+                  <Text style={formStyles.hint}>{SCALE_LABELS[0]}</Text>
+                  <Text style={formStyles.hint}>{SCALE_LABELS[4]}</Text>
+                </View>
+              </View>
+            )}
+            {q.type === "text" && (
+              <View style={styles.textPreview}>
+                <Text style={styles.textPreviewText}>
+                  응답자가 직접 써요 (최대 {rules.answer_text_max}자) · 답은 등록자만 볼 수 있어요
+                </Text>
+              </View>
+            )}
+
+            {/* 아래 줄: 옵션 더보기(고르기 문항: 보기 순서 섞기) · 필수 스위치(주관식만 끌 수 있음) */}
+            {(isChoice(q.type) || q.type === "text") && (
+              <View style={styles.footer}>
+                {isChoice(q.type) ? (
+                  <Pressable onPress={() => setMoreKey(moreKey === q.key ? null : q.key)} hitSlop={8}>
+                    <Text style={styles.moreText}>{moreKey === q.key ? "옵션 접기 ▴" : "옵션 더보기 ▾"}</Text>
+                  </Pressable>
+                ) : (
+                  <View />
+                )}
+                {q.type === "text" && (
+                  <View style={styles.requiredRow}>
+                    <Text style={styles.requiredText}>필수</Text>
+                    <Switch
+                      value={q.required !== false}
+                      onValueChange={(on) => update(index, { required: on })}
+                      trackColor={{ true: colors.primary, false: colors.border }}
+                      thumbColor={colors.surface}
+                    />
+                  </View>
+                )}
+              </View>
+            )}
+            {isChoice(q.type) && moreKey === q.key && (
+              <View style={styles.moreBox}>
+                <View style={styles.requiredRow}>
+                  <Text style={styles.moreLabel}>보기 순서 섞기</Text>
+                  <Switch
+                    value={q.shuffle === true}
+                    onValueChange={(on) => update(index, { shuffle: on })}
+                    trackColor={{ true: colors.primary, false: colors.border }}
+                    thumbColor={colors.surface}
+                  />
+                </View>
+                <Text style={formStyles.hint}>응답자마다 보기 순서가 달라요. 해당 없음·기타는 늘 맨 아래예요.</Text>
+              </View>
+            )}
+            {q.type === "text" && q.required === false && (
+              <Text style={formStyles.hint}>응답자가 비워 두고 넘어갈 수 있어요.</Text>
+            )}
+          </View>
+        ),
+      )}
+
+      {!full && (
+        <Pressable style={styles.addQuestion} onPress={add}>
+          <Text style={styles.addQuestionText}>+ 문항 추가</Text>
         </Pressable>
       )}
+
+      {/* 답변 방식 고르기 (공용 아래 창) */}
+      {typeSheetFor !== null && questions[typeSheetFor] && (
+        <BottomSheet onClose={() => setTypeSheetFor(null)}>
+          <Text style={styles.sheetTitle}>답변 방식</Text>
+          {TYPE_ORDER.map((t) => {
+            const on = questions[typeSheetFor].type === t;
+            return (
+              <Pressable
+                key={t}
+                style={[styles.typeRow, on && styles.typeRowOn]}
+                onPress={() => {
+                  changeType(typeSheetFor, t);
+                  setTypeSheetFor(null);
+                }}
+              >
+                <View style={styles.typeIcon}>
+                  <AppIcon name={questionIcons[t]} size={20} color={colors.primaryStrong} />
+                </View>
+                <View style={styles.typeMain}>
+                  <Text style={styles.typeLabel}>{QUESTION_TYPE_LABELS[t]}</Text>
+                  <Text style={styles.typeDesc}>{TYPE_DESC[t]}</Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </BottomSheet>
+      )}
     </>
+  );
+}
+
+// 위/아래/복제/삭제 아이콘 버튼 (36×36)
+function IconButton({
+  icon,
+  label,
+  onPress,
+  disabled,
+  danger,
+}: {
+  icon: (typeof questionIcons)[keyof typeof questionIcons];
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  danger?: boolean;
+}) {
+  return (
+    <Pressable
+      style={[styles.iconButton, danger && styles.iconButtonDanger, disabled && styles.iconDisabled]}
+      onPress={onPress}
+      disabled={disabled}
+      hitSlop={4}
+      accessibilityLabel={label}
+    >
+      <AppIcon name={icon} size={18} color={danger ? colors.danger : colors.iconStrong} />
+    </Pressable>
   );
 }
 
@@ -175,105 +333,161 @@ function QuickAdd({ label, onPress }: { label: string; onPress: () => void }) {
 }
 
 // 고정 문구 보기 (해당 없음·기타): 고칠 수 없고 ✕로 빼기만
-function FixedOption({ label, onRemove }: { label: string; onRemove: () => void }) {
+function FixedOption({ label, multi, onRemove }: { label: string; multi: boolean; onRemove: () => void }) {
   return (
     <View style={styles.optionRow}>
-      <View style={[formStyles.input, styles.optionInput, styles.fixedOption]}>
-        <Text style={styles.fixedText}>{label}</Text>
-      </View>
-      <SmallButton label="✕" onPress={onRemove} />
+      <View style={[styles.mark, multi && styles.markSquare]} />
+      <Text style={[styles.optionInput, styles.fixedText]}>{label}</Text>
+      <Pressable onPress={onRemove} hitSlop={8} accessibilityLabel="보기 빼기">
+        <Text style={styles.removeX}>✕</Text>
+      </Pressable>
     </View>
   );
 }
 
-function SmallButton({
-  label,
-  onPress,
-  disabled,
-  danger,
-}: {
-  label: string;
-  onPress: () => void;
-  disabled?: boolean;
-  danger?: boolean;
-}) {
-  return (
-    <Pressable style={[styles.smallButton, disabled && styles.smallDisabled]} onPress={onPress} disabled={disabled} hitSlop={4}>
-      <Text style={[styles.smallText, danger && styles.dangerText]}>{label}</Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
-  card: {
+  guide: {
+    fontSize: fontSize.small,
+    lineHeight: 20,
+    color: colors.iconStrong,
+  },
+  summary: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.lg,
     backgroundColor: colors.surface,
-    gap: spacing.sm,
-    ...shadow.card,
   },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  qNumber: {
+    minWidth: 24,
+    fontSize: fontSize.label,
+    fontWeight: "800",
+    color: colors.primary,
   },
-  cardTitle: {
-    fontSize: fontSize.body,
+  summaryMain: {
+    flex: 1,
+    gap: 3,
+  },
+  summaryTitle: {
+    fontSize: 15,
     fontWeight: "700",
     color: colors.text,
   },
-  cardActions: {
-    flexDirection: "row",
-    gap: spacing.sm,
+  summaryEmpty: {
+    color: colors.textSubtle,
   },
-  smallButton: {
-    paddingVertical: 4,
-    paddingHorizontal: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.sm,
+  summaryType: {
+    fontSize: fontSize.caption,
+    color: colors.iconStrong,
+  },
+  card: {
+    gap: 14,
+    padding: spacing.md,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    borderRadius: radius.xl,
     backgroundColor: colors.surface,
   },
-  smallDisabled: {
-    opacity: 0.3,
-  },
-  smallText: {
-    fontSize: fontSize.small,
-    color: colors.text,
-  },
-  dangerText: {
-    color: colors.danger,
-  },
-  optionRow: {
+  cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    gap: 6,
+  },
+  typeChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    height: 34,
+    paddingHorizontal: 12,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceMuted,
+  },
+  typeChipText: {
+    fontSize: fontSize.small,
+    fontWeight: "700",
+    color: colors.textStrong,
+  },
+  spacer: {
+    flex: 1,
+  },
+  iconButton: {
+    width: 36,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    backgroundColor: colors.surface,
+  },
+  iconButtonDanger: {
+    borderColor: colors.dangerSoft,
+  },
+  iconDisabled: {
+    opacity: 0.35,
+  },
+  questionInput: {
+    borderRadius: radius.lg,
+    fontSize: fontSize.body,
+    fontWeight: "600",
+  },
+  options: {
+    gap: spacing.xs,
+  },
+  optionRow: {
+    minHeight: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  mark: {
+    width: 18,
+    height: 18,
+    borderWidth: 2,
+    borderColor: colors.borderStrong,
+    borderRadius: 9,
+  },
+  markSquare: {
+    borderRadius: 5,
   },
   optionInput: {
     flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    fontSize: 15,
+    color: colors.text,
   },
-  addText: {
+  fixedText: {
+    color: colors.textMuted,
+  },
+  removeX: {
+    paddingHorizontal: spacing.xs,
     fontSize: fontSize.body,
-    color: colors.primary,
-    fontWeight: "600",
+    color: colors.textSubtle,
   },
   addOption: {
-    paddingVertical: spacing.sm,
-    borderWidth: 1,
-    borderStyle: "dashed",
-    borderColor: colors.primaryMuted,
-    borderRadius: radius.md,
-    alignItems: "center",
+    alignSelf: "flex-start",
+    paddingVertical: 12,
+    paddingLeft: 28,
+  },
+  addOptionText: {
+    fontSize: fontSize.label,
+    fontWeight: "700",
+    color: colors.primary,
   },
   quickRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: spacing.sm,
+    gap: 6,
+    paddingLeft: 28,
   },
   quickAdd: {
-    paddingVertical: 6,
+    paddingVertical: 7,
     paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: colors.border,
@@ -282,28 +496,122 @@ const styles = StyleSheet.create({
   },
   quickText: {
     fontSize: fontSize.small,
-    fontWeight: "600",
-    color: colors.textMuted,
+    color: colors.textStrong,
   },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.xs,
+  preview: {
+    gap: spacing.sm,
   },
-  fixedOption: {
-    backgroundColor: colors.surfaceMuted,
+  scaleRow: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  scaleCell: {
+    flex: 1,
+    height: 40,
+    alignItems: "center",
     justifyContent: "center",
+    borderRadius: 10,
+    backgroundColor: colors.surfaceMuted,
   },
-  fixedText: {
-    fontSize: fontSize.body,
-    color: colors.textMuted,
+  scaleText: {
+    fontWeight: "700",
+    color: colors.text,
+  },
+  scaleLabels: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  textPreview: {
+    minHeight: 48,
+    justifyContent: "center",
+    paddingHorizontal: 14,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSubtle,
+  },
+  textPreviewText: {
+    fontSize: fontSize.small,
+    color: colors.iconStrong,
+  },
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceMuted,
+  },
+  moreText: {
+    fontSize: fontSize.small,
+    color: colors.iconStrong,
+  },
+  requiredRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  requiredText: {
+    fontSize: fontSize.small,
+    color: colors.textStrong,
+  },
+  moreBox: {
+    gap: spacing.xs,
+  },
+  moreLabel: {
+    fontSize: fontSize.label,
+    color: colors.text,
   },
   addQuestion: {
-    paddingVertical: spacing.md,
+    height: 54,
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     backgroundColor: colors.surface,
+  },
+  addQuestionText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: colors.primary,
+  },
+  sheetTitle: {
+    marginTop: 18,
+    marginBottom: 10,
+    fontSize: fontSize.subtitle,
+    fontWeight: "800",
+    color: colors.text,
+  },
+  typeRow: {
+    minHeight: 58,
+    flexDirection: "row",
     alignItems: "center",
+    gap: 14,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+  },
+  typeRowOn: {
+    backgroundColor: colors.primaryFaint,
+  },
+  typeIcon: {
+    width: 36,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 10,
+    backgroundColor: colors.primarySoft,
+  },
+  typeMain: {
+    flex: 1,
+    gap: 2,
+  },
+  typeLabel: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  typeDesc: {
+    fontSize: fontSize.caption,
+    color: colors.iconStrong,
   },
 });

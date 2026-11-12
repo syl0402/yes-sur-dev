@@ -30,6 +30,7 @@ import {
   hasReward,
   isBlankDraft,
   makeRequestId,
+  questionValid,
   questionsValid,
   registrationCost,
   saveDraft,
@@ -46,12 +47,20 @@ const STEP_TITLES = ["어떤 설문인가요?", "문항 만들기", "대상 · �
 
 // [다음]을 누를 수 없을 때 버튼 안에 보여 줄 이유 (2026-11-12 시안). 없으면 "다음" 그대로
 // ②③④ 이유 문구는 각 단계 시안을 반영할 때 더한다
-function blockedReason(step: number, draft: SurveyDraft): string | null {
+function blockedReason(step: number, draft: SurveyDraft, rules: Record<string, number>): string | null {
   if (step === 1) {
     const title = draft.title.trim().length;
     if (title === 0) return "제목을 써 주세요";
     if (title < TITLE_MIN) return `제목을 ${TITLE_MIN}자 이상 써 주세요`;
     if (draft.categoryId === null) return "카테고리를 골라 주세요";
+  }
+  if (step === 2) {
+    // 처음으로 덜 채운 문항을 알려 준다
+    const i = draft.questions.findIndex((q) => !questionValid(q, rules));
+    if (i >= 0) {
+      const q = draft.questions[i];
+      return q.text.trim() === "" ? `Q${i + 1} 질문을 써 주세요` : `Q${i + 1} 보기를 채워 주세요`;
+    }
   }
   return null;
 }
@@ -380,7 +389,7 @@ export default function CreateSurvey() {
           />
         )}
         <Button
-          title={(!stepOk && blockedReason(step, draft)) || (step === STEP_COUNT ? "등록하기" : "다음")}
+          title={(!stepOk && blockedReason(step, draft, rules)) || (step === STEP_COUNT ? "등록하기" : "다음")}
           onPress={goNext}
           disabled={!stepOk}
           loading={sending}

@@ -396,6 +396,7 @@ update organizations set reject_reason = '사유' where id = (select id from aut
 
 ## 출시 전에 할 일
 
+- [ ] **테스트 시작일 아침 (Google 검토 통과 → 테스터 들어오기 전)**: `supabase/seed/test_start.sql` 1~6번 차례로 실행 (미션 시작일·미리보기 초기화, 개발 설문 전부 삭제, 개발용 오늘의 질문 삭제, result_min_count 5, 공식 설문 10개). 전날까지 팀 메일로 단체 가입 + dev_tools 11번. 아래 11/13·11/14 항목들을 이 파일로 묶음 (2026-11-13)
 - [ ] 글자 크기 정리 (2026-11-12): 화면에 숫자로 직접 쓴 글자 크기(24·23·20 등, 약 86곳)를 `theme.ts` fontSize에 이름 붙여 한꺼번에 정리. 규칙 "글꼴은 theme.ts에서만" 맞추기
 - [ ] 아래 선택 창 통일 (2026-11-12): `YearPicker`·`SelectButton`도 공용 `BottomSheet`로 (지금은 각자 모양)
 - [x] 개인정보처리방침 개정(2026-11-08, 보상 연락처·제휴 문의)을 노션 게시본에도 반영 (2026-11-08 완료)

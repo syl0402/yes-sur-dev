@@ -74,6 +74,19 @@ export const menuIcons = {
   logout: "log-out-outline",
 } satisfies Record<string, IconName>;
 
+// 설문 등록 ② 문항 (2026-11-13 설문 흐름 시안): 답변 방식 · 문항 위/아래/복제/삭제
+export const questionIcons = {
+  single: "radio-button-on-outline",
+  multi: "checkbox-outline",
+  scale: "options-outline",
+  text: "create-outline",
+  up: "chevron-up",
+  down: "chevron-down",
+  copy: "copy-outline",
+  remove: "trash-outline",
+  caret: "fig-caret",
+} satisfies Record<string, IconName>;
+
 // 웰컴 미션 (2026-11-12)
 export const missionIcons = {
   check: "checkmark",
