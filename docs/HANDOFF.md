@@ -82,6 +82,9 @@ formatHost(survey); // "경영학과 학생회 ✓" 또는 "개인"
 ### `formatTimeLeft` (`src/lib/format.ts`, 2026-10-29)
 마감까지 남은 시간: `"3일 남음"` / `"5시간 남음"` / `"곧 마감"` / `"마감"`
 
+### `formatDday` (`src/lib/format.ts`, 2026-11-12)
+마감 D-day: `"D-4"` / 하루 안 남았으면 `"오늘"` / `"마감"` / 마감일 없으면 `"-"`. 설문 상세 요약 칸.
+
 ### `formatAgo` (`src/lib/format.ts`, 2026-11-02)
 "방금 · n분 전 · n시간 전 · 어제 · 11.2 · 2025.11.2". 커뮤니티 글·댓글, 설문 카드·상세 등록일.
 
@@ -111,8 +114,10 @@ import { Text, TextInput } from "@/components/ui/Text";
 | `SelectButton` | `[추천순 ▾]` 선택 버튼 → 아래에서 선택 창. `defaultValue`가 아니면 파랗게 (필터 걸림 표시) |
 | `Badge` | 상태 표시 `tone` primary·accent·muted·danger |
 | `ProgressBar` | 진행 막대 `value` 0~1 |
-| `OptionRow` | 선택지 카드 (동그라미, `multiple`이면 네모 체크) |
-| `StatTile` | 숫자 카드 (이름 + 큰 숫자) |
+| `OptionRow` | 설문 응답 선택지 카드. 글자 왼쪽 · 표시 오른쪽, 고르면 파란 테두리 + 체크 동그라미 (`multiple`이면 둥근 네모). 동의 체크에는 쓰지 않는다 → `CheckRow` (2026-11-12) |
+| `CheckRow` | 작은 체크 한 줄 (동의 문구: 보상 연락처 · 제휴 문의) |
+| `BottomSheet` | 아래에서 올라오는 창. `onClose` · `closeLabel`("나중에 할게요") · `decoration`(창 위 그림) · `keyboard`(입력칸 있을 때). 미션 상세 · 응답 완료 연락처. **새 바텀시트는 항상 이것으로** (2026-11-12) |
+| `HeaderBack` | 위쪽 왼쪽 버튼 (나가기 전 확인 창이 필요한 화면). `icon="close"`면 X (설문 응답) |
 | `SectionHeader` | 묶음 제목 + 설명 + "전체 보기 ›" |
 | `EmptyState` | 빈 목록 안내 (그림 + 제목 + 설명) |
 | `Logo` | 제목줄 로고 |
@@ -335,7 +340,7 @@ const { data: questions } = await supabase
 ### 설문 보상 연락처 (2026-11-07)
 - `src/lib/rewards.ts` `fetchSurveyReward(id)` → 보상 안내 글 또는 null
 - 작성: `SurveyDraft.rewardNote`(적으면 보상 설문, `hasReward`·`rewardValid`) + `rewardAgreed` → 등록 뒤 `set_survey_reward`
-- 보기: `RewardNotice`(안내 상자, 링크 확인 후 열림) · 응답 완료 `RewardContactForm`(번호 + 제3자 제공 동의) · 작성자 `results/RewardContactsBox`(번호 보기·복사·모두 지우기)
+- 보기: `RewardNotice`(안내 상자, 링크 확인 후 열림) · 응답 완료 `RewardContactForm`(번호 + 제3자 제공 동의, `onSaved` = 남긴 뒤 · 응답 완료 화면은 카드 → BottomSheet 안에 넣음) · 작성자 `results/RewardContactsBox`(번호 보기·복사·모두 지우기)
 - 목록: `SurveyCard.has_reward` → 카드 🎁 뱃지, 설문 탭 🎁 보상 칩
 - 작은 동의 체크: `src/components/ui/CheckRow.tsx`
 

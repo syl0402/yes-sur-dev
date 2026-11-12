@@ -3,12 +3,10 @@
 import { Image } from "expo-image";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
-  FadeIn,
   FadeInUp,
-  SlideInDown,
   ZoomIn,
   useAnimatedStyle,
   useReducedMotion,
@@ -17,12 +15,12 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import AppIcon from "@/components/AppIcon";
 import RewardContactForm from "@/components/RewardContactForm";
 import SurveyRowCard from "@/components/SurveyRowCard";
 import BottomBar from "@/components/ui/BottomBar";
+import BottomSheet from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import { uiIcons } from "@/constants/icons";
@@ -280,7 +278,7 @@ function CountUp({ from, to }: { from: number | null; to: number | null }) {
   return <Text style={styles.balanceValue}>{formatPoints(shown)}</Text>;
 }
 
-// 보상 연락처 바텀시트 (어두운 바탕 + 아래에서 올라옴, 미션 시트와 같은 움직임)
+// 보상 연락처 바텀시트 (공용 BottomSheet, 안에 번호 입력칸이 있어 키보드 따라 올라감)
 function ContactSheet({
   surveyId,
   note,
@@ -292,28 +290,13 @@ function ContactSheet({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const insets = useSafeAreaInsets();
   return (
-    <Modal visible transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
-      <Animated.View entering={FadeIn.duration(250)} style={styles.dim}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="닫기" />
-      </Animated.View>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.sheetWrap} pointerEvents="box-none">
-        <Animated.View
-          entering={SlideInDown.duration(400).easing(Easing.bezier(0.2, 0.8, 0.2, 1))}
-          style={[styles.sheet, { paddingBottom: insets.bottom + spacing.md }]}
-        >
-          <View style={styles.handle} />
-          <Text style={styles.sheetTitle}>보상 받을 연락처</Text>
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.sheetBody}>
-            <RewardContactForm surveyId={surveyId} note={note} onSaved={onSaved} />
-          </ScrollView>
-          <Pressable onPress={onClose} hitSlop={8} style={styles.later}>
-            <Text style={styles.laterText}>다음에 할게요</Text>
-          </Pressable>
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </Modal>
+    <BottomSheet onClose={onClose} closeLabel="다음에 할게요" keyboard>
+      <Text style={styles.sheetTitle}>보상 받을 연락처</Text>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.sheetBody}>
+        <RewardContactForm surveyId={surveyId} note={note} onSaved={onSaved} />
+      </ScrollView>
+    </BottomSheet>
   );
 }
 
@@ -522,29 +505,6 @@ const styles = StyleSheet.create({
   main: {
     flex: 1,
   },
-  dim: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: colors.overlay,
-  },
-  sheetWrap: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    maxHeight: "90%",
-    paddingTop: 12,
-    paddingHorizontal: spacing.lg,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    backgroundColor: colors.surface,
-  },
-  handle: {
-    alignSelf: "center",
-    width: 40,
-    height: 5,
-    borderRadius: radius.pill,
-    backgroundColor: colors.borderStrong,
-  },
   sheetTitle: {
     marginTop: 22,
     marginBottom: spacing.md,
@@ -554,13 +514,5 @@ const styles = StyleSheet.create({
   },
   sheetBody: {
     paddingBottom: spacing.sm,
-  },
-  later: {
-    alignSelf: "center",
-    paddingVertical: 12,
-  },
-  laterText: {
-    fontSize: 15,
-    color: colors.iconStrong,
   },
 });
