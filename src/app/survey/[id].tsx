@@ -275,8 +275,9 @@ export default function SurveyDetail() {
             </View>
             {reward && (
               <View style={[styles.rewardRow, styles.rewardRowLine]}>
-                <View style={[styles.rewardIcon, styles.rewardIconLime]}>
-                  <AppIcon name={uiIcons.gift} size={20} color={colors.onAccentSoft} />
+                {/* 목록 카드 "보상" 알약과 같은 살구색 (2026-11-13) */}
+                <View style={[styles.rewardIcon, styles.rewardIconPeach]}>
+                  <AppIcon name={uiIcons.gift} size={20} color={colors.pastelPeachText} />
                 </View>
                 <View style={styles.rewardMain}>
                   <LinkedText style={styles.rewardNote} selectable>
@@ -538,8 +539,8 @@ const styles = StyleSheet.create({
   rewardIconBlue: {
     backgroundColor: colors.primarySoft,
   },
-  rewardIconLime: {
-    backgroundColor: colors.accentSoft,
+  rewardIconPeach: {
+    backgroundColor: colors.pastelPeach,
   },
   rewardMain: {
     flex: 1,

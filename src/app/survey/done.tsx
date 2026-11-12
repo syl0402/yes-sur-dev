@@ -152,7 +152,7 @@ export default function SurveyDone() {
                   style={({ pressed }) => [styles.contactCard, pressed && styles.pressed]}
                 >
                   <View style={styles.contactIcon}>
-                    <AppIcon name={uiIcons.gift} size={22} color={colors.onAccentSoft} />
+                    <AppIcon name={uiIcons.gift} size={22} color={colors.pastelPeachText} />
                   </View>
                   <View style={styles.cardMain}>
                     <Text style={styles.cardTitle}>
@@ -162,7 +162,7 @@ export default function SurveyDone() {
                       {rewardNote}
                     </Text>
                   </View>
-                  <AppIcon name={uiIcons.chevron} size={18} color={colors.onAccentSoft} />
+                  <AppIcon name={uiIcons.chevron} size={18} color={colors.pastelPeachText} />
                 </Pressable>
               )}
             </Animated.View>
@@ -408,7 +408,8 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: spacing.md,
     borderRadius: radius.xl,
-    backgroundColor: colors.accentSoft,
+    // 목록 카드 "보상" 알약과 같은 살구색 (2026-11-13). 남긴 뒤 카드는 완료 색(연두)
+    backgroundColor: colors.pastelPeach,
   },
   pressed: {
     transform: [{ scale: 0.98 }],
@@ -452,7 +453,7 @@ const styles = StyleSheet.create({
   optional: {
     fontSize: fontSize.caption,
     fontWeight: "500",
-    color: colors.onAccentSoft,
+    color: colors.pastelPeachText,
   },
   cardSub: {
     fontSize: fontSize.small,
