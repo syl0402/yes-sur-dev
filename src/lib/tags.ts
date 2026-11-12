@@ -10,6 +10,20 @@ export async function fetchTags(): Promise<Tag[]> {
   return data ?? [];
 }
 
+// 카테고리별 추천 태그 (2026-11-12): 카테고리 번호 → 추천 태그 번호(순서대로)
+// 표가 아직 없거나 비어 있으면 빈 값 → 등록 화면은 전체 태그를 그대로 보여 준다
+export async function fetchTagSuggestions(): Promise<Record<number, number[]>> {
+  const { data } = await supabase
+    .from("category_tag_suggestions")
+    .select("category_id, tag_id, sort_order")
+    .order("sort_order");
+  const byCategory: Record<number, number[]> = {};
+  for (const row of data ?? []) {
+    (byCategory[row.category_id] ??= []).push(row.tag_id);
+  }
+  return byCategory;
+}
+
 // "#연애"
 export function formatTag(name: string): string {
   return `#${name}`;

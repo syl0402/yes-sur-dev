@@ -1,7 +1,7 @@
 // ys-120 설문 작성 · F-401~405
 import { Stack, router, useLocalSearchParams, usePreventRemove } from "expo-router";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Platform, Pressable, ScrollView, type ScrollViewInstance, StyleSheet, View } from "react-native";
 
 import BasicsStep from "@/components/create/BasicsStep";
 import ConfirmStep from "@/components/create/ConfirmStep";
@@ -36,7 +36,7 @@ import {
   settingsValid,
   toRpcQuestions,
 } from "@/lib/surveyDraft";
-import { fetchTags, formatTag, type Tag } from "@/lib/tags";
+import { fetchTagSuggestions, fetchTags, formatTag, type Tag } from "@/lib/tags";
 
 const STEP_COUNT = 4;
 
@@ -46,6 +46,8 @@ type Setup = {
   rules: Record<string, number>;
   categories: { id: number; name: string }[];
   tags: Tag[];
+  // 카테고리 번호 → 추천 태그 번호 (2026-11-12)
+  tagSuggestions: Record<number, number[]>;
   isOrg: boolean;
   // 작성자로 표시될 단체 이름 (학생은 null)
   orgName: string | null;
@@ -59,7 +61,7 @@ type Setup = {
 
 // 작성에 필요한 것: 설정값·카테고리·내 계정 종류·학교·잔액 (모두 본인 것만 읽힌다)
 async function fetchSetup(): Promise<Setup> {
-  const [{ data: auth }, rules, { data: categories }, tags, { data: profile }, { data: balance }, { data: org }] = await Promise.all([
+  const [{ data: auth }, rules, { data: categories }, tags, { data: profile }, { data: balance }, { data: org }, tagSuggestions] = await Promise.all([
     supabase.auth.getUser(),
     fetchRules(CREATE_RULE_KEYS),
     supabase.from("survey_categories").select("id, name").order("sort_order"),
@@ -67,6 +69,7 @@ async function fetchSetup(): Promise<Setup> {
     supabase.from("profiles").select("account_type, university_id, nickname").maybeSingle(),
     supabase.rpc("get_my_balance"),
     supabase.from("organizations").select("name, kind, universities(name)").maybeSingle(),
+    fetchTagSuggestions(),
   ]);
   const isOrg = profile?.account_type === "org";
 
@@ -80,6 +83,7 @@ async function fetchSetup(): Promise<Setup> {
     rules,
     categories: categories ?? [],
     tags,
+    tagSuggestions,
     isOrg,
     orgName: isOrg ? orgName : null,
     nickname: isOrg ? null : (profile?.nickname ?? null),
@@ -100,6 +104,9 @@ export default function CreateSurvey() {
   const [draftId] = useState(() => draftParam ?? makeRequestId());
   // 마지막으로 불러오거나 임시저장한 내용. 지금 내용과 다르면 "바뀐 게 있음"
   const [savedJson, setSavedJson] = useState<string | null>(null);
+  // 카테고리를 고르면 아래에 열린 태그 칸으로 부드럽게 내려간다 (태그 칸이 ① 단계 맨 아래, 2026-11-12)
+  const scrollRef = useRef<ScrollViewInstance>(null);
+  const showTags = () => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
 
   useEffect(() => {
     fetchSetup().then((s) => {
@@ -295,6 +302,7 @@ export default function CreateSurvey() {
 
       {/* 아이폰 반투명 헤더·키보드에 입력칸이 가리지 않게. 단계가 바뀌면 맨 위부터 보이게(key) */}
       <ScrollView
+        ref={scrollRef}
         key={step}
         contentInsetAdjustmentBehavior="automatic"
         automaticallyAdjustKeyboardInsets
@@ -311,6 +319,8 @@ export default function CreateSurvey() {
             draft={draft}
             categories={setup.categories}
             tags={setup.tags}
+            suggestions={setup.tagSuggestions}
+            onCategoryPicked={showTags}
             tagMax={rules.survey_tag_max ?? 0}
             onChange={update}
           />

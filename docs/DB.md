@@ -60,6 +60,7 @@
 | `20261107000007_purge_cron.sql` | `pg_cron` 켜고 매일 한국 새벽 4시 `purge_expired_personal_data()` (작업 이름 `purge-expired-personal-data`) | 2026-11-07 |
 | `20261107000006_reward_contacts.sql` | 설문 보상 연락처: `survey_rewards`(작성자 보상 안내 2~300자 + 동의 시각) · `reward_contacts`(휴대폰, (설문, 회원) 기본 키, **앱 직접 접근 불가**) · `set_survey_reward`·`submit_reward_contact`(confirmed 응답자만, 동의 필수)·`has_my_reward_contact`·`get_reward_contacts`(작성자만, 번호만 무작위 순서)·`clear_reward_contacts`, `reward_contact_keep_days` 30 | 2026-11-07 |
 | `20261107000003~05_partnership*.sql` | 제휴·광고 문의: `partnership_inquiries`(담당자 정보, 본인만 읽기) · `send_partnership_inquiry` · 알게 된 경로 필수(store·friend·sns·community·search·school·other, 기타는 직접 입력) · `partnership_keep_days` 365 · `purge_expired_personal_data()` | 2026-11-07 |
+| `20261112000005_tag_suggestions.sql` | 카테고리별 추천 태그 `category_tag_suggestions`(카테고리·태그·순서, 읽기만) + 시안 추천 목록 8×6 | 2026-11-12 |
 | `20261107000002_survey_tags_grant.sql` | 태그 표 읽기 허가 (`grant select … to authenticated`). **새 표는 grant가 따로 필요** — 빠지면 앱에서 빈 목록 | 2026-11-07 |
 | `20261107000001_survey_tags.sql` | 설문 태그: `tags`(운영자 목록) · `survey_tags`(설문↔태그, 기본 키로 중복 방지), `set_survey_tags()`, `survey_tag_max` 3, `get_hub_list`에 `tags`, 첫 태그 20개(임시) | 2026-11-07 |
 | `20261103000004_too_fast_off.sql` | 너무 빠른 응답 검사 끄기: `min_time_ratio` 0 (팀 결정, 값만 올리면 다시 켜짐) | 2026-11-03 |
@@ -139,6 +140,9 @@
 ### survey_categories — 설문 카테고리 (2026-10-29)
 2026-11-02부터 8개: study 학업 · career 진로·취업 · life 생활 · consume 소비·브랜드 · taste 취향·문화 · relation 연애·관계 · society 사회·이슈 · community **기타** (key는 예전 그대로, 이름만 "기타"). `sort_order` 순서로 칩에 나온다. 바꿀 때는 이 표만 고친다 (앱 코드는 표에서 읽음).
 
+### category_tag_suggestions — 카테고리별 추천 태그 (2026-11-12)
+(category_id, tag_id) 기본 키 + `sort_order`. 등록 ① 기본 정보에서 카테고리를 고르면 이 순서로 먼저 보이고, 나머지는 "더보기". 추천만 정하는 참고용 표라 붙이는 규칙(`set_survey_tags`)과 무관. 바꾸려면 SQL로 이 표만 고치면 된다 (앱 업데이트 불필요)
+
 ### tags · survey_tags — 설문 태그 (2026-11-07)
 카테고리(큰 분류 1개)와 따로 세부 주제를 최대 `survey_tag_max`(3)개. `tags`는 운영자가 정한 목록(`name` 고유, `sort_order`, `active`=false면 숨김). `survey_tags`는 (survey_id, tag_id) 기본 키. 앱은 `set_survey_tags`로만 붙인다. 태그 추가는 대시보드에서 `insert into public.tags (name, sort_order) values (...)`
 
@@ -207,6 +211,7 @@
 | survey_categories | 로그인한 사람 모두 | 불가 |
 | tags | 로그인한 사람 모두 (active만) | 불가 |
 | survey_tags | 그 설문을 볼 수 있는 사람 | 불가 (`set_survey_tags`로만) |
+| category_tag_suggestions | 로그인한 사람 모두 | 불가 (운영자가 SQL로) |
 | surveys | 응답 대상(전체 / 같은 학교) + 작성자 본인 | 불가 (서버 함수로만) |
 | questions, question_options | 그 설문을 볼 수 있는 사람 | 불가 |
 | responses, answers | 본인 것만 | 불가 (`submit_response`로만) |
