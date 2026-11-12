@@ -28,7 +28,7 @@ export default function SurveyMiniCard({ survey: s }: { survey: SurveyCard }) {
     >
       <View style={styles.badges}>
         <Badge label={s.category_name} tone="blue" size="sm" />
-        {s.audience === "campus" && <Badge label="우리 학교" tone="lime" size="sm" />}
+        {s.audience === "campus" && <Badge label={s.campus_label} tone="lime" size="sm" />}
         {s.has_reward && <Badge label="보상" tone="peach" size="sm" />}
       </View>
       <View style={styles.body}>

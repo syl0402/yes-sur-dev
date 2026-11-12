@@ -19,7 +19,7 @@ import { formatAgo, formatPoints, formatTimeLeft } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { fetchSurveyReward } from "@/lib/rewards";
 import { supabase } from "@/lib/supabase";
-import { formatHost, remainingSpots } from "@/lib/surveys";
+import { formatHost, remainingSpots, schoolShort } from "@/lib/surveys";
 
 // 응답 전 결과 공개 안내 (결과 공개 범위별)
 const VISIBILITY_NOTICE: Record<"public" | "campus" | "private", string> = {
@@ -44,6 +44,8 @@ type Detail = {
   host_verified: boolean;
   result_visibility: "public" | "campus" | "private";
   createdAt: string;
+  // 내 학교 이름 (교내 설문은 내 학교 것만 보이므로 응답 대상 표시에 쓴다, 2026-11-13)
+  schoolName: string;
   // 참여하기 버튼 상태를 정하는 정보
   isOwner: boolean;
   isOrg: boolean;
@@ -68,8 +70,10 @@ async function fetchDetail(id: number): Promise<Detail | null> {
       .eq("id", id)
       .maybeSingle(),
     supabase.from("responses").select("status").eq("survey_id", id).maybeSingle(),
-    supabase.from("profiles").select("account_type").maybeSingle(),
+    supabase.from("profiles").select("account_type, universities(name)").maybeSingle(),
   ]);
+  const uniRaw = profile?.universities as unknown;
+  const schoolName = ((Array.isArray(uniRaw) ? uniRaw[0] : uniRaw) as { name: string } | null)?.name ?? "";
 
   if (!survey) return null;
 
@@ -92,6 +96,7 @@ async function fetchDetail(id: number): Promise<Detail | null> {
     host_verified: survey.host_verified,
     result_visibility: survey.result_visibility,
     createdAt: survey.created_at,
+    schoolName,
     isOwner: survey.owner_id === myId,
     isOrg: profile?.account_type === "org",
     answered: response?.status === "confirmed",
@@ -169,7 +174,9 @@ export default function SurveyDetail() {
         <Card>
           <View style={styles.badges}>
             {detail.categoryName ? <Badge label={detail.categoryName} /> : null}
-            {detail.audience === "campus" && <Badge label="우리 학교 학생만" tone="accent" />}
+            {detail.audience === "campus" && (
+              <Badge label={detail.schoolName ? `${schoolShort(detail.schoolName)}생만` : "학교 학생만"} tone="accent" />
+            )}
             {detail.closed && <Badge label="마감" tone="muted" />}
           </View>
           <Text style={styles.title}>{detail.title}</Text>
@@ -195,7 +202,10 @@ export default function SurveyDetail() {
         <Card>
           <InfoRow label="문항 수" value={`${detail.question_count}문항`} />
           <InfoRow label="마감" value={formatTimeLeft(detail.closes_at) || "기한 없음"} />
-          <InfoRow label="응답 대상" value={detail.audience === "campus" ? "우리 학교 학생" : "전체 대학생"} />
+          <InfoRow
+            label="응답 대상"
+            value={detail.audience === "campus" ? `${detail.schoolName || "우리 학교"} 학생만` : "전체 대학생"}
+          />
         </Card>
 
         {/* 응답 전에 결과가 어디까지 공개되는지 알린다 (2026-10-30 결정) */}

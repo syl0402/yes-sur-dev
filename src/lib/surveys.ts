@@ -22,6 +22,8 @@ export type SurveyCard = {
   has_reward: boolean;
   // 작성자가 우리 학교(학생·교내 단체)인 설문 → "우리 학교" 칩 (2026-11-08)
   from_my_school: boolean;
+  // 교내 설문(audience campus) 알약 문구 "중앙대생만" (2026-11-13: "우리 학교" 칩과 헷갈려서 학교 이름으로). 아니면 ""
+  campus_label: string;
   // 내가 올린 설문 (2026-11-10 팀 피드백: 설문 탭에도 "내 설문" 표시로 보여 준다. 홈에서는 뺀다)
   mine: boolean;
 };
@@ -50,10 +52,13 @@ export async function fetchOpenSurveys(): Promise<SurveyCard[]> {
       .or(`closes_at.is.null,closes_at.gt.${new Date().toISOString()}`),
     // 확인 문항을 틀려 반려된 응답은 다시 응답할 수 있으니 목록에 남긴다
     supabase.from("responses").select("survey_id").eq("status", "confirmed"),
-    // 내 학교 (본인 행만 읽힌다)
-    supabase.from("profiles").select("university_id").maybeSingle(),
+    // 내 학교 (본인 행만 읽힌다). 교내 설문은 내 학교 것만 보이므로 알약에 내 학교 이름을 쓴다
+    supabase.from("profiles").select("university_id, universities(name)").maybeSingle(),
   ]);
   const mySchool = me?.university_id ?? null;
+  const uniRaw = me?.universities as unknown;
+  const uniName = ((Array.isArray(uniRaw) ? uniRaw[0] : uniRaw) as { name: string } | null)?.name ?? "";
+  const campusLabel = uniName ? `${schoolShort(uniName)}생만` : "학교 학생만";
 
   const answered = new Set((responses ?? []).map((r) => r.survey_id));
 
@@ -82,9 +87,15 @@ export async function fetchOpenSurveys(): Promise<SurveyCard[]> {
         // 한 설문에 하나라 객체로 오지만, 배열로 올 때도 처리
         has_reward: Array.isArray(s.survey_rewards) ? s.survey_rewards.length > 0 : !!s.survey_rewards,
         from_my_school: mySchool !== null && s.host_university_id === mySchool,
+        campus_label: s.audience === "campus" ? campusLabel : "",
         mine: s.owner_id === myId,
       };
     });
+}
+
+// 학교 이름 줄이기: "중앙대학교" → "중앙대", "가톨릭대학교" → "가톨릭대" ("대학교"로 끝나지 않으면 그대로)
+export function schoolShort(name: string): string {
+  return name.endsWith("대학교") ? name.slice(0, -2) : name;
 }
 
 // survey_tags(tags(id, name)) → Tag[] (연결 한 줄에 태그가 객체 또는 배열로 온다)

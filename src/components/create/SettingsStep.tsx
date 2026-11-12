@@ -47,7 +47,11 @@ export default function SettingsStep({ draft, rules, hasSchool, isOrg, cost, bal
           onSelect={(audience) => onChange({ audience })}
         />
         <Text style={formStyles.hint}>
-          {hasSchool ? "대상이 아닌 학생에게는 이 설문이 보이지 않아요." : "학교가 없는 계정은 전체 대상만 고를 수 있어요."}
+          {hasSchool
+            ? draft.audience === "campus"
+              ? "우리 학교 학생에게만 보이고, 설문 카드에 '중앙대생만'처럼 학교 이름으로 표시돼요."
+              : "대상이 아닌 학생에게는 이 설문이 보이지 않아요."
+            : "학교가 없는 계정은 전체 대상만 고를 수 있어요."}
         </Text>
       </View>
 
