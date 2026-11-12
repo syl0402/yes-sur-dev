@@ -5,7 +5,8 @@ import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
 
 type Props<T extends string> = {
-  options: { value: T; label: string }[];
+  // disabled: 고를 수 없는 칸 (흐리게, 2026-11-13 설문 등록 응답 대상)
+  options: { value: T; label: string; disabled?: boolean }[];
   value: T;
   onChange: (value: T) => void;
 };
@@ -16,7 +17,12 @@ export default function Segmented<T extends string>({ options, value, onChange }
       {options.map((o) => {
         const on = o.value === value;
         return (
-          <Pressable key={o.value} style={[styles.item, on && styles.itemOn]} onPress={() => onChange(o.value)}>
+          <Pressable
+            key={o.value}
+            style={[styles.item, on && styles.itemOn, o.disabled && styles.itemDisabled]}
+            onPress={() => onChange(o.value)}
+            disabled={o.disabled}
+          >
             <Text style={[styles.text, on && styles.textOn]}>{o.label}</Text>
           </Pressable>
         );
@@ -37,6 +43,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: radius.sm,
     alignItems: "center",
+  },
+  itemDisabled: {
+    opacity: 0.4,
   },
   itemOn: {
     backgroundColor: colors.surface,

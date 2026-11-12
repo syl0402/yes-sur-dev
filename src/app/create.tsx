@@ -30,6 +30,7 @@ import {
   hasReward,
   isBlankDraft,
   makeRequestId,
+  REWARD_NOTE_MIN,
   questionValid,
   questionsValid,
   registrationCost,
@@ -47,7 +48,12 @@ const STEP_TITLES = ["어떤 설문인가요?", "문항 만들기", "대상 · �
 
 // [다음]을 누를 수 없을 때 버튼 안에 보여 줄 이유 (2026-11-12 시안). 없으면 "다음" 그대로
 // ②③④ 이유 문구는 각 단계 시안을 반영할 때 더한다
-function blockedReason(step: number, draft: SurveyDraft, rules: Record<string, number>): string | null {
+function blockedReason(
+  step: number,
+  draft: SurveyDraft,
+  rules: Record<string, number>,
+  affordable: boolean,
+): string | null {
   if (step === 1) {
     const title = draft.title.trim().length;
     if (title === 0) return "제목을 써 주세요";
@@ -62,6 +68,17 @@ function blockedReason(step: number, draft: SurveyDraft, rules: Record<string, n
       return q.text.trim() === "" ? `Q${i + 1} 질문을 써 주세요` : `Q${i + 1} 보기를 채워 주세요`;
     }
   }
+  if (step === 3) {
+    const target = Number(draft.target);
+    if (!Number.isInteger(target) || target < rules.survey_min_target || target > rules.survey_max_target) {
+      return `인원을 ${rules.survey_min_target}~${rules.survey_max_target}명으로 맞춰 주세요`;
+    }
+    const days = Number(draft.days);
+    if (!Number.isInteger(days) || days < 1 || days > rules.survey_max_days) return "마감일을 골라 주세요";
+    if (hasReward(draft) && (draft.rewardNote ?? "").trim().length < REWARD_NOTE_MIN) return "보상 안내를 더 써 주세요";
+    if (hasReward(draft) && draft.rewardAgreed !== true) return "보상 연락처 약속에 체크해 주세요";
+  }
+  if ((step === 3 || step === 4) && !affordable) return "인원을 줄여 주세요";
   return null;
 }
 
@@ -389,7 +406,7 @@ export default function CreateSurvey() {
           />
         )}
         <Button
-          title={(!stepOk && blockedReason(step, draft, rules)) || (step === STEP_COUNT ? "등록하기" : "다음")}
+          title={(!stepOk && blockedReason(step, draft, rules, affordable)) || (step === STEP_COUNT ? "등록하기" : "다음")}
           onPress={goNext}
           disabled={!stepOk}
           loading={sending}
