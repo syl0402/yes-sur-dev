@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 6,
     borderRadius: radius.pill,
-    backgroundColor: colors.border,
+    backgroundColor: colors.primarySoft, // 2026-11-12 설문 흐름 시안: 빈 칸 Blue 100
   },
   barDone: {
     backgroundColor: colors.primary,

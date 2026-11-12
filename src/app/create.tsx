@@ -34,11 +34,27 @@ import {
   registrationCost,
   saveDraft,
   settingsValid,
+  TITLE_MIN,
   toRpcQuestions,
 } from "@/lib/surveyDraft";
 import { fetchTagSuggestions, fetchTags, formatTag, type Tag } from "@/lib/tags";
 
 const STEP_COUNT = 4;
+
+// 단계별 큰 제목 (2026-11-12 설문 흐름 시안)
+const STEP_TITLES = ["어떤 설문인가요?", "문항 만들기", "대상 · 공개 · 보상", "확인하고 등록"];
+
+// [다음]을 누를 수 없을 때 버튼 안에 보여 줄 이유 (2026-11-12 시안). 없으면 "다음" 그대로
+// ②③④ 이유 문구는 각 단계 시안을 반영할 때 더한다
+function blockedReason(step: number, draft: SurveyDraft): string | null {
+  if (step === 1) {
+    const title = draft.title.trim().length;
+    if (title === 0) return "제목을 써 주세요";
+    if (title < TITLE_MIN) return `제목을 ${TITLE_MIN}자 이상 써 주세요`;
+    if (draft.categoryId === null) return "카테고리를 골라 주세요";
+  }
+  return null;
+}
 
 type Setup = {
   // 임시저장을 계정마다 따로 두기 위한 내 계정 id
@@ -310,9 +326,7 @@ export default function CreateSurvey() {
         contentContainerStyle={styles.container}
       >
         <StepIndicator current={step} total={STEP_COUNT} />
-        <Text style={styles.stepTitle}>
-          {["기본 정보", "문항 만들기", "대상 · 인원 · 마감", "확인하고 등록"][step - 1]}
-        </Text>
+        <Text style={styles.stepTitle}>{STEP_TITLES[step - 1]}</Text>
 
         {step === 1 && (
           <BasicsStep
@@ -355,15 +369,18 @@ export default function CreateSurvey() {
       </ScrollView>
 
       <BottomBar>
+        {/* 이전은 2단계부터 (2026-11-12 시안). 1단계는 다음 버튼이 넓게 */}
+        {step > 1 && (
+          <Button
+            title="이전"
+            variant="outline"
+            onPress={() => setStep(step - 1)}
+            disabled={sending}
+            style={styles.prevButton}
+          />
+        )}
         <Button
-          title="이전"
-          variant="outline"
-          onPress={() => setStep(step - 1)}
-          disabled={step === 1 || sending}
-          style={styles.prevButton}
-        />
-        <Button
-          title={step === STEP_COUNT ? "등록하기" : "다음"}
+          title={(!stepOk && blockedReason(step, draft)) || (step === STEP_COUNT ? "등록하기" : "다음")}
           onPress={goNext}
           disabled={!stepOk}
           loading={sending}
@@ -408,12 +425,14 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   stepTitle: {
-    fontSize: fontSize.title,
-    fontWeight: "700",
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
+    fontSize: 24,
+    fontWeight: "800",
     color: colors.text,
   },
   prevButton: {
-    flex: 1,
+    width: 104,
   },
   headerAction: {
     marginRight: Platform.OS === "web" ? spacing.md : 0,
@@ -426,6 +445,6 @@ const styles = StyleSheet.create({
     color: colors.disabled,
   },
   nextButton: {
-    flex: 2,
+    flex: 1,
   },
 });

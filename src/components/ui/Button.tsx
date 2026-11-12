@@ -27,6 +27,9 @@ const textColor: Record<ButtonVariant, string> = {
 
 export default function Button({ title, onPress, variant = "primary", small, disabled, loading, style }: Props) {
   const inactive = disabled || loading;
+  // 누를 수 없는 파란 버튼: 연회색 바탕 + 진한 회색 글자 (버튼 안 "제목을 써 주세요" 같은 이유가 읽히게, 2026-11-12 설문 흐름 시안)
+  // 불러오는 중(loading)은 파랑 그대로 + 흰 동그라미
+  const grayed = disabled && !loading && variant === "primary";
 
   return (
     <Pressable
@@ -36,7 +39,7 @@ export default function Button({ title, onPress, variant = "primary", small, dis
         styles.base,
         styles[variant],
         small && styles.small,
-        inactive && (variant === "primary" ? styles.inactivePrimary : styles.inactive),
+        grayed ? styles.inactivePrimary : inactive && variant !== "primary" && styles.inactive,
         pressed && styles.pressed,
         style,
       ]}
@@ -44,7 +47,9 @@ export default function Button({ title, onPress, variant = "primary", small, dis
       {loading ? (
         <ActivityIndicator color={textColor[variant]} />
       ) : (
-        <Text style={[styles.title, small && styles.smallTitle, { color: textColor[variant] }]}>{title}</Text>
+        <Text style={[styles.title, small && styles.smallTitle, { color: grayed ? colors.iconStrong : textColor[variant] }]}>
+          {title}
+        </Text>
       )}
     </Pressable>
   );
@@ -74,7 +79,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
   },
   inactivePrimary: {
-    backgroundColor: colors.disabled,
+    backgroundColor: colors.surfaceMuted,
   },
   inactive: {
     opacity: 0.4,
