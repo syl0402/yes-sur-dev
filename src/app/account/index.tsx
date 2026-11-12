@@ -24,6 +24,7 @@ type Account = {
   info: { label: string; value: string }[];
   // 오늘의 질문 알림 켬 (2026-11-10)
   notifyDaily: boolean;
+  notifyMission: boolean;
 };
 
 // 하나짜리 관계(학교·전공 계열)는 배열로 올 때도 있어서 첫 번째만
@@ -37,7 +38,7 @@ async function fetchAccount(): Promise<Account> {
     supabase
       .from("profiles")
       .select(
-        "nickname, account_type, gender, birth_year, admission_year, degree_type, notify_daily, universities(name), major_fields(category_name, name)",
+        "nickname, account_type, gender, birth_year, admission_year, degree_type, notify_daily, notify_mission, universities(name), major_fields(category_name, name)",
       )
       .maybeSingle(),
     supabase.from("organizations").select("name, kind").maybeSingle(),
@@ -69,6 +70,7 @@ async function fetchAccount(): Promise<Account> {
     needsDemographics: !isOrg && (profile?.gender == null || profile?.birth_year == null),
     info,
     notifyDaily: profile?.notify_daily ?? true,
+    notifyMission: profile?.notify_mission ?? true,
   };
 }
 
@@ -87,6 +89,21 @@ export default function AccountHome() {
     if (!account) return;
     setAccount({ ...account, notifyDaily: on });
     const { error } = await supabase.rpc("set_notify_daily", { p_on: on });
+    if (error) {
+      setAccount({ ...account });
+      showNotice("바꾸지 못했어요", errorMessage(error));
+      return;
+    }
+    if (on && !(await enablePush())) {
+      showNotice("알림을 받으려면 허락이 필요해요", "폰 설정 → 애플리케이션 → 옛썰 → 알림에서 허락해 주세요.");
+    }
+  };
+
+  // 웰컴 미션 알림 켜기/끄기 (저녁 7시, 2026-11-12). 켤 때는 오늘의 질문과 같게 기기 허락 확인
+  const toggleMission = async (on: boolean) => {
+    if (!account) return;
+    setAccount({ ...account, notifyMission: on });
+    const { error } = await supabase.rpc("set_notify_mission", { p_on: on });
     if (error) {
       setAccount({ ...account });
       showNotice("바꾸지 못했어요", errorMessage(error));
@@ -171,6 +188,21 @@ export default function AccountHome() {
               />
             }
           />
+          {!account.isOrg && (
+            <ListRow
+              plain
+              title="웰컴 미션 알림"
+              sub="저녁 7시, 오늘 미션을 아직 안 했을 때만 보내요"
+              right={
+                <Switch
+                  value={account.notifyMission}
+                  onValueChange={toggleMission}
+                  trackColor={{ true: colors.primary, false: colors.border }}
+                  thumbColor={colors.surface}
+                />
+              }
+            />
+          )}
         </View>
       )}
 

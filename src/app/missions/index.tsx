@@ -38,10 +38,32 @@ import {
   loadMissions,
   setMissionOffToday,
 } from "@/lib/missions";
+import { showConfirm } from "@/lib/confirm";
 import { showNotice } from "@/lib/notice";
+import { enablePush, markMissionPushAsked, shouldAskMissionPush } from "@/lib/push";
 import { supabase } from "@/lib/supabase";
 
 const CHEER = require("../../../assets/images/characters/cheer.png");
+
+// 처음 한 번: "매일 미션 알림 받을까요?" (알림 가능한 폰 + 기기 허락 전, 2026-11-12). 화면 움직임이 끝난 뒤 묻는다
+async function askMissionPush() {
+  if (!(await shouldAskMissionPush())) return;
+  markMissionPushAsked();
+  setTimeout(() => {
+    showConfirm({
+      title: "매일 미션 알림 받을까요?",
+      message: "저녁 7시, 오늘 미션을 아직 안 했을 때만 한 번 알려 드려요. 내 정보에서 언제든 끌 수 있어요.",
+      okLabel: "받을게요",
+      cancelLabel: "나중에",
+      onOk: async () => {
+        await supabase.rpc("set_notify_mission", { p_on: true });
+        if (!(await enablePush())) {
+          showNotice("알림을 받으려면 허락이 필요해요", "폰 설정 → 애플리케이션 → 옛썰 → 알림에서 허락해 주세요.");
+        }
+      },
+    });
+  }, 1500);
+}
 
 export default function Missions() {
   const insets = useSafeAreaInsets();
@@ -63,6 +85,8 @@ export default function Missions() {
         setClaimed(claimed);
       } else {
         setData(m);
+        // 완료 팝업이 없을 때만 묻는다 (겹치지 않게)
+        askMissionPush();
       }
     } catch (e) {
       const msg = errorMessage(e as { message?: string });

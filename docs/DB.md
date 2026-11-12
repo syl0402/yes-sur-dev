@@ -43,6 +43,8 @@
 | `20261030000024_survey_banned_words.sql` | 설문 제목·설명·문항·보기에도 금칙어 검사 (트리거, 2026-10-30 폰 확인 중 발견) | 2026-10-30 |
 | `20261030000025_invite.sql` | 친구 초대: `profiles.invite_code`, `invites`(한 사람 한 번), `get_my_invite`·`redeem_invite`, 포인트 이유 `invite` | 2026-10-30 |
 | `20261031000001_too_fast.sql` | 너무 빠른 응답(문항 수 × `min_seconds_per_question`초 미만)은 확인 문항 오답과 같게 반려, `submit_response`에 `reason`(attention·too_fast) | 2026-10-31 |
+| `20261112000004_mission_push.sql` | 웰컴 미션 푸시: `profiles.notify_mission`(기본 켬)·`set_notify_mission`, notifications kind `mission`, `send_mission_push`(오늘 미션 안 받은 학생, 채널 mission) + pg_cron `welcome-mission-push` 매일 19시(한국) | 2026-11-12 |
+| `20261112000003_mission_preview.sql` | 웰컴 미션 미리보기 `point_rules.mission_preview_days`(3): 시작일 전에 연 사람은 1일차 = 오늘 - 3 (팀원이 1~4일차를 열어 봄). 시작일부터는 쓰지 않음. 11/14 아침 기록 초기화 | 2026-11-12 |
 | `20261112000002_mission_launch_date.sql` | 웰컴 미션 시작일 `point_rules.mission_launch_date`(20261114): `start_missions`가 시작일 전에 연 사람도 시작일을 1일차로. 이미 시작한 기록도 시작일로 맞춤 | 2026-11-12 |
 | `20261112000001_welcome_missions.sql` | 웰컴 14일 미션: `missions`(조건 종류+횟수, 보상 등급)·`mission_progress`(1일차 = 미션 화면 처음 연 날)·`mission_claims`(사람·미션 고유)·`profile_extras`(관심사·거주·통학·아르바이트·학적, 본인만), point_rules `mission_s·m·l`·`mission_bonus_week·all`, 포인트 이유 `mission`·`mission_bonus`, 함수 `start_missions`·`get_my_missions`·`claim_mission`(서버가 조건 확인 → 지급 → 1주·14일 보너스)·`submit_mission_quiz`·`save_profile_extras` | 2026-11-12 |
 | `20261110000008_weekly_best_created_at.sql` | `get_weekly_best` 결과에 `created_at` 추가 (홈 인기 투표 NEW 표시용, 고르는 기준 그대로) | 2026-11-10 |

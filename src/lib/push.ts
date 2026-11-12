@@ -8,8 +8,9 @@ import { Platform } from "react-native";
 import { canUseNotifications } from "@/lib/nativeFeatures";
 import { supabase } from "@/lib/supabase";
 
-// 서버가 보내는 알림의 안드로이드 채널 이름 (send_daily_push의 channelId와 같아야 함)
+// 서버가 보내는 알림의 안드로이드 채널 이름 (send_daily_push · send_mission_push의 channelId와 같아야 함)
 const CHANNEL_ID = "daily";
+const MISSION_CHANNEL_ID = "mission";
 // 우리 안내 창을 이미 보여 줬는지 (이 폰 기준)
 const ASKED_KEY = "push_asked_v1";
 
@@ -88,6 +89,30 @@ export async function pushPermission(): Promise<"granted" | "undetermined" | "de
   return status === "denied" ? "denied" : "undetermined";
 }
 
+// 웰컴 미션 화면에서 "매일 미션 알림 받을까요?"를 물을지: 알림 가능 + 아직 안 물어봄 + 기기 허락 전 (2026-11-12)
+// (이미 허락했으면 미션 알림은 기본 켬이라 묻지 않는다)
+const MISSION_ASKED_KEY = "mission_push_asked_v1";
+
+export async function shouldAskMissionPush(): Promise<boolean> {
+  const N = await load();
+  if (!N) return false;
+  try {
+    if (localStorage.getItem(MISSION_ASKED_KEY) === "1") return false;
+  } catch {
+    return false;
+  }
+  const { status } = await N.getPermissionsAsync();
+  return status !== "granted";
+}
+
+export function markMissionPushAsked() {
+  try {
+    localStorage.setItem(MISSION_ASKED_KEY, "1");
+  } catch {
+    // 저장이 안 돼도 다음에 한 번 더 묻는 정도라 괜찮다
+  }
+}
+
 // 로그아웃할 때: 이 기기로 내 알림이 가지 않게 주소를 지운다
 export async function disablePushOnThisDevice() {
   const N = await load();
@@ -122,6 +147,11 @@ async function ensureChannel(N: NotificationsModule) {
   if (Platform.OS !== "android") return;
   await N.setNotificationChannelAsync(CHANNEL_ID, {
     name: "오늘의 질문",
+    importance: N.AndroidImportance.DEFAULT,
+  });
+  // 웰컴 미션 (저녁 7시, 2026-11-12)
+  await N.setNotificationChannelAsync(MISSION_CHANNEL_ID, {
+    name: "웰컴 미션",
     importance: N.AndroidImportance.DEFAULT,
   });
 }

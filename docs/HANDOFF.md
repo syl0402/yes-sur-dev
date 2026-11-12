@@ -140,6 +140,7 @@ import { Text, TextInput } from "@/components/ui/Text";
 - 앱 1.0.1 이상 폰에서만 (`canUseNotifications`, `src/lib/nativeFeatures.ts`). 알림 부품은 필요할 때만 불러와서 옛 APK·웹에서는 아무것도 안 함
 - 루트 레이아웃 `usePush()`: 앱 시작·로그인 때 허락돼 있으면 알림 주소 다시 등록 · 알림 누르면 `data.url` 화면으로
 - 오늘의 질문 첫 답변 직후 한 번 "매일 알림 받을까요?" (`shouldAskPush` → `enablePush`), 내 정보 "알림" 켜기/끄기, 로그아웃 때 `disablePushOnThisDevice`
+- 웰컴 미션 알림(2026-11-12): 저녁 7시 `send_mission_push`, 안드로이드 채널 `mission`("웰컴 미션"), 내 정보 "웰컴 미션 알림" 켜기/끄기, 미션 화면 처음 볼 때 한 번 "매일 미션 알림 받을까요?" (`shouldAskMissionPush`). 오늘의 질문 알림과 따로
 - 안드로이드는 Expo Go로 원격 알림을 못 받음 → 테스트는 새 APK로. Firebase(FCM) 설정이 있어야 알림 주소가 나옴
 
 ### ☰ 메뉴 `SideMenu` · `MenuButton` (`src/components/SideMenu.tsx`, 2026-11-10)
