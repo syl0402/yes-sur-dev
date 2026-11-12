@@ -4,8 +4,16 @@
 import { Image } from "expo-image";
 import { Stack, router, useFocusEffect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  type ScrollViewInstance,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import Animated, {
   Easing,
   FadeInUp,
@@ -22,7 +30,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import AppIcon from "@/components/AppIcon";
 import MissionComplete, { type Claimed } from "@/components/missions/MissionComplete";
-import MissionRoad from "@/components/missions/MissionRoad";
+import MissionRoad, { missionNodeY } from "@/components/missions/MissionRoad";
 import MissionSheet from "@/components/missions/MissionSheet";
 import { Text } from "@/components/ui/Text";
 import { missionIcons } from "@/constants/icons";
@@ -37,6 +45,7 @@ import {
   doneCount,
   loadMissions,
   setMissionOffToday,
+  takePendingStamp,
 } from "@/lib/missions";
 import { showConfirm } from "@/lib/confirm";
 import { showNotice } from "@/lib/notice";
@@ -74,6 +83,22 @@ export default function Missions() {
   const [sheet, setSheet] = useState<Mission | null>(null);
   // 방금 자동으로 받은 미션 (완료 팝업)
   const [claimed, setClaimed] = useState<Claimed[]>([]);
+  // 도장 찍는 움직임을 보여 줄 칸 (완료 팝업을 닫은 뒤 · 홈에서 받은 미션)
+  const [stampCode, setStampCode] = useState<string | null>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
+  // 미션 길이 화면(스크롤 내용)에서 시작하는 위치
+  const roadY = useRef(0);
+
+  // 그 칸으로 부드럽게 스크롤한 뒤 도장 쾅 (칸이 화면 가운데쯤 오게)
+  const stampAt = useCallback((code: string, m: MyMissions) => {
+    const index = m.missions.findIndex((x) => x.code === code);
+    if (index < 0) return;
+    setTimeout(() => {
+      scrollRef.current?.scrollTo({ y: Math.max(0, roadY.current + missionNodeY(index) - 300), animated: true });
+      setStampCode(null);
+      setTimeout(() => setStampCode(code), 400);
+    }, 300);
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -85,6 +110,9 @@ export default function Missions() {
         setClaimed(claimed);
       } else {
         setData(m);
+        // 홈에서 받은 미션이 있으면 그 칸에 도장
+        const pending = takePendingStamp();
+        if (pending) stampAt(pending, m);
         // 완료 팝업이 없을 때만 묻는다 (겹치지 않게)
         askMissionPush();
       }
@@ -93,7 +121,7 @@ export default function Missions() {
       if ((e as { message?: string }).message?.includes("students_only")) setNotStudent(true);
       else showNotice("미션을 불러오지 못했어요", msg);
     }
-  }, []);
+  }, [stampAt]);
 
   useFocusEffect(
     useCallback(() => {
@@ -122,7 +150,7 @@ export default function Missions() {
     <View style={styles.screen}>
       <Stack.Screen options={{ headerShown: false, animation: "slide_from_bottom" }} />
       <StatusBar style="light" />
-      <ScrollView contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + spacing.lg }}>
+      <ScrollView ref={scrollRef} contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + spacing.lg }}>
         <View style={styles.header}>
           <View style={styles.headerSide} />
           <Text style={styles.headerTitle}>웰컴 미션</Text>
@@ -174,8 +202,8 @@ export default function Missions() {
               </Text>
             </Animated.View>
 
-            <View style={styles.road}>
-              <MissionRoad missions={data} width={roadWidth} onOpen={openMission} />
+            <View style={styles.road} onLayout={(e) => (roadY.current = e.nativeEvent.layout.y)}>
+              <MissionRoad missions={data} width={roadWidth} onOpen={openMission} stampCode={stampCode} />
             </View>
 
             <View style={styles.notes}>
@@ -191,7 +219,11 @@ export default function Missions() {
         )}
       </ScrollView>
       <MissionSheet mission={sheet} onClose={() => setSheet(null)} />
-      {data && claimed.length > 0 && <MissionComplete items={claimed} missions={data} onDone={() => setClaimed([])} />}
+      {data && claimed.length > 0 && <MissionComplete items={claimed} missions={data} onDone={() => {
+            const last = claimed[claimed.length - 1]?.mission.code;
+            setClaimed([]);
+            if (last && data) stampAt(last, data);
+          }} />}
     </View>
   );
 }

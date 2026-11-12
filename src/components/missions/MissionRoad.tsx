@@ -1,10 +1,13 @@
 // 웰컴 미션 길: 3칸씩 지그재그로 15칸 (14일 미션 + 완주 보상) (2026-11-12 디자인 시안 Main.dc.html)
 // 칸 지름 92 · 줄 간격 160 · 길 두께 22. 칸은 차례로 톡 튀어나오고, 오늘 칸은 라임 고리가 바깥으로 퍼진다
+// stampCode: 방금 완료한 칸에 도장이 "쾅" 찍힌다 (완료 팝업을 닫은 뒤, 2026-11-13)
 import { useEffect } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
   ZoomIn,
+  withDelay,
+  withSequence,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -96,9 +99,16 @@ type Props = {
   width: number;
   // 오늘 칸 · 지난 미완료 칸을 눌렀을 때
   onOpen: (m: Mission) => void;
+  // 도장 찍는 움직임을 보여 줄 칸 (미션 code). 값이 바뀔 때마다 다시 찍힌다
+  stampCode?: string | null;
 };
 
-export default function MissionRoad({ missions, width, onOpen }: Props) {
+// 칸 가운데의 세로 위치 (미션 길 맨 위 기준, 0부터 센 순서) — 그 칸으로 스크롤할 때
+export function missionNodeY(index: number): number {
+  return TOP + Math.floor(index / 3) * ROW;
+}
+
+export default function MissionRoad({ missions, width, onOpen, stampCode }: Props) {
   const nodes = buildNodes(missions, width);
   const rows = Math.ceil(nodes.length / 3);
   const height = TOP + (rows - 1) * ROW + NODE / 2 + 40;
@@ -114,21 +124,24 @@ export default function MissionRoad({ missions, width, onOpen }: Props) {
           entering={ZoomIn.delay(700 + i * 50).duration(450)}
           style={[styles.slot, { left: n.x - 48, top: n.y - NODE / 2 }]}
         >
-          <NodeView node={n} onOpen={onOpen} />
+          <NodeView node={n} onOpen={onOpen} stamping={!!stampCode && n.key === stampCode} />
         </Animated.View>
       ))}
     </View>
   );
 }
 
-function NodeView({ node: n, onOpen }: { node: Node; onOpen: (m: Mission) => void }) {
+function NodeView({ node: n, onOpen, stamping }: { node: Node; onOpen: (m: Mission) => void; stamping: boolean }) {
   if (n.kind === "done" || n.kind === "bonusDone") {
+    const stamp = (
+      <View style={[styles.circle, styles.done]}>
+        <AppIcon name={missionIcons.check} size={26} color={colors.text} />
+        <Text style={styles.doneText}>{n.kind === "bonusDone" ? "완주 보상" : "미션 완료"}</Text>
+      </View>
+    );
     return (
       <>
-        <View style={[styles.circle, styles.done]}>
-          <AppIcon name={missionIcons.check} size={26} color={colors.text} />
-          <Text style={styles.doneText}>{n.kind === "bonusDone" ? "완주 보상" : "미션 완료"}</Text>
-        </View>
+        {stamping ? <StampIn>{stamp}</StampIn> : stamp}
         <Text style={styles.mutedLabel}>{n.label}</Text>
       </>
     );
@@ -190,6 +203,26 @@ function WeekBonus() {
       <Text style={styles.weekBonusText}>+50P 보너스</Text>
     </View>
   );
+}
+
+// 도장 쾅: 크게(1.8배) 흐릿하게 떠 있다가 → 살짝 눌렸다(0.92) → 제자리 (0.3초 뒤, 시안 slam을 차분하게)
+function StampIn({ children }: { children: React.ReactNode }) {
+  const reduce = useReducedMotion();
+  const t = useSharedValue(reduce ? 1 : 0);
+  const squash = useSharedValue(1);
+  useEffect(() => {
+    if (reduce) return;
+    t.value = withDelay(300, withTiming(1, { duration: 260, easing: Easing.in(Easing.quad) }));
+    squash.value = withDelay(
+      560,
+      withSequence(withTiming(0.92, { duration: 90 }), withTiming(1, { duration: 220, easing: Easing.out(Easing.back(2)) })),
+    );
+  }, [reduce, t, squash]);
+  const style = useAnimatedStyle(() => ({
+    opacity: Math.min(1, 0.2 + t.value),
+    transform: [{ scale: (1.8 - 0.8 * t.value) * squash.value }, { rotate: `${-8 * (1 - t.value)}deg` }],
+  }));
+  return <Animated.View style={style}>{children}</Animated.View>;
 }
 
 // 라임 고리가 바깥으로 퍼지며 사라진다 (1.6초 반복)

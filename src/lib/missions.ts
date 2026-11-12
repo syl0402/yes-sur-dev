@@ -181,3 +181,16 @@ export const MISSION_GUIDES: Record<string, { steps: [string, string, string]; c
 export function missionGuide(m: Mission): { steps: [string, string, string]; cta: string } {
   return MISSION_GUIDES[m.code] ?? { steps: ["아래 버튼을 눌러요", "미션 내용을 해요", "돌아오면 미션 완료!"], cta: "하러 가기" };
 }
+
+// 홈에서 받은 미션: 다음에 미션 화면을 열 때 그 칸에 도장 찍는 움직임 (2026-11-13). 이번 앱 실행 동안만 기억
+let pendingStamp: string | null = null;
+
+export function setPendingStamp(code: string) {
+  pendingStamp = code;
+}
+
+export function takePendingStamp(): string | null {
+  const code = pendingStamp;
+  pendingStamp = null;
+  return code;
+}
