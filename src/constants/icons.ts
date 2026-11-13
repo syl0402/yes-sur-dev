@@ -125,6 +125,9 @@ export const uiIcons = {
   audience: "people-outline",
   privacy: "shield-checkmark-outline",
   check: "checkmark",
+  // 데이터 허브 열람 전 잠긴 인사이트·문항 결과 (2026-11-14)
+  lock: "lock-closed",
+  insight: "bulb-outline",
 } satisfies Record<string, IconName>;
 
 // 결과 "핵심 인사이트" 아이콘 (2026-11-10, 이모지 → 선 아이콘). 키는 인사이트 문장을 만드는 쪽의 이모지

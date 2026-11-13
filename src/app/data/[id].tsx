@@ -1,4 +1,5 @@
-// ys-131 결과 상세 · F-502~504 (무료 정보 → 내 답 비교 → 열람 → 전체 결과. 2026-11-01 정리: 뱃지 머리 · 구성 차트 · 아래 고정 열람 버튼)
+// ys-131 결과 상세 · F-502~504 (무료 정보 → 내 답 비교 → 열람 → 전체 결과. 2026-11-01 정리: 뱃지 머리 · 구성 차트 · 아래 고정 열람 버튼
+// · 2026-11-14 데이터 허브 시안 Preview: 열람 전 요약 3칸 · 인사이트 1개 공개 + 나머지 잠금 · 문항 목록(결과 잠금) · 응답자 구성은 열람 후)
 import { Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
@@ -6,16 +7,14 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 import AppIcon from "@/components/AppIcon";
 import PrimaryButton from "@/components/PrimaryButton";
 import ReportLink from "@/components/ReportLink";
-import CompositionChart from "@/components/results/CompositionChart";
-import InsightCard from "@/components/results/InsightCard";
 import ResultsActionBar from "@/components/results/ResultsActionBar";
 import ResultsView from "@/components/results/ResultsView";
 import Badge from "@/components/ui/Badge";
 import BottomBar from "@/components/ui/BottomBar";
 import Card from "@/components/ui/Card";
 import { Text } from "@/components/ui/Text";
-import { bookmarkIcons } from "@/constants/icons";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { bookmarkIcons, uiIcons } from "@/constants/icons";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
 import { formatPoints, formatShortDate } from "@/lib/format";
@@ -37,6 +36,8 @@ type Loaded = {
   teaser: HubTeaser | null;
   // 내가 스크랩한 결과인지
   saved: boolean;
+  // 내 포인트 (열람 버튼 위 안내)
+  balance: number | null;
   comparison: Comparison[] | null;
   full: FullResults | null;
 };
@@ -48,7 +49,7 @@ async function fetchAll(id: number): Promise<Loaded | string> {
   const preview = data as HubPreview;
 
   const canSeeFull = preview.viewed || preview.mine;
-  const [comparison, full, teaser, bookmarks] = await Promise.all([
+  const [comparison, full, teaser, bookmarks, balance] = await Promise.all([
     preview.answered && !canSeeFull
       ? supabase.rpc("get_my_comparison", { p_survey_id: id }).then(({ data }) => data as Comparison[])
       : Promise.resolve(null),
@@ -59,8 +60,11 @@ async function fetchAll(id: number): Promise<Loaded | string> {
       ? Promise.resolve(null)
       : supabase.rpc("get_hub_teaser", { p_survey_id: id }).then(({ data }) => (data as HubTeaser | null) ?? null),
     supabase.rpc("get_my_bookmarks").then(({ data }) => (data as number[] | null) ?? []),
+    canSeeFull
+      ? Promise.resolve(null)
+      : supabase.rpc("get_my_balance").then(({ data }) => (typeof data === "number" ? data : null)),
   ]);
-  return { preview, comparison, full, teaser, saved: bookmarks.includes(id) };
+  return { preview, comparison, full, teaser, saved: bookmarks.includes(id), balance };
 }
 
 export default function HubResult() {
@@ -89,7 +93,7 @@ export default function HubResult() {
     );
   }
 
-  const { preview: p, comparison, full, teaser, saved } = loaded;
+  const { preview: p, comparison, full, teaser, saved, balance } = loaded;
 
   // 스크랩 ↔ 해제 (먼저 화면을 바꾸고, 실패하면 되돌린다)
   const toggleSaved = async () => {
@@ -149,40 +153,73 @@ export default function HubResult() {
           </View>
           <Text style={styles.title}>{p.title}</Text>
           {p.description ? <Text style={styles.desc}>{p.description}</Text> : null}
-          <Text style={styles.meta}>
-            {formatHost(p)} · 응답 {p.response_count}명 · {formatShortDate(p.ended_at)} 마감
-          </Text>
+          {full ? (
+            <Text style={styles.meta}>
+              {formatHost(p)} · 응답 {p.response_count}명 · {formatShortDate(p.ended_at)} 마감
+            </Text>
+          ) : (
+            <Text style={styles.meta}>{formatHost(p)}</Text>
+          )}
           {p.low_count && <Text style={styles.warning}>응답 수가 적어 참고용으로만 봐 주세요.</Text>}
         </View>
 
-        {/* 열람 전: 미리보는 인사이트 1개 → 응답자 구성 · 문항 목록 · 내 답 비교 (열람 후에는 아래 결과 탭으로) */}
-        {!full && teaser && (
-          <InsightCard
-            title="미리 보는 인사이트"
-            insights={[
-              {
-                emoji: "💡",
-                title: `응답자 ${teaser.pct}%가 ‘${teaser.option}’`,
-                detail: `${teaser.index}번 · ${teaser.question}`,
-              },
-            ]}
-            footer="열람하면 핵심 인사이트 · 문항별 그래프 · 계열별·문항 답별 나눠 보기를 볼 수 있어요"
-          />
-        )}
-        {!full && <CompositionChart groups={p.composition} compact />}
-
+        {/* ── 열람 전 미리보기 (2026-11-14 시안 Preview) ── */}
         {!full && (
-          <Card>
-            <Text style={styles.boxTitle}>문항 {p.questions.length}개</Text>
-            {p.questions.map((q, i) => (
-              <View key={i} style={styles.questionRow}>
-                <Text style={styles.questionNo}>Q{i + 1}</Text>
-                <Text style={styles.questionText}>
-                  {q.text} <Text style={styles.label}>· {QUESTION_TYPE_LABELS[q.type]}</Text>
-                </Text>
+          <>
+            {/* 요약 3칸: 응답 · 문항 · 조사 기간 */}
+            <View style={styles.summary}>
+              <SummaryCell label="응답" value={`${p.response_count}명`} />
+              <SummaryCell label="문항" value={`${p.questions.length}개`} divided />
+              <SummaryCell label="조사 기간" value={formatPeriod(p.started_at, p.ended_at)} />
+            </View>
+
+            {/* 핵심 인사이트: 1개만 공개, 나머지는 잠금 */}
+            {teaser && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>핵심 인사이트</Text>
+                <View style={styles.insightBox}>
+                  <View style={styles.insightRow}>
+                    <View style={styles.insightIcon}>
+                      <AppIcon name={uiIcons.insight} size={18} color={colors.primary} />
+                    </View>
+                    <View style={styles.insightMain}>
+                      <Text style={styles.insightTitle}>
+                        응답자 {teaser.pct}%가 ‘{teaser.option}’
+                      </Text>
+                      <Text style={styles.insightSub} numberOfLines={1}>
+                        {teaser.index}번 · {teaser.question}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={[styles.insightRow, styles.insightLine]} accessibilityLabel="잠긴 인사이트">
+                    <View style={styles.insightIcon}>
+                      <AppIcon name={uiIcons.lock} size={16} color={colors.primaryMuted} />
+                    </View>
+                    {/* 흐린 글자 대신 자리만 (열람하면 보여요) */}
+                    <View style={styles.lockedBar} />
+                  </View>
+                </View>
               </View>
-            ))}
-          </Card>
+            )}
+
+            {/* 이런 문항의 결과를 볼 수 있어요: 문항 목록 + 잠금 */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>이런 문항의 결과를 볼 수 있어요</Text>
+              <View>
+                {p.questions.map((q, i) => (
+                  <View key={i} style={styles.questionRow}>
+                    <Text style={styles.questionNo}>Q{i + 1}</Text>
+                    <View style={styles.questionMain}>
+                      <Text style={styles.questionText}>{q.text}</Text>
+                      <Text style={styles.questionType}>{QUESTION_TYPE_LABELS[q.type]}</Text>
+                    </View>
+                    <AppIcon name={uiIcons.lock} size={16} color={colors.textSubtle} />
+                  </View>
+                ))}
+              </View>
+              <Text style={styles.plus}>+ 응답자 구성(성별·나이대·학년·계열)과 조사 정보</Text>
+            </View>
+          </>
         )}
 
         {/* ── 응답자 (무료): 내 답 비교 ── */}
@@ -213,11 +250,14 @@ export default function HubResult() {
 
       {/* ── 열람 버튼 (화면 아래 고정) ── */}
       {!full && (
-        <BottomBar>
+        <BottomBar
+          note={
+            p.free_reason
+              ? FREE_REASON_LABELS[p.free_reason]
+              : `한 번 열면 계속 볼 수 있어요${balance !== null ? ` · 내 포인트 ${formatPoints(balance)}` : ""}`
+          }
+        >
           <View style={styles.viewBox}>
-            <Text style={styles.hint}>
-              {p.free_reason ? FREE_REASON_LABELS[p.free_reason] : "핵심 인사이트 · 문항별 그래프 · 계열별 나눠 보기"}
-            </Text>
             <PrimaryButton
               title={p.free_reason ? "무료로 전체 결과 보기" : `${formatPoints(p.price)}로 전체 결과 보기`}
               onPress={confirmView}
@@ -226,6 +266,25 @@ export default function HubResult() {
           </View>
         </BottomBar>
       )}
+    </View>
+  );
+}
+
+// 조사 기간 "10.16~23" (달이 다르면 "10.28~11.4")
+function formatPeriod(start: string, end: string): string {
+  const a = new Date(start);
+  const b = new Date(end);
+  return a.getMonth() === b.getMonth()
+    ? `${a.getMonth() + 1}.${a.getDate()}~${b.getDate()}`
+    : `${formatShortDate(start)}~${formatShortDate(end)}`;
+}
+
+// 요약 칸 하나 (작은 이름표 + 굵은 값). divided면 양옆 세로 선
+function SummaryCell({ label, value, divided }: { label: string; value: string; divided?: boolean }) {
+  return (
+    <View style={[styles.cell, divided && styles.cellDivided]}>
+      <Text style={styles.cellLabel}>{label}</Text>
+      <Text style={styles.cellValue}>{value}</Text>
     </View>
   );
 }
@@ -299,9 +358,104 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.text,
   },
-  questionRow: {
+  summary: {
     flexDirection: "row",
-    gap: spacing.sm,
+    paddingVertical: 14,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surfaceSubtle,
+  },
+  cell: {
+    flex: 1,
+    alignItems: "center",
+    gap: 2,
+  },
+  cellDivided: {
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: colors.border,
+  },
+  cellLabel: {
+    fontSize: fontSize.caption,
+    color: colors.iconStrong,
+  },
+  cellValue: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: colors.text,
+  },
+  section: {
+    marginTop: spacing.sm,
+    gap: 10,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: colors.text,
+  },
+  insightBox: {
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    borderRadius: 18,
+    backgroundColor: colors.primarySoft,
+  },
+  insightRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 12,
+  },
+  insightLine: {
+    borderTopWidth: 1,
+    borderTopColor: colors.onPrimaryMuted,
+  },
+  insightIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface,
+  },
+  insightMain: {
+    flex: 1,
+    gap: 2,
+  },
+  insightTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  insightSub: {
+    fontSize: fontSize.caption,
+    color: colors.iconStrong,
+  },
+  lockedBar: {
+    flex: 1,
+    maxWidth: 200,
+    height: 14,
+    borderRadius: radius.pill,
+    backgroundColor: colors.onPrimaryMuted,
+  },
+  questionRow: {
+    minHeight: 52,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surfaceMuted,
+  },
+  questionMain: {
+    flex: 1,
+    gap: 2,
+    paddingVertical: spacing.sm,
+  },
+  questionType: {
+    fontSize: fontSize.caption,
+    color: colors.iconStrong,
+  },
+  plus: {
+    fontSize: fontSize.small,
+    color: colors.iconStrong,
   },
   questionNo: {
     width: 28,
@@ -310,10 +464,9 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   questionText: {
-    flex: 1,
-    fontSize: fontSize.small,
+    fontSize: fontSize.label,
+    fontWeight: "700",
     color: colors.text,
-    lineHeight: 20,
   },
   compareRow: {
     gap: 2,
