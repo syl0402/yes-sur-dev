@@ -366,8 +366,6 @@ export default function CreateSurvey() {
           />
         )}
         {step === 2 && <QuestionsStep draft={draft} rules={rules} onChange={update} />}
-        {/* 문항을 넣고 빼면 바로 바뀌는 길이·구간·포인트 요약 (2026-11-09) */}
-        {step === 2 && <LengthSummary draft={draft} rules={rules} isOrg={setup.isOrg} variant="questions" />}
         {step === 3 && (
           <SettingsStep
             draft={draft}
@@ -397,7 +395,8 @@ export default function CreateSurvey() {
         )}
       </ScrollView>
 
-      <BottomBar>
+      {/* ② 문항: 버튼 위에 "3문항 · 약 1분 · 1명당 15P" (2026-11-14 시안 register/Questions) */}
+      <BottomBar note={step === 2 ? <LengthSummary draft={draft} rules={rules} isOrg={setup.isOrg} /> : undefined}>
         {/* 이전은 2단계부터 (2026-11-12 시안). 1단계는 다음 버튼이 넓게 */}
         {step > 1 && (
           <Button

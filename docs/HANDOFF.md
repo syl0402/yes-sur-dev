@@ -117,6 +117,7 @@ import { Text, TextInput } from "@/components/ui/Text";
 | `OptionRow` | 설문 응답 선택지 카드. 글자 왼쪽 · 표시 오른쪽, 고르면 파란 테두리 + 체크 동그라미 (`multiple`이면 둥근 네모). 동의 체크에는 쓰지 않는다 → `CheckRow` (2026-11-12) |
 | `CheckRow` | 작은 체크 한 줄 (동의 문구: 보상 연락처 · 제휴 문의) |
 | `BottomSheet` | 아래에서 올라오는 창. `onClose` · `closeLabel`("나중에 할게요") · `decoration`(창 위 그림) · `keyboard`(입력칸 있을 때). 미션 상세 · 응답 완료 연락처. **새 바텀시트는 항상 이것으로** (2026-11-12) |
+| `BottomBar` | 화면 맨 아래 고정 버튼 줄. `note`를 주면 버튼 위 가운데에 작은 안내 한 줄 (2026-11-14) |
 | `Hop` | 캐릭터가 한 번 콩 뛰는 움직임 (응답 완료 · 등록 완료). 동작 줄이기면 가만히 (2026-11-14) |
 | `HeaderBack` | 위쪽 왼쪽 버튼 (나가기 전 확인 창이 필요한 화면). `icon="close"`면 X (설문 응답) |
 | `SectionHeader` | 묶음 제목 + 설명 + "전체 보기 ›" |

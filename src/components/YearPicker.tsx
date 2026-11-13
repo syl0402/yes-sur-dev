@@ -1,5 +1,7 @@
-import { Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
+// 아래에서 올라오는 연도 목록 창 (입학년도·출생연도). 창 모양은 공용 BottomSheet (2026-11-14)
+import { Pressable, ScrollView, StyleSheet } from "react-native";
 
+import BottomSheet from "@/components/ui/BottomSheet";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
 
@@ -12,49 +14,39 @@ type Props = {
   onClose: () => void;
 };
 
-// 아래에서 올라오는 연도 목록 창 (입학년도·출생연도)
 export default function YearPicker({ visible, title, years, selected, onSelect, onClose }: Props) {
+  if (!visible) return null;
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} />
-      <View style={styles.sheet}>
-        <Text style={styles.sheetTitle}>{title}</Text>
-        <ScrollView>
-          {years.map((year) => (
-            <Pressable
-              key={year}
-              style={styles.yearRow}
-              onPress={() => {
-                onSelect(year);
-                onClose();
-              }}
-            >
-              <Text style={[styles.yearText, selected === year && styles.yearSelected]}>{year}년</Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-      </View>
-    </Modal>
+    <BottomSheet onClose={onClose}>
+      <Text style={styles.sheetTitle}>{title}</Text>
+      <ScrollView style={styles.list}>
+        {years.map((year) => (
+          <Pressable
+            key={year}
+            style={styles.yearRow}
+            onPress={() => {
+              onSelect(year);
+              onClose();
+            }}
+          >
+            <Text style={[styles.yearText, selected === year && styles.yearSelected]}>{year}년</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </BottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: colors.overlay,
-  },
-  sheet: {
-    maxHeight: "50%",
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
   sheetTitle: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
+    marginTop: 18,
+    marginBottom: spacing.sm,
+    fontSize: fontSize.subtitle,
+    fontWeight: "800",
     color: colors.text,
+  },
+  list: {
+    maxHeight: 360,
   },
   yearRow: {
     paddingVertical: spacing.md,
