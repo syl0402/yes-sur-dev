@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>데이터 열람 전 미리보기</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+</style>
+</helmet>
+<div style="width: 390px; height: 1040px; box-sizing: border-box; background: #FFFFFF; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; position: relative; padding-top: 44px; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; padding: 0 6px">
+    <a href="Main.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </a>
+    <div style="flex: 1"></div>
+    <button aria-label="스크랩" style="width: 44px; height: 44px; border: none; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="#3157D5" stroke="#3157D5" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg></button>
+  </div>
+
+  <div style="padding: 8px 20px 0">
+    <div style="display: flex; gap: 6px">
+      <span style="background: #E3E9FF; color: #2949B5; font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 999px">생활</span>
+      <span style="background: #F0F8D5; color: #506D23; font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 999px">✓ 신뢰도 높음</span>
+    </div>
+    <h1 style="margin: 12px 0 0; font-size: 24px; font-weight: 900; line-height: 1.3">대학생 아르바이트 경험</h1>
+    <p style="margin: 8px 0 0; font-size: 14px; color: #545E73; line-height: 1.5">학기 중 아르바이트 경험을 묻는 개인 설문이에요.</p>
+  </div>
+
+  <div style="margin: 18px 16px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #F7F8FC; border-radius: 16px; padding: 14px 0; text-align: center">
+    <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #545E73">응답</span><b style="font-size: 17px">63명</b></div>
+    <div style="display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #E2E5EE; border-right: 1px solid #E2E5EE"><span style="font-size: 12px; color: #545E73">문항</span><b style="font-size: 17px">4개</b></div>
+    <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #545E73">조사 기간</span><b style="font-size: 17px">10.16~23</b></div>
+  </div>
+
+  <div style="margin: 24px 20px 0; font-size: 15px; font-weight: 900">핵심 인사이트</div>
+  <div style="margin: 10px 16px 0; background: #E3E9FF; border-radius: 18px; padding: 6px 16px">
+    <div style="display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid #C7D2FF">
+      <span style="width: 36px; height: 36px; border-radius: 10px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3157D5" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg></span>
+      <span style="font-size: 15px; font-weight: 700">1번 문항, 계열 차이가 가장 커요</span>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center; padding: 12px 0">
+      <span style="width: 36px; height: 36px; border-radius: 10px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3157D5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span>
+      <span style="font-size: 15px; font-weight: 700; filter: blur(5px); user-select: none" aria-hidden="true">평균 3.5점 · 4번 문항</span>
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">잠긴 인사이트</span>
+    </div>
+  </div>
+
+  <div style="margin: 24px 20px 0; font-size: 15px; font-weight: 900">이런 문항의 결과를 볼 수 있어요</div>
+  <div style="margin: 6px 20px 0">
+    <sc-for list="{{qs}}" as="q" hint-placeholder-count="4">
+      <div style="display: flex; align-items: center; gap: 12px; min-height: 52px; border-bottom: 1px solid #EFF1F7">
+        <span style="font-size: 13px; font-weight: 900; color: #3157D5; width: 22px">Q{{q.n}}</span>
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 700">{{q.t}}</span><span style="font-size: 12px; color: #545E73">{{q.type}}</span></span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AEB5C5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+      </div>
+    </sc-for>
+    <div style="margin-top: 10px; font-size: 13px; color: #545E73">+ 응답자 구성(성별·나이대·학년·계열)과 조사 정보</div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-top: 1px solid #EFF1F7; padding: 10px 16px 30px">
+    <div style="text-align: center; font-size: 13px; color: #545E73; margin-bottom: 8px">한 번 열면 계속 볼 수 있어요 · 내 포인트 87P</div>
+    <a href="Detail.dc.html" style="height: 56px; border-radius: 16px; background: #3157D5; color: #FFFFFF; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">40P로 전체 결과 보기</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1040}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { qs: [
+      { n: 1, t: '학기 중에 아르바이트를 하나요?', type: '하나 고르기' },
+      { n: 2, t: '어떤 아르바이트를 해 봤나요?', type: '여러 개 고르기' },
+      { n: 3, t: '한 주에 몇 시간 일하나요?', type: '하나 고르기' },
+      { n: 4, t: '아르바이트가 학업에 방해된다고 느끼나요?', type: '5점 척도' }
+    ] };
+  }
+}
+</script>
+</body>
+</html>

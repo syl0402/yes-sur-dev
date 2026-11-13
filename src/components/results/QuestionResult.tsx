@@ -1,9 +1,11 @@
 // 문항 하나의 결과 (2026-11-10 정리: 데이터 시각화 원칙)
 // - 고르기: 가장 많은 답 하나만 파랑, 나머지는 회색 (강조). 숫자는 글자색
 // - 5점 척도: 큰 평균 + 1~5점 세로 막대 (분포)
+// - 막대는 0에서 스르르 차오른다 (GrowBar, 2026-11-14)
 import { StyleSheet, View } from "react-native";
 
 import Card from "@/components/ui/Card";
+import GrowBar from "@/components/ui/GrowBar";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { QUESTION_TYPE_LABELS, type QuestionType, SCALE_LABELS } from "@/lib/surveyDraft";
@@ -107,7 +109,7 @@ export function Bar({ label, count, pct, top }: { label: string; count: number; 
         </Text>
       </View>
       <View style={styles.barTrack}>
-        <View style={[styles.barFill, top && styles.barFillTop, { width: `${pct}%` }]} />
+        <GrowBar pct={pct} style={[styles.barFill, top && styles.barFillTop]} />
       </View>
     </View>
   );
@@ -131,7 +133,7 @@ function ScaleChart({ avg, counts, answered }: { avg: number | null; counts: num
             <View key={i} style={styles.column}>
               <Text style={[styles.colPct, top && styles.colPctTop]}>{pcts[i]}%</Text>
               <View style={styles.colTrack}>
-                <View style={[styles.colFill, top && styles.barFillTop, { height: `${(pcts[i] / maxPct) * 100}%` }]} />
+                <GrowBar pct={(pcts[i] / maxPct) * 100} direction="height" style={[styles.colFill, top && styles.barFillTop]} />
               </View>
               <Text style={[styles.colLabel, top && styles.colLabelTop]}>{i + 1}</Text>
             </View>

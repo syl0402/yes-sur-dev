@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>설문 결과</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+@keyframes fillBar{from{width:0}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.fill{animation:fillBar .6s cubic-bezier(.2,.8,.2,1) both}
+.fadein{animation:fadeIn .25s ease-out both}
+@media (prefers-reduced-motion: reduce){*{animation:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 1500px; box-sizing: border-box; background: #FFFFFF; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; position: relative; padding-top: 44px; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; padding: 0 6px">
+    <a href="Main.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </a>
+    <div style="flex: 1; text-align: center; font-size: 17px; font-weight: 700">설문 결과</div>
+    <button aria-label="스크랩" style="width: 44px; height: 44px; border: none; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="#3157D5" stroke="#3157D5" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg></button>
+  </div>
+
+  <div style="padding: 8px 20px 0">
+    <div style="display: flex; gap: 6px">
+      <span style="background: #E3E9FF; color: #2949B5; font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 999px">생활</span>
+      <span style="background: #F0F8D5; color: #506D23; font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 999px">✓ 신뢰도 높음</span>
+    </div>
+    <h1 style="margin: 12px 0 0; font-size: 24px; font-weight: 900">대학생 아르바이트 경험</h1>
+    <div style="margin-top: 6px; font-size: 13px; color: #545E73">옛썰러 · 응답 63명 · 10.23 마감</div>
+  </div>
+
+  <div style="margin: 18px 16px 0; background: #E3E9FF; border-radius: 18px; padding: 4px 16px">
+    <div style="display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid #C7D2FF">
+      <span style="width: 36px; height: 36px; border-radius: 10px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3157D5" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg></span>
+      <span style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 15px">1번 문항, 계열 차이가 가장 커요</b><span style="font-size: 12px; color: #374158">'안 해 봤어요' 예체능 11% · 공학 80%</span></span>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center; padding: 12px 0">
+      <span style="width: 36px; height: 36px; border-radius: 10px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3157D5" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"></path></svg></span>
+      <span style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 15px">평균 3.5점</b><span style="font-size: 12px; color: #374158">4번 · 아르바이트가 학업에 방해된다고 느끼나요?</span></span>
+    </div>
+  </div>
+
+  <div style="margin: 20px 16px 0; background: #EFF1F7; border-radius: 14px; padding: 4px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+      <button onClick="{{t.pick}}" style="height: 42px; border: none; border-radius: 11px; background: {{t.bg}}; color: {{t.color}}; font-size: 14px; font-weight: 700; font-family: inherit; box-shadow: {{t.shadow}}">{{t.label}}</button>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{isQ}}" hint-placeholder-val="{{true}}">
+    <div class="fadein">
+      <div style="margin: 16px 16px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+        <span style="width: 100%; font-size: 13px; color: #545E73">나눠 보기</span>
+        <sc-for list="{{splits}}" as="s" hint-placeholder-count="4">
+          <button onClick="{{s.pick}}" style="height: 34px; border: 1px solid {{s.border}}; border-radius: 999px; background: {{s.bg}}; color: {{s.color}}; font-size: 13px; font-weight: 700; font-family: inherit; padding: 0 12px">{{s.label}}</button>
+        </sc-for>
+      </div>
+
+      <div style="margin: 14px 16px 0; border: 1px solid #E2E5EE; border-radius: 18px; padding: 16px">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #545E73"><span><b style="color: #3157D5">Q1</b> · 하나 고르기</span><span>응답 63명</span></div>
+        <div style="margin-top: 8px; font-size: 16px; font-weight: 900">학기 중에 아르바이트를 하나요?</div>
+
+        <sc-if value="{{isAll}}" hint-placeholder-val="{{true}}">
+          <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 12px">
+            <sc-for list="{{q1}}" as="o" hint-placeholder-count="3">
+              <div style="display: flex; flex-direction: column; gap: 6px">
+                <div style="display: flex; justify-content: space-between; font-size: 14px"><span style="font-weight: {{o.w}}">{{o.label}}</span><span><b>{{o.p}}%</b> <span style="color: #545E73; font-size: 12px">{{o.n}}명</span></span></div>
+                <div style="height: 10px; background: #EFF1F7; border-radius: 999px; overflow: hidden"><div class="fill" style="height: 10px; width: {{o.p}}%; background: {{o.c}}; border-radius: 999px"></div></div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isSplit}}" hint-placeholder-val="{{false}}">
+          <div class="fadein" style="margin-top: 14px; display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; flex-wrap: wrap; gap: 6px">
+              <sc-for list="{{opts}}" as="o" hint-placeholder-count="3">
+                <button onClick="{{o.pick}}" style="height: 32px; border: none; border-radius: 8px; background: {{o.bg}}; color: {{o.color}}; font-size: 12px; font-weight: 700; font-family: inherit; padding: 0 10px">{{o.label}}</button>
+              </sc-for>
+            </div>
+            <div style="font-size: 13px; color: #374158"><b>'{{focusLabel}}'</b>라고 답한 비율</div>
+            <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+              <div style="display: flex; align-items: center; gap: 10px">
+                <span style="width: 58px; display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 700; color: {{g.labelColor}}">{{g.label}}</span><span style="font-size: 11px; color: #545E73">{{g.n}}명</span></span>
+                <div style="flex: 1; height: 14px; background: #EFF1F7; border-radius: 999px; overflow: hidden"><div class="fill" style="height: 14px; width: {{g.p}}%; background: {{g.c}}; border-radius: 999px"></div></div>
+                <span style="width: 40px; text-align: right; font-size: 14px; font-weight: {{g.w}}; color: {{g.labelColor}}">{{g.p}}%</span>
+              </div>
+            </sc-for>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #545E73; border-top: 1px dashed #E2E5EE; padding-top: 8px"><span>전체 평균</span><b style="color: #202A40">{{allP}}%</b></div>
+            <sc-if value="{{hasFew}}" hint-placeholder-val="{{false}}"><div style="font-size: 12px; color: #93370D">10명 미만 그룹은 흐리게 표시했어요. 해석에 주의해 주세요.</div></sc-if>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="margin: 12px 16px 0; border: 1px solid #E2E5EE; border-radius: 18px; padding: 16px">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #545E73"><span><b style="color: #3157D5">Q2</b> · 여러 개 고르기</span><span>응답 63명</span></div>
+        <div style="margin-top: 8px; font-size: 16px; font-weight: 900">어떤 아르바이트를 해 봤나요?</div>
+        <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 12px">
+          <sc-for list="{{q2}}" as="o" hint-placeholder-count="4">
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <div style="display: flex; justify-content: space-between; font-size: 14px"><span style="font-weight: {{o.w}}">{{o.label}}</span><span><b>{{o.p}}%</b> <span style="color: #545E73; font-size: 12px">{{o.n}}명</span></span></div>
+              <div style="height: 10px; background: #EFF1F7; border-radius: 999px; overflow: hidden"><div class="fill" style="height: 10px; width: {{o.p}}%; background: {{o.c}}; border-radius: 999px"></div></div>
+            </div>
+          </sc-for>
+          <div style="font-size: 12px; color: #545E73">여러 개 고를 수 있어서 합이 100%를 넘을 수 있어요</div>
+        </div>
+      </div>
+
+      <div style="margin: 12px 16px 0; border: 1px solid #E2E5EE; border-radius: 18px; padding: 16px">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #545E73"><span><b style="color: #3157D5">Q4</b> · 5점 척도</span><span>응답 63명</span></div>
+        <div style="margin-top: 8px; font-size: 16px; font-weight: 900">아르바이트가 학업에 방해된다고 느끼나요?</div>
+        <div style="margin-top: 12px; display: flex; align-items: baseline; gap: 6px"><span style="font-size: 36px; font-weight: 900">3.5</span><span style="font-size: 13px; color: #545E73">/ 5점 평균</span></div>
+        <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; align-items: end; height: 110px">
+          <sc-for list="{{scale}}" as="s" hint-placeholder-count="5">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+              <span style="font-size: 12px; font-weight: {{s.w}}">{{s.p}}%</span>
+              <div style="width: 100%; height: {{s.h}}px; background: {{s.c}}; border-radius: 8px"></div>
+              <span style="font-size: 12px; color: #545E73">{{s.n}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top: 6px; display: flex; justify-content: space-between; font-size: 12px; color: #545E73"><span>전혀 아니에요</span><span>매우 그래요</span></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isWho}}" hint-placeholder-val="{{false}}">
+    <div class="fadein" style="margin: 16px 16px 0; display: flex; flex-direction: column; gap: 12px">
+      <div style="background: #F7F8FC; border-radius: 14px; padding: 12px 14px; font-size: 13px; line-height: 1.5; color: #374158">가장 많이 답한 사람: <b>여성 · 21~23세 · 3~4학년 · 사회/자연 계열</b></div>
+      <sc-for list="{{who}}" as="w" hint-placeholder-count="3">
+        <div style="border: 1px solid #E2E5EE; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+          <div style="font-size: 15px; font-weight: 900">{{w.title}}</div>
+          <sc-for list="{{w.rows}}" as="r" hint-placeholder-count="3">
+            <div style="display: flex; align-items: center; gap: 10px">
+              <span style="width: 56px; font-size: 13px">{{r.label}}</span>
+              <div style="flex: 1; height: 10px; background: #EFF1F7; border-radius: 999px; overflow: hidden"><div class="fill" style="height: 10px; width: {{r.p}}%; background: #3157D5; border-radius: 999px"></div></div>
+              <span style="width: 64px; text-align: right; font-size: 13px"><b>{{r.p}}%</b> <span style="color: #545E73; font-size: 11px">{{r.n}}명</span></span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isInfo}}" hint-placeholder-val="{{false}}">
+    <div class="fadein" style="margin: 16px 16px 0; display: flex; flex-direction: column; gap: 12px">
+      <div style="background: #F0F8D5; border-radius: 16px; padding: 14px 16px">
+        <div style="font-size: 15px; font-weight: 900; color: #202A40">✓ 신뢰도 높음인 이유</div>
+        <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.5; color: #374158">
+          <span>· 응답 63명 (30명 이상)</span>
+          <span>· 확인 문항 통과율 98% (90% 이상)</span>
+          <span>· 확인 문항을 틀린 응답 1건은 결과에서 뺐어요</span>
+        </div>
+      </div>
+      <div style="border: 1px solid #E2E5EE; border-radius: 16px; padding: 4px 16px">
+        <div style="display: flex; justify-content: space-between; min-height: 46px; align-items: center; border-bottom: 1px solid #EFF1F7; font-size: 14px"><span style="color: #545E73">유효 응답</span><b>63명</b></div>
+        <div style="display: flex; justify-content: space-between; min-height: 46px; align-items: center; border-bottom: 1px solid #EFF1F7; font-size: 14px"><span style="color: #545E73">평균 응답 시간</span><b>4분 30초</b></div>
+        <div style="display: flex; justify-content: space-between; min-height: 46px; align-items: center; border-bottom: 1px solid #EFF1F7; font-size: 14px"><span style="color: #545E73">조사 기간</span><b>10.16 ~ 10.23</b></div>
+        <div style="display: flex; justify-content: space-between; min-height: 46px; align-items: center; font-size: 14px"><span style="color: #545E73">대상</span><b>전체 대학생</b></div>
+      </div>
+      <div style="text-align: center"><a href="#" style="font-size: 13px; color: #545E73; padding: 10px; display: inline-block">이 설문 신고하기</a></div>
+    </div>
+  </sc-if>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-top: 1px solid #EFF1F7; padding: 12px 16px 30px; display: flex; gap: 10px">
+    <button aria-label="출처 복사" style="width: 64px; height: 56px; border: 1px solid #E2E5EE; border-radius: 16px; background: #FFFFFF; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-family: inherit; font-size: 11px; color: #374158; padding: 0">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374158" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path></svg>출처</button>
+    <button aria-label="결과 카드 이미지로 공유" style="width: 64px; height: 56px; border: 1px solid #E2E5EE; border-radius: 16px; background: #FFFFFF; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-family: inherit; font-size: 11px; color: #374158; padding: 0">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374158" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"></path></svg>공유</button>
+    <button style="flex: 1; height: 56px; border: none; border-radius: 16px; background: #3157D5; color: #FFFFFF; font-size: 16px; font-weight: 700; font-family: inherit">집계 CSV 받기</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { tab: 'q', split: 'all', focus: 2 }; }
+  renderVals() {
+    var self = this, st = this.state;
+    var tabs = [{ k: 'q', label: '문항별 결과' }, { k: 'who', label: '응답자' }, { k: 'info', label: '조사 정보' }].map(function (t) {
+      var on = st.tab === t.k;
+      return { label: t.label, bg: on ? '#FFFFFF' : 'transparent', color: on ? '#3157D5' : '#545E73', shadow: on ? '0 1px 3px rgba(32,42,64,0.12)' : 'none',
+        pick: function () { self.setState({ tab: t.k }); } };
+    });
+    var splits = [{ k: 'all', label: '전체' }, { k: 'gender', label: '성별' }, { k: 'age', label: '나이대' }, { k: 'grade', label: '학년' }, { k: 'major', label: '계열' }].map(function (s) {
+      var on = st.split === s.k;
+      return { label: s.label, bg: on ? '#202A40' : '#FFFFFF', color: on ? '#FFFFFF' : '#374158', border: on ? '#202A40' : '#E2E5EE',
+        pick: function () { self.setState({ split: s.k }); } };
+    });
+    var bars = function (list) {
+      var max = Math.max.apply(null, list.map(function (o) { return o[1]; }));
+      return list.map(function (o) { var top = o[1] === max; return { label: o[0], p: o[1], n: o[2], c: top ? '#3157D5' : '#CDD2DF', w: top ? 700 : 500 }; });
+    };
+    var OPTS = ['하고 있어요', '안 하지만 해 봤어요', '안 해 봤어요'];
+    var ALLP = [48, 33, 19];
+    var G = {
+      gender: [['여성', 30, 53, 32], ['남성', 20, 40, 35]],
+      age: [['20~21세', 18, 35, 30], ['22~23세', 28, 50, 35], ['24세 이상', 17, 60, 30]],
+      grade: [['1학년', 9, 30, 30], ['2학년', 14, 45, 35], ['3학년', 21, 55, 33], ['4학년', 19, 60, 30]],
+      major: [['인문', 11, 45, 35], ['사회', 18, 55, 30], ['자연', 16, 40, 30], ['공학', 10, 10, 10], ['예체능', 8, 60, 29]]
+    };
+    var raw = (G[st.split] || []).map(function (g) { var v = [g[2], g[3], 100 - g[2] - g[3]]; return { label: g[0], n: g[1], p: v[st.focus] }; });
+    raw.sort(function (a, b) { return b.p - a.p; });
+    var maxP = raw.length ? raw[0].p : 0, minP = raw.length ? raw[raw.length - 1].p : 0;
+    var groups = raw.map(function (g) {
+      var few = g.n < 10, hi = g.p === maxP;
+      return { label: g.label, n: g.n, p: g.p, w: hi ? 900 : 500,
+        c: few ? '#E3E9FF' : hi ? '#3157D5' : g.p === minP ? '#9FB2FF' : '#C7D2FF',
+        labelColor: few ? '#8B93A5' : '#202A40' };
+    });
+    var opts = OPTS.map(function (o, i) {
+      var on = st.focus === i;
+      return { label: o, bg: on ? '#3157D5' : '#EFF1F7', color: on ? '#FFFFFF' : '#374158', pick: function () { self.setState({ focus: i }); } };
+    });
+    var scaleRaw = [11, 14, 16, 33, 25];
+    var scale = scaleRaw.map(function (p, i) { var top = p === 33; return { p: p, n: i + 1, h: Math.round(p / 33 * 80), c: top ? '#3157D5' : '#CDD2DF', w: top ? 900 : 500 }; });
+    var who = [
+      { title: '성별', rows: [{ label: '여성', p: 48, n: 30 }, { label: '남성', p: 32, n: 20 }, { label: '미입력', p: 21, n: 13 }] },
+      { title: '학년', rows: [{ label: '1학년', p: 14, n: 9 }, { label: '2학년', p: 22, n: 14 }, { label: '3학년', p: 33, n: 21 }, { label: '4학년', p: 30, n: 19 }] },
+      { title: '계열', rows: [{ label: '인문', p: 17, n: 11 }, { label: '사회', p: 29, n: 18 }, { label: '자연', p: 25, n: 16 }, { label: '공학', p: 16, n: 10 }, { label: '예체능', p: 13, n: 8 }] }
+    ];
+    return {
+      tabs: tabs, isQ: st.tab === 'q', isWho: st.tab === 'who', isInfo: st.tab === 'info',
+      splits: splits, isAll: st.split === 'all', isSplit: st.split !== 'all', groups: groups,
+      opts: opts, focusLabel: OPTS[st.focus], allP: ALLP[st.focus], hasFew: raw.some(function (g) { return g.n < 10; }),
+      q1: bars([['하고 있어요', 48, 30], ['안 하지만 해 봤어요', 33, 21], ['안 해 봤어요', 19, 12]]),
+      q2: bars([['편의점', 48, 30], ['과외·학원', 37, 23], ['사무 보조', 35, 22], ['배달·물류', 30, 19]]),
+      scale: scale, who: who
+    };
+  }
+}
+</script>
+</body>
+</html>

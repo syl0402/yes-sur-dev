@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>결과 카드 – 스토리형 인사이트</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#FFFFFF}a:hover{color:#E3E9FF}
+</style>
+</helmet>
+<div style="width: 540px; height: 960px; box-sizing: border-box; background: #3157D5; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #FFFFFF; position: relative; overflow: hidden; padding: 56px 44px 44px; display: flex; flex-direction: column">
+  <div style="position: absolute; right: -120px; top: -120px; width: 360px; height: 360px; border-radius: 50%; background: #2949B5"></div>
+  <div style="position: absolute; left: -90px; bottom: 120px; width: 240px; height: 240px; border-radius: 50%; background: #6F8BEB; opacity: 0.35"></div>
+
+  <div style="position: relative; display: flex; align-items: center; justify-content: space-between">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span style="font-size: 30px; font-weight: 900; letter-spacing: -0.5px">옛썰</span>
+      <span style="background: #A3EA16; color: #202A40; font-size: 14px; font-weight: 900; padding: 5px 11px; border-radius: 999px">대학생 데이터</span>
+    </div>
+    <span style="font-size: 16px; color: #E3E9FF">응답 63명</span>
+  </div>
+
+  <div style="position: relative; margin-top: 56px; font-size: 18px; color: #C7D2FF">Q. 학기 중에 아르바이트를 하나요?</div>
+  <div style="position: relative; margin-top: 14px; font-size: 46px; font-weight: 900; line-height: 1.25; letter-spacing: -1px">공학 계열 <span style="color: #A3EA16">80%</span>는<br>아르바이트를<br>안 해 봤어요</div>
+
+  <div style="position: relative; margin-top: 36px; background: #FFFFFF; border-radius: 28px; padding: 28px 28px 24px; color: #202A40">
+    <div style="display: flex; justify-content: space-between; align-items: baseline">
+      <span style="font-size: 18px; font-weight: 900">'안 해 봤어요' 비율</span>
+      <span style="font-size: 15px; color: #545E73">계열별</span>
+    </div>
+    <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 14px">
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+        <div style="display: flex; align-items: center; gap: 14px">
+          <span style="width: 64px; font-size: 17px; font-weight: {{r.w}}">{{r.label}}</span>
+          <div style="flex: 1; height: 22px; background: #EFF1F7; border-radius: 999px; overflow: hidden"><div style="height: 22px; width: {{r.p}}%; background: {{r.c}}; border-radius: 999px"></div></div>
+          <span style="width: 52px; text-align: right; font-size: 18px; font-weight: {{r.w}}; color: {{r.tc}}">{{r.p}}%</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="margin-top: 16px; border-top: 2px dashed #E2E5EE; padding-top: 12px; display: flex; justify-content: space-between; font-size: 15px; color: #545E73"><span>전체 평균</span><b style="color: #202A40">19%</b></div>
+  </div>
+
+  <div style="flex: 1"></div>
+
+  <div style="position: relative; display: flex; align-items: flex-end; gap: 16px">
+    <img src="/_blob/82fd146deea0e556449337a9e4adae65" alt="옛썰 캐릭터" style="width: 120px; height: auto">
+    <div style="flex: 1; padding-bottom: 8px">
+      <div style="font-size: 22px; font-weight: 900; line-height: 1.35">너는 어때?<br>옛썰에서 답하고 결과 보기</div>
+      <div style="margin-top: 8px; font-size: 14px; color: #C7D2FF">옛썰 데이터 허브 · 10.16~10.23 조사</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":540,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var rows = [['공학', 80], ['자연', 30], ['인문', 20], ['사회', 15], ['예체능', 11]].map(function (r, i) {
+      var top = i === 0;
+      return { label: r[0], p: r[1], c: top ? '#3157D5' : '#C7D2FF', tc: top ? '#3157D5' : '#545E73', w: top ? 900 : 500 };
+    });
+    return { rows: rows };
+  }
+}
+</script>
+</body>
+</html>

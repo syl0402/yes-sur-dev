@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 import CompositionChart from "@/components/results/CompositionChart";
 import InsightCard from "@/components/results/InsightCard";
 import QuestionResult, { Bar, QuestionHeader, percent, type QuestionStats } from "@/components/results/QuestionResult";
 import Card from "@/components/ui/Card";
+import GrowBar from "@/components/ui/GrowBar";
 import Segmented from "@/components/ui/Segmented";
 import SelectButton from "@/components/ui/SelectButton";
 import { Text } from "@/components/ui/Text";
@@ -136,6 +138,8 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
             <Text style={styles.hint}>예: ‘도서관’이라고 답한 사람들끼리 다른 문항은 어떻게 답했는지 볼 수 있어요.</Text>
           )}
 
+          {/* 나눠 보기를 바꾸면 문항 목록이 살짝 나타난다 (0.25초, 2026-11-14 시안) */}
+          <Animated.View key={`${dim}-${crossId ?? ""}`} entering={FadeIn.duration(250)} style={styles.list}>
           {dim === "all" && questions.map((q, index) => <QuestionResult key={q.id} index={index} question={q} />)}
 
           {dim !== "all" &&
@@ -169,15 +173,20 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
                 )}
               </>
             ))}
+          </Animated.View>
         </>
       )}
 
       {/* 응답자 구성: 도넛 (2026-11-13 결정, A안 나눔 막대 대신). 그림 부품이 없는 옛 앱만 나눔 막대 */}
-      {tab === "people" && <CompositionChart groups={full.groups} variant={canDrawSvg ? "donut" : "bar"} />}
+      {tab === "people" && (
+        <Animated.View entering={FadeIn.duration(250)}>
+          <CompositionChart groups={full.groups} variant={canDrawSvg ? "donut" : "bar"} />
+        </Animated.View>
+      )}
 
       {/* 조사 정보: 신뢰도 이유(연두 상자, 기준은 point_rules) + 이름표–값 줄 (2026-11-14 데이터 허브 시안) */}
       {tab === "info" && (
-        <View style={styles.infoWrap}>
+        <Animated.View entering={FadeIn.duration(250)} style={styles.infoWrap}>
           {trusted && (
             <View style={styles.trustBox}>
               <Text style={styles.trustTitle}>✓ 신뢰도 높음인 이유</Text>
@@ -221,7 +230,7 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
           {!trusted && full.excluded > 0 && (
             <Text style={styles.infoNote}>확인 문항을 틀린 응답 {full.excluded}건은 결과에서 뺐어요.</Text>
           )}
-        </View>
+        </Animated.View>
       )}
     </>
   );
@@ -323,12 +332,9 @@ function GroupedQuestion({
                   <Text style={styles.groupN}>{r.n}명</Text>
                 </View>
                 <View style={styles.compareTrack}>
-                  <View
-                    style={[
-                      styles.compareFill,
-                      { width: `${isScale ? (r.value / 5) * 100 : r.value}%` },
-                      few ? styles.fillFew : hi ? styles.fillHi : lo ? styles.fillLo : styles.fillMid,
-                    ]}
+                  <GrowBar
+                    pct={isScale ? (r.value / 5) * 100 : r.value}
+                    style={[styles.compareFill, few ? styles.fillFew : hi ? styles.fillHi : lo ? styles.fillLo : styles.fillMid]}
                   />
                 </View>
                 <Text style={[styles.compareValue, hi && styles.compareValueHi, few && styles.fewText]}>
@@ -452,6 +458,9 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     lineHeight: 20,
     color: colors.textStrong,
+  },
+  list: {
+    gap: spacing.md,
   },
   infoWrap: {
     gap: spacing.sm,

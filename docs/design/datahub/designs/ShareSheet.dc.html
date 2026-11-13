@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>결과 카드 공유 시트</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes fadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+.sheet{animation:slideUp .35s cubic-bezier(.2,.8,.2,1) both}
+.fadein{animation:fadeIn .25s ease-out both}
+@media (prefers-reduced-motion: reduce){*{animation:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: rgba(32,42,64,0.55); font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; position: relative; overflow: hidden">
+  <div class="sheet" style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-radius: 28px 28px 0 0; padding: 12px 20px 34px; display: flex; flex-direction: column">
+    <div style="width: 40px; height: 5px; border-radius: 999px; background: #CDD2DF; align-self: center"></div>
+    <div style="margin-top: 18px; font-size: 20px; font-weight: 900">결과 카드로 공유</div>
+
+    <div style="margin-top: 14px; background: #EFF1F7; border-radius: 14px; padding: 4px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px">
+      <sc-for list="{{types}}" as="t" hint-placeholder-count="2">
+        <button onClick="{{t.pick}}" style="height: 42px; border: none; border-radius: 11px; background: {{t.bg}}; color: {{t.color}}; font-size: 14px; font-weight: 700; font-family: inherit; box-shadow: {{t.shadow}}">{{t.label}}</button>
+      </sc-for>
+    </div>
+
+    <div style="margin-top: 16px; height: 330px; background: #F7F8FC; border-radius: 20px; display: flex; align-items: center; justify-content: center">
+      <sc-if value="{{isInsight}}" hint-placeholder-val="{{true}}">
+        <div class="fadein" style="width: 172px; height: 306px; box-sizing: border-box; background: #3157D5; border-radius: 14px; padding: 16px 14px 12px; color: #FFFFFF; display: flex; flex-direction: column; box-shadow: 0 8px 20px rgba(32,42,64,0.2); overflow: hidden">
+          <div style="display: flex; align-items: center; gap: 4px"><b style="font-size: 11px">옛썰</b><span style="background: #A3EA16; color: #202A40; font-size: 7px; font-weight: 900; padding: 2px 5px; border-radius: 999px">대학생 데이터</span></div>
+          <div style="margin-top: 16px; font-size: 7px; color: #C7D2FF">Q. 학기 중에 아르바이트를 하나요?</div>
+          <div style="margin-top: 5px; font-size: 15px; font-weight: 900; line-height: 1.25">공학 계열 <span style="color: #A3EA16">80%</span>는<br>아르바이트를<br>안 해 봤어요</div>
+          <div style="margin-top: 12px; background: #FFFFFF; border-radius: 9px; padding: 9px; display: flex; flex-direction: column; gap: 5px">
+            <sc-for list="{{mini}}" as="m" hint-placeholder-count="5">
+              <div style="display: flex; align-items: center; gap: 5px"><span style="width: 22px; font-size: 6px; color: #202A40">{{m.l}}</span><div style="flex: 1; height: 6px; background: #EFF1F7; border-radius: 999px"><div style="height: 6px; width: {{m.p}}%; background: {{m.c}}; border-radius: 999px"></div></div></div>
+            </sc-for>
+          </div>
+          <div style="flex: 1"></div>
+          <div style="display: flex; align-items: flex-end; gap: 6px"><img src="/_blob/82fd146deea0e556449337a9e4adae65" alt="" style="width: 40px; height: auto"><span style="font-size: 7px; font-weight: 900; line-height: 1.3; padding-bottom: 3px">너는 어때?<br>옛썰에서 답하고 결과 보기</span></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{isQuestion}}" hint-placeholder-val="{{false}}">
+        <div class="fadein" style="width: 240px; height: 240px; box-sizing: border-box; background: #F1F4FF; border: 1px solid #E2E5EE; border-radius: 14px; padding: 18px 18px 12px; display: flex; flex-direction: column; box-shadow: 0 8px 20px rgba(32,42,64,0.12)">
+          <div style="display: flex; justify-content: space-between; align-items: center"><span style="background: #3157D5; color: #FFFFFF; font-size: 7px; font-weight: 900; padding: 3px 6px; border-radius: 999px">대학생 63명에게 물었어요</span><b style="font-size: 10px; color: #3157D5">옛썰</b></div>
+          <div style="margin-top: 10px; font-size: 13px; font-weight: 900; line-height: 1.3">{{qTitle}}</div>
+          <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px">
+            <sc-for list="{{qRows}}" as="r" hint-placeholder-count="3">
+              <div style="display: flex; flex-direction: column; gap: 3px"><div style="display: flex; justify-content: space-between; font-size: 8px"><span style="font-weight: {{r.w}}">{{r.l}}</span><b style="color: {{r.tc}}">{{r.p}}%</b></div><div style="height: 7px; background: #FFFFFF; border-radius: 999px"><div style="height: 7px; width: {{r.p}}%; background: {{r.c}}; border-radius: 999px"></div></div></div>
+            </sc-for>
+          </div>
+          <div style="flex: 1"></div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-end"><span style="font-size: 6px; color: #545E73">옛썰 데이터 허브 · 63명 응답</span><img src="/_blob/82fd146deea0e556449337a9e4adae65" alt="" style="width: 36px; height: auto"></div>
+        </div>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{isQuestion}}" hint-placeholder-val="{{false}}">
+      <div style="margin-top: 12px; display: flex; gap: 6px">
+        <sc-for list="{{qs}}" as="q" hint-placeholder-count="3">
+          <button onClick="{{q.pick}}" style="height: 34px; border: 1px solid {{q.border}}; border-radius: 999px; background: {{q.bg}}; color: {{q.color}}; font-size: 13px; font-weight: 700; font-family: inherit; padding: 0 14px">{{q.label}}</button>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{isInsight}}" hint-placeholder-val="{{true}}">
+      <div style="margin-top: 12px; font-size: 13px; color: #545E73">인스타 스토리에 딱 맞는 세로형이에요</div>
+    </sc-if>
+
+    <div style="margin-top: 18px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{actions}}" as="a" hint-placeholder-count="4">
+        <button style="border: none; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 6px; font-family: inherit; font-size: 12px; color: #374158; padding: 0">
+          <span style="width: 52px; height: 52px; border-radius: 50%; background: {{a.bg}}; display: flex; align-items: center; justify-content: center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{a.stroke}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{a.d}}"></path></svg>
+          </span>{{a.label}}
+        </button>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { type: 'insight', q: 0 }; }
+  renderVals() {
+    var self = this, st = this.state;
+    var seg = function (on) { return { bg: on ? '#FFFFFF' : 'transparent', color: on ? '#3157D5' : '#545E73', shadow: on ? '0 1px 3px rgba(32,42,64,0.12)' : 'none' }; };
+    var types = [{ k: 'insight', label: '인사이트 카드' }, { k: 'question', label: '문항 카드' }].map(function (t) {
+      return Object.assign({ label: t.label, pick: function () { self.setState({ type: t.k }); } }, seg(st.type === t.k));
+    });
+    var mini = [['공학', 80], ['자연', 30], ['인문', 20], ['사회', 15], ['예체능', 11]].map(function (m, i) { return { l: m[0], p: m[1], c: i === 0 ? '#3157D5' : '#C7D2FF' }; });
+    var Q = [
+      { label: 'Q1', title: '학기 중에 아르바이트를 하나요?', rows: [['하고 있어요', 48], ['안 하지만 해 봤어요', 33], ['안 해 봤어요', 19]] },
+      { label: 'Q2', title: '어떤 아르바이트를 해 봤나요?', rows: [['편의점', 48], ['과외·학원', 37], ['사무 보조', 35]] },
+      { label: 'Q4', title: '아르바이트가 학업에 방해된다고 느끼나요?', rows: [['그래요 (4~5점)', 58], ['보통 (3점)', 16], ['아니에요 (1~2점)', 25]] }
+    ];
+    var cur = Q[st.q];
+    var qRows = cur.rows.map(function (r, i) { var top = i === 0; return { l: r[0], p: r[1], c: top ? '#3157D5' : '#C7D2FF', tc: top ? '#3157D5' : '#545E73', w: top ? 900 : 500 }; });
+    var qs = Q.map(function (q, i) {
+      var on = st.q === i;
+      return { label: q.label, bg: on ? '#202A40' : '#FFFFFF', color: on ? '#FFFFFF' : '#374158', border: on ? '#202A40' : '#E2E5EE', pick: function () { self.setState({ q: i }); } };
+    });
+    var actions = [
+      { label: '스토리 공유', bg: '#3157D5', stroke: '#FFFFFF', d: 'M4 4h16v16H4zM12 8v8M8 12h8' },
+      { label: '이미지 저장', bg: '#EFF1F7', stroke: '#374158', d: 'M12 4v11M7 10l5 5 5-5M5 20h14' },
+      { label: '링크 복사', bg: '#EFF1F7', stroke: '#374158', d: 'M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1' },
+      { label: '더보기', bg: '#EFF1F7', stroke: '#374158', d: 'M5 12h.01M12 12h.01M19 12h.01' }
+    ];
+    return {
+      types: types, isInsight: st.type === 'insight', isQuestion: st.type === 'question',
+      mini: mini, qTitle: cur.title, qRows: qRows, qs: qs, actions: actions
+    };
+  }
+}
+</script>
+</body>
+</html>
