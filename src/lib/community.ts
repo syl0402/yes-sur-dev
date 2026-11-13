@@ -111,6 +111,8 @@ export type Comment = {
   likes: number;
   liked: boolean;
   created_at: string;
+  // 투표 글: 이 댓글 쓴 사람이 고른 보기 번호 (내가 투표했거나 내 글일 때만 서버가 보냄, 2026-11-14)
+  side?: number | null;
   // 원댓글에만 (답글 목록)
   replies?: Comment[];
 };

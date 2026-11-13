@@ -3,6 +3,7 @@ import { StyleSheet, View } from "react-native";
 
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import { listCardStyles } from "@/components/listCardStyles";
 import Card from "@/components/ui/Card";
 import GrowBar from "@/components/ui/GrowBar";
 import { Text } from "@/components/ui/Text";
@@ -21,7 +22,7 @@ export default function WorldcupCard({ item: w, hot }: { item: WorldcupItem; hot
   const minutes = Math.max(1, Math.round(((w.size - 1) * SECONDS_PER_PICK) / 60));
 
   return (
-    <Card onPress={open}>
+    <Card onPress={open} style={[listCardStyles.card, styles.card]}>
       <View style={styles.head}>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>월드컵 {roundLabel(w.size)}</Text>
@@ -70,6 +71,10 @@ export default function WorldcupCard({ item: w, hot }: { item: WorldcupItem; hot
 }
 
 const styles = StyleSheet.create({
+  // 모양은 설문·데이터 탭 목록 카드와 같게 (2026-11-14 통일)
+  card: {
+    gap: 12,
+  },
   head: {
     flexDirection: "row",
     alignItems: "center",

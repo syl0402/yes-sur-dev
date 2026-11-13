@@ -6,12 +6,13 @@ import Animated, { ZoomIn, useReducedMotion } from "react-native-reanimated";
 import AppIcon from "@/components/AppIcon";
 import TugBar from "@/components/community/TugBar";
 import LinkedText from "@/components/LinkedText";
+import { listCardStyles } from "@/components/listCardStyles";
 import { percent } from "@/components/results/QuestionResult";
 import Badge from "@/components/ui/Badge";
 import GrowBar from "@/components/ui/GrowBar";
 import { Text } from "@/components/ui/Text";
 import { uiIcons } from "@/constants/icons";
-import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { KIND_LABELS, type PromoSurvey, type Post } from "@/lib/community";
 import { errorMessage } from "@/lib/errors";
 import { formatAgo, formatPoints, formatTimeLeft } from "@/lib/format";
@@ -63,7 +64,7 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
   const isRelate = post.kind === "relate" && post.options.length === 2;
 
   return (
-    <Pressable style={styles.card} onPress={onOpen} disabled={!onOpen}>
+    <Pressable style={[listCardStyles.card, styles.card]} onPress={onOpen} disabled={!onOpen}>
       {/* 머리: 종류 뱃지 · 작성자 · 시간 */}
       <View style={styles.head}>
         <Badge label={KIND_LABELS[post.kind]} tone={post.kind === "promo" ? "accent" : "primary"} />
@@ -73,7 +74,7 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
           {post.mine ? " (나)" : ""} · {formatAgo(post.created_at)}
         </Text>
       </View>
-      <Text style={styles.question} selectable={full}>
+      <Text style={[styles.question, full && styles.questionFull]} selectable={full}>
         {post.question}
       </Text>
       {/* 본문: 주소는 링크, 상세에서는 길게 눌러 복사. 피드의 홍보글은 한 줄만 */}
@@ -96,7 +97,9 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
           votes={post.votes}
           myChoice={post.my_choice}
           onVote={vote}
-          animate={justVoted}
+          // 상세: 크게 + 들어올 때 50%에서 실제 비율로 움직인다
+          animate={justVoted || !!full}
+          size={full ? "lg" : "md"}
         />
       ) : isRelate ? (
         <RelateButtons post={post} onVote={vote} />
@@ -237,14 +240,9 @@ function PromoMini({ survey, mine }: { survey: PromoSurvey; mine: boolean }) {
 }
 
 const styles = StyleSheet.create({
+  // 모양은 설문·데이터 탭 목록 카드와 같게 (listCardStyles, 2026-11-14 통일). 안쪽 간격만 넓게
   card: {
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
     gap: 12,
-    ...shadow.card,
   },
   head: {
     flexDirection: "row",
@@ -261,6 +259,11 @@ const styles = StyleSheet.create({
     lineHeight: 23,
     fontWeight: "800",
     color: colors.text,
+  },
+  // 상세 화면 제목은 크게
+  questionFull: {
+    fontSize: fontSize.title,
+    lineHeight: 30,
   },
   body: {
     fontSize: fontSize.label,

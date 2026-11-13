@@ -18,7 +18,18 @@ type Loaded = { best: Comment[]; all: Comment[] };
 
 // 댓글 목록 + 입력칸 (커뮤니티 글 · 오늘의 질문 · 월드컵), 2026-11-03 개편
 // 이름은 서버가 정한다 (익명1 · 익명(글쓴이) · 닉네임). 답글은 한 단계. 👍 공감. BEST는 공감이 기준 이상일 때만
-export default function Comments({ type, id, onChanged }: { type: CommentTarget; id: number; onChanged?: () => void }) {
+// sides: 투표 글의 보기 이름. 주면 댓글마다 쓴 사람이 고른 편을 작은 배지로 (2026-11-14 커뮤니티 시안)
+export default function Comments({
+  type,
+  id,
+  onChanged,
+  sides,
+}: {
+  type: CommentTarget;
+  id: number;
+  onChanged?: () => void;
+  sides?: string[];
+}) {
   const [list, setList] = useState<Loaded | null>(null);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
@@ -130,6 +141,13 @@ export default function Comments({ type, id, onChanged }: { type: CommentTarget;
             {c.author}
             {c.mine ? " (나)" : ""}
           </Text>
+          {sides && c.side != null && sides[c.side] !== undefined && (
+            <Badge
+              label={sides[c.side].length > 8 ? `${sides[c.side].slice(0, 8)}…` : sides[c.side]}
+              tone={sides.length === 2 ? (c.side === 0 ? "blue" : "lime") : "muted"}
+              size="sm"
+            />
+          )}
           {/* 오른쪽 작은 버튼 묶음: 답글 · 공감 · 더보기 */}
           <View style={styles.actions}>
             {canReply && (

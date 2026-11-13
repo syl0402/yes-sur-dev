@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
 import CompositionChart from "@/components/results/CompositionChart";
+import GroupCompare, { DimChips, FocusChips } from "@/components/results/GroupCompare";
 import InsightCard from "@/components/results/InsightCard";
 import QuestionResult, { Bar, QuestionHeader, percent, type QuestionStats } from "@/components/results/QuestionResult";
 import Card from "@/components/ui/Card";
-import GrowBar from "@/components/ui/GrowBar";
 import Segmented from "@/components/ui/Segmented";
 import SelectButton from "@/components/ui/SelectButton";
 import { Text } from "@/components/ui/Text";
@@ -107,18 +107,7 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
       {tab === "questions" && (
         <>
           {/* 나눠 보기: 칩 한 줄 (화면 전체 문항에 같이 적용, 이름표 없이 칩만). 다른 문항 답별이면 기준 문항 버튼이 하나 더 */}
-          <View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dimRow}>
-              {DIM_OPTIONS.filter((o) => o.value !== "cross" || crossable.length > 0).map((o) => {
-                const on = o.value === dim;
-                return (
-                  <Pressable key={o.value} onPress={() => setDim(o.value)} style={[styles.dimChip, on && styles.dimChipOn]} hitSlop={4}>
-                    <Text style={[styles.dimText, on && styles.dimTextOn]}>{o.label}</Text>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          </View>
+          <DimChips options={DIM_OPTIONS.filter((o) => o.value !== "cross" || crossable.length > 0)} value={dim} onChange={setDim} />
           <View style={styles.selects}>
             {dim === "cross" && (
               <SelectButton
@@ -280,11 +269,7 @@ function GroupedQuestion({
       n: g.n ?? s.answered,
       value: isScale ? (s.scale?.avg ?? 0) : percent(s.options.find((o) => o.id === focus?.id)?.count ?? 0, s.answered),
     }))
-    .sort((a, b) => b.value - a.value);
-  const solid = rows.filter((r) => r.n >= fewUnder);
-  const maxV = solid.length > 0 ? solid[0].value : null;
-  const minV = solid.length > 1 ? solid[solid.length - 1].value : null;
-  const hasFew = rows.some((r) => r.n < fewUnder);
+;
   const overall = isScale ? (q.scale?.avg ?? null) : percent(focus?.count ?? 0, q.answered);
   const unit = isScale ? "점" : "%";
 
@@ -294,72 +279,30 @@ function GroupedQuestion({
 
       {/* 고르기: 볼 답 고르기 */}
       {!open && !isScale && q.options.length > 1 && (
-        <View style={styles.focusRow}>
-          {q.options.map((o) => {
-            const on = o.id === focus?.id;
-            return (
-              <Pressable key={o.id} onPress={() => setFocusId(o.id)} style={[styles.focusChip, on && styles.focusChipOn]} hitSlop={4}>
-                <Text style={[styles.focusText, on && styles.focusTextOn]} numberOfLines={1}>
-                  {o.text}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <FocusChips
+          options={q.options.map((o) => ({ value: o.id, label: o.text }))}
+          value={focus?.id}
+          onChange={setFocusId}
+        />
       )}
 
       {!open && rows.length > 0 && (
-        <View style={styles.compare}>
-          <Text style={styles.compareTitle}>
-            {isScale ? (
+        <GroupCompare
+          title={
+            isScale ? (
               "묶음별 평균 점수"
             ) : (
               <>
                 <Text style={styles.compareStrong}>‘{focus?.text}’</Text>라고 답한 비율
               </>
-            )}
-          </Text>
-          {rows.map((r) => {
-            const few = r.n < fewUnder;
-            const hi = !few && r.value === maxV;
-            const lo = !few && !hi && r.value === minV;
-            return (
-              <View key={r.label} style={styles.compareRow}>
-                <View style={styles.compareName}>
-                  <Text style={[styles.compareLabel, few && styles.fewText]} numberOfLines={1}>
-                    {r.label}
-                  </Text>
-                  <Text style={styles.groupN}>{r.n}명</Text>
-                </View>
-                <View style={styles.compareTrack}>
-                  <GrowBar
-                    pct={isScale ? (r.value / 5) * 100 : r.value}
-                    style={[styles.compareFill, few ? styles.fillFew : hi ? styles.fillHi : lo ? styles.fillLo : styles.fillMid]}
-                  />
-                </View>
-                <Text style={[styles.compareValue, hi && styles.compareValueHi, few && styles.fewText]}>
-                  {r.value}
-                  {unit}
-                </Text>
-              </View>
-            );
-          })}
-          {overall !== null && (
-            <>
-              <DashedLine />
-              <View style={styles.average}>
-                <Text style={styles.label}>전체 평균</Text>
-                <Text style={styles.averageValue}>
-                  {overall}
-                  {unit}
-                </Text>
-              </View>
-            </>
-          )}
-          {hasFew && (
-            <Text style={styles.fewNote}>{fewUnder}명 미만 묶음은 흐리게 표시했어요. 해석에 주의해 주세요.</Text>
-          )}
-        </View>
+            )
+          }
+          rows={rows}
+          fewUnder={fewUnder}
+          overall={overall}
+          unit={unit}
+          max={isScale ? 5 : 100}
+        />
       )}
 
       {open &&
@@ -395,52 +338,8 @@ function GroupedQuestion({
   );
 }
 
-// 가로 점선 한 줄 (한 면만 점선 테두리는 아이폰에서 안 그려져서, 높이 1 상자 안에 점선 상자를 넣고 잘라 낸다)
-function DashedLine() {
-  return (
-    <View style={styles.dashClip}>
-      <View style={styles.dash} />
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
-  dashClip: {
-    height: 1,
-    overflow: "hidden",
-  },
-  dash: {
-    height: 2,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderStyle: "dashed",
-    borderRadius: 1,
-  },
-  // 나눠 보기 칩 (고르면 진한 남색)
-  dimRow: {
-    gap: 6,
-  },
-  dimChip: {
-    height: 30,
-    justifyContent: "center",
-    paddingHorizontal: 11,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
-  },
-  dimChipOn: {
-    borderColor: colors.text,
-    backgroundColor: colors.text,
-  },
-  dimText: {
-    fontSize: fontSize.caption,
-    fontWeight: "700",
-    color: colors.textStrong,
-  },
-  dimTextOn: {
-    color: colors.onPrimary,
-  },
   // 조사 정보
   trustBox: {
     gap: spacing.sm,
@@ -511,104 +410,8 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     paddingHorizontal: spacing.xs,
   },
-  // 볼 답 고르기 칩 (고르면 파랑)
-  focusRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-  },
-  focusChip: {
-    height: 28,
-    justifyContent: "center",
-    paddingHorizontal: 9,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surfaceMuted,
-  },
-  focusChipOn: {
-    backgroundColor: colors.primary,
-  },
-  focusText: {
-    maxWidth: 180,
-    fontSize: fontSize.caption,
-    fontWeight: "700",
-    color: colors.textStrong,
-  },
-  focusTextOn: {
-    color: colors.onPrimary,
-  },
-  // 묶음별 비교 막대
-  compare: {
-    gap: 12,
-  },
-  compareTitle: {
-    fontSize: fontSize.small,
-    color: colors.textStrong,
-  },
   compareStrong: {
     fontWeight: "700",
-  },
-  compareRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  compareName: {
-    width: 64,
-  },
-  compareLabel: {
-    fontSize: fontSize.small,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  compareTrack: {
-    flex: 1,
-    height: 14,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceMuted,
-    overflow: "hidden",
-  },
-  compareFill: {
-    height: "100%",
-    borderRadius: radius.pill,
-  },
-  fillHi: {
-    backgroundColor: colors.primary,
-  },
-  fillLo: {
-    backgroundColor: colors.primaryMuted,
-  },
-  fillMid: {
-    backgroundColor: colors.onPrimaryMuted,
-  },
-  fillFew: {
-    backgroundColor: colors.primarySoft,
-  },
-  compareValue: {
-    width: 48,
-    textAlign: "right",
-    fontSize: 14,
-    fontWeight: "500",
-    color: colors.text,
-  },
-  compareValueHi: {
-    fontWeight: "800",
-  },
-  fewText: {
-    color: colors.textSubtle,
-  },
-  average: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: -4,
-  },
-  averageValue: {
-    fontSize: fontSize.caption,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  fewNote: {
-    fontSize: fontSize.caption,
-    color: colors.warning,
   },
   group: {
     gap: 6,

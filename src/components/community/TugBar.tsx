@@ -3,6 +3,7 @@
 // - 투표 후: 경계가 A 비율 위치로 이동 (0.8초, 살짝 튕기며). 화면에선 30~70%로 제한해 양쪽 글자가 보이게
 //   내 편만 진한 색, 상대편은 연한 색 그대로. 숫자는 0.45초 뒤 톡 튀어나오고 VS는 남색으로 바뀌며 흔들림
 // - 첫 표(참여 1명)면 내 편 100%, 막대는 72%까지만
+// - lg(상세): 막대 위에 두 편 이름, 칸 안엔 큰 퍼센트 + 내 편에 "내 선택" 칩, 아래 문구 오른쪽에 참여 수
 // 폰의 "동작 줄이기"가 켜져 있으면 움직이지 않고 바로 결과를 보여 준다
 import { useEffect } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -76,7 +77,8 @@ export default function TugBar({ labels, counts, votes, myChoice, onVote, disabl
   const bStyle = useAnimatedStyle(() => ({ left: `${edge.value}%` }));
   const vsStyle = useAnimatedStyle(() => ({ left: `${edge.value}%`, transform: [{ rotate: `${tilt.value}deg` }] }));
 
-  const height = size === "lg" ? 72 : 56;
+  const lg = size === "lg";
+  const height = lg ? 72 : 56;
   const canVote = !shown && !!onVote;
 
   const half = (i: 0 | 1) => {
@@ -86,13 +88,24 @@ export default function TugBar({ labels, counts, votes, myChoice, onVote, disabl
     const pct = first ? (myChoice === i ? 100 : 0) : pcts[i];
     const inner = (
       <View style={[styles.inner, i === 0 ? styles.innerA : styles.innerB]}>
-        {shown ? (
+        {shown && lg ? (
+          <View style={[styles.lgRow, i === 1 && styles.lgRowB]}>
+            <Animated.View entering={play ? ZoomIn.delay(POP_DELAY).duration(250) : undefined}>
+              <Text style={[styles.pct, styles.pctLg, { color: fg }]}>{pct}%</Text>
+            </Animated.View>
+            {mine && (
+              <View style={[styles.mineChip, i === 1 && styles.mineChipB]}>
+                <Text style={[styles.mineChipText, i === 1 && styles.mineChipTextB]}>내 선택</Text>
+              </View>
+            )}
+          </View>
+        ) : shown ? (
           <>
             <Text style={[styles.smallLabel, { color: fg }]} numberOfLines={1}>
               {labels[i]}
             </Text>
             <Animated.View entering={play ? ZoomIn.delay(POP_DELAY).duration(250) : undefined}>
-              <Text style={[styles.pct, size === "lg" && styles.pctLg, { color: fg }]}>{pct}%</Text>
+              <Text style={[styles.pct, { color: fg }]}>{pct}%</Text>
             </Animated.View>
           </>
         ) : (
@@ -135,6 +148,16 @@ export default function TugBar({ labels, counts, votes, myChoice, onVote, disabl
 
   return (
     <View style={styles.wrap}>
+      {lg && (
+        <View style={styles.sides}>
+          <Text style={[styles.sideName, styles.sideA]} numberOfLines={1}>
+            {labels[0]}
+          </Text>
+          <Text style={[styles.sideName, styles.sideB]} numberOfLines={1}>
+            {labels[1]}
+          </Text>
+        </View>
+      )}
       <View style={{ height }}>
         <View style={[styles.track, { height }]}>
           {half(0)}
@@ -144,10 +167,19 @@ export default function TugBar({ labels, counts, votes, myChoice, onVote, disabl
           <Text style={[styles.vsText, decided && styles.vsTextOn]}>VS</Text>
         </Animated.View>
       </View>
-      {caption && (
-        <Text style={styles.caption} numberOfLines={1}>
-          {caption}
-        </Text>
+      {lg ? (
+        <View style={styles.captionRow}>
+          <Text style={[styles.caption, styles.captionLg]} numberOfLines={1}>
+            {caption ?? ""}
+          </Text>
+          <Text style={styles.caption}>{votes}명 참여</Text>
+        </View>
+      ) : (
+        caption && (
+          <Text style={styles.caption} numberOfLines={1}>
+            {caption}
+          </Text>
+        )
       )}
     </View>
   );
@@ -237,6 +269,59 @@ const styles = StyleSheet.create({
   },
   vsTextOn: {
     color: colors.accent,
+  },
+  sides: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  sideName: {
+    flexShrink: 1,
+    fontSize: fontSize.small,
+    fontWeight: "800",
+  },
+  sideA: {
+    color: colors.primary,
+  },
+  sideB: {
+    color: colors.onAccentSoft,
+    textAlign: "right",
+  },
+  lgRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  lgRowB: {
+    flexDirection: "row-reverse",
+  },
+  // 내 편 칸 안 "내 선택" (A 파랑 칸엔 라임, B 라임 칸엔 남색)
+  mineChip: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    backgroundColor: colors.accent,
+  },
+  mineChipB: {
+    backgroundColor: colors.text,
+  },
+  mineChipText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: colors.onAccent,
+  },
+  mineChipTextB: {
+    color: colors.accent,
+  },
+  captionRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  captionLg: {
+    flexShrink: 1,
+    fontWeight: "800",
+    color: colors.primary,
   },
   caption: {
     fontSize: fontSize.caption,
