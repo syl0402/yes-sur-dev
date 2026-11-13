@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>글 만들기</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.fadein{animation:fadeIn .2s ease-out both}
+input::placeholder{color:#8B93A5;font-weight:400}
+@media (prefers-reduced-motion: reduce){*{animation:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 1040px; box-sizing: border-box; background: #F7F8FC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; position: relative; padding-top: 44px; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; padding: 0 6px">
+    <button aria-label="닫기" style="width: 44px; height: 44px; border: none; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    <div style="flex: 1; text-align: center; font-size: 17px; font-weight: 700; margin-right: 44px">글 만들기</div>
+  </div>
+
+  <div style="padding: 12px 20px 0">
+    <div style="font-size: 15px; font-weight: 700">종류</div>
+    <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px">
+      <sc-for list="{{types}}" as="t" hint-placeholder-count="4">
+        <button onClick="{{t.pick}}" style="height: 40px; border: none; border-radius: 999px; background: {{t.bg}}; color: {{t.color}}; font-size: 14px; font-weight: 700; font-family: inherit; padding: 0 16px">{{t.label}}</button>
+      </sc-for>
+    </div>
+    <div style="margin-top: 8px; font-size: 13px; color: #545E73">{{typeHint}}</div>
+
+    <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline"><label for="q" style="font-size: 15px; font-weight: 700">질문</label><span style="font-size: 12px; color: #545E73">{{qLen}}/40</span></div>
+      <input id="q" value="{{q}}" onChange="{{onQ}}" placeholder="{{qPh}}" style="height: 54px; box-sizing: border-box; border: 1px solid {{qLine}}; border-radius: 14px; background: #FFFFFF; padding: 0 16px; font-size: 16px; font-family: inherit; color: #202A40; outline-color: #3157D5">
+    </div>
+
+    <div style="margin-top: 22px">
+      <sc-if value="{{isBal}}" hint-placeholder-val="{{true}}">
+        <div class="fadein" style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 15px; font-weight: 700">보기</span>
+          <div style="position: relative; display: flex; flex-direction: column; gap: 8px">
+            <label style="height: 56px; box-sizing: border-box; border: 1px solid #C7D2FF; border-radius: 14px; background: #F1F4FF; display: flex; align-items: center; padding: 0 14px"><input aria-label="첫 번째 보기" placeholder="첫 번째 편 (예: 짜장)" style="flex: 1; min-width: 0; border: none; outline: none; font-size: 16px; font-weight: 700; font-family: inherit; background: transparent; color: #203A91"></label>
+            <label style="height: 56px; box-sizing: border-box; border: 1px solid #D0EB83; border-radius: 14px; background: #F0F8D5; display: flex; align-items: center; padding: 0 14px"><input aria-label="두 번째 보기" placeholder="두 번째 편 (예: 짬뽕)" style="flex: 1; min-width: 0; border: none; outline: none; font-size: 16px; font-weight: 700; font-family: inherit; background: transparent; color: #506D23"></label>
+            <span aria-hidden="true" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 0 1px #E2E5EE; color: #545E73; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center">VS</span>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{isMe}}" hint-placeholder-val="{{false}}">
+        <div class="fadein" style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+            <span style="height: 52px; border-radius: 14px; background: #F1F4FF; color: #2949B5; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center">나도 그래</span>
+            <span style="height: 52px; border-radius: 14px; background: #EFF1F7; color: #374158; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center">나는 아니야</span>
+          </div>
+          <span style="font-size: 12px; color: #545E73">보기는 자동으로 정해져요. 질문만 쓰면 돼요.</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{isPick}}" hint-placeholder-val="{{false}}">
+        <div class="fadein" style="display: flex; flex-direction: column; gap: 8px">
+          <input aria-label="보기 1" placeholder="보기 1" style="height: 50px; box-sizing: border-box; border: 1px solid #E2E5EE; border-radius: 12px; padding: 0 14px; font-size: 15px; font-family: inherit; outline-color: #3157D5">
+          <input aria-label="보기 2" placeholder="보기 2" style="height: 50px; box-sizing: border-box; border: 1px solid #E2E5EE; border-radius: 12px; padding: 0 14px; font-size: 15px; font-family: inherit; outline-color: #3157D5">
+          <input aria-label="보기 3" placeholder="보기 3" style="height: 50px; box-sizing: border-box; border: 1px solid #E2E5EE; border-radius: 12px; padding: 0 14px; font-size: 15px; font-family: inherit; outline-color: #3157D5">
+          <button style="height: 40px; border: none; background: transparent; color: #3157D5; font-size: 14px; font-weight: 700; font-family: inherit; text-align: left; padding: 0">+ 보기 추가 (최대 5개)</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{isPromo}}" hint-placeholder-val="{{false}}">
+        <div class="fadein" style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 14px; font-weight: 700; color: #545E73">홍보할 내 설문</span>
+          <button style="box-sizing: border-box; width: 100%; border: 2px solid #3157D5; background: #F1F4FF; border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; text-align: left; font-family: inherit; color: #202A40">
+            <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><b style="font-size: 15px">시험 기간 카페 이용 설문</b><span style="font-size: 12px; color: #545E73">남은 자리 9명 · D-3 · +10P</span></span>
+            <span style="font-size: 13px; font-weight: 700; color: #3157D5">변경</span>
+          </button>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="margin-top: 22px; display: flex; flex-direction: column; gap: 6px">
+      <label for="body" style="font-size: 14px; font-weight: 700; color: #545E73">내용 <span style="font-weight: 500">(선택)</span></label>
+      <textarea id="body" placeholder="상황이나 이유를 덧붙여 주세요" style="height: 92px; box-sizing: border-box; border: 1px solid #E2E5EE; border-radius: 14px; padding: 12px 14px; font-size: 15px; font-family: inherit; resize: none; outline-color: #3157D5"></textarea>
+    </div>
+
+    <div style="margin-top: 18px; display: flex; align-items: center; justify-content: space-between; min-height: 48px">
+      <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 700">익명으로 올리기</span><span style="font-size: 12px; color: #545E73">닉네임 대신 '익명'으로 보여요</span></span>
+      <span style="width: 48px; height: 28px; border-radius: 999px; background: #3157D5; position: relative; display: inline-block"><span style="position: absolute; right: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF"></span></span>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; padding: 8px 16px 30px">
+    <div style="text-align: center; font-size: 12px; color: #545E73; margin-bottom: 8px">오늘 <b style="color: #202A40">3개</b> 더 올릴 수 있어요 · <a href="#">커뮤니티 규칙</a></div>
+    <sc-if value="{{ready}}" hint-placeholder-val="{{false}}">
+      <button style="width: 100%; height: 56px; border: none; border-radius: 16px; background: #3157D5; color: #FFFFFF; font-size: 17px; font-weight: 700; font-family: inherit">올리기</button>
+    </sc-if>
+    <sc-if value="{{notReady}}" hint-placeholder-val="{{true}}">
+      <button disabled style="width: 100%; height: 56px; border: none; border-radius: 16px; background: #EFF1F7; color: #545E73; font-size: 15px; font-weight: 700; font-family: inherit">질문을 써 주세요</button>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { type: 'bal', q: '' }; }
+  renderVals() {
+    var self = this, st = this.state;
+    var T = [['bal', '밸런스', '둘 중 하나'], ['me', '나만 그래?', '공감 투표'], ['pick', '골라 줘', '3~5개 중'], ['promo', '설문 홍보', '내 설문 알리기']];
+    var PH = { bal: '예: 짜장 vs 짬뽕, 뭐 먹지?', me: '예: 시험 전날에 청소하고 싶은 거 나만 그래?', pick: '예: 노트북 뭐 살까?', promo: '예: 1분이면 끝나요! 참여 부탁해요' };
+    var types = T.map(function (t) {
+      var on = st.type === t[0];
+      return { label: t[1], sub: t[2], bg: on ? '#3157D5' : '#EFF1F7', color: on ? '#FFFFFF' : '#374158',
+        pick: function () { self.setState({ type: t[0] }); } };
+    });
+    var has = st.q.trim().length > 0;
+    return {
+      types: types, q: st.q, qLen: st.q.length, qPh: PH[st.type], qLine: has ? '#3157D5' : '#E2E5EE',
+      typeHint: { bal: '둘 중 하나! 예: 짜장 vs 짬뽕', me: '공감하는지 물어봐요. 보기는 자동이에요', pick: '3~5개 보기 중에서 골라 달라고 해요', promo: '내가 올린 설문을 알려요' }[st.type],
+      onQ: function (e) { self.setState({ q: e.target.value.slice(0, 40) }); },
+      isBal: st.type === 'bal', isMe: st.type === 'me', isPick: st.type === 'pick', isPromo: st.type === 'promo',
+      ready: has, notReady: !has
+    };
+  }
+}
+</script>
+</body>
+</html>

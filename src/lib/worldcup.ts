@@ -2,8 +2,16 @@
 
 export type Candidate = { id: number; name: string };
 
-// get_worldcups 한 줄
-export type WorldcupItem = { id: number; title: string; size: number; plays: number; played: boolean };
+// get_worldcups 한 줄. top: 지금 순위 1~3위 (우승 비율 %, 참여가 적으면 빈 배열 · 2026-11-14)
+export type WorldcupItem = {
+  id: number;
+  title: string;
+  size: number;
+  plays: number;
+  played: boolean;
+  comment_count?: number;
+  top?: { name: string; rate: number }[];
+};
 
 // get_worldcup
 export type Worldcup = {

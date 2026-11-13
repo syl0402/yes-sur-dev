@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>커뮤니티 목록</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+@keyframes fillBar{from{width:0}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.fill{animation:fillBar .6s cubic-bezier(.2,.8,.2,1) both}
+.fadein{animation:fadeIn .25s ease-out both}
+.opt{transition:transform .12s ease}.opt:active{transform:scale(.97)}
+@keyframes pop{0%{opacity:0;transform:scale(.4)}70%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translate(-50%,-50%) rotate(0)}25%{transform:translate(-50%,-50%) rotate(-12deg)}50%{transform:translate(-50%,-50%) rotate(9deg)}75%{transform:translate(-50%,-50%) rotate(-4deg)}}
+.grow{transition:width .8s cubic-bezier(.34,1.4,.64,1),background-color .25s ease,color .25s ease}
+.tint{transition:background-color .25s ease,color .25s ease}
+.slide{transition:left .8s cubic-bezier(.34,1.4,.64,1),background-color .25s ease}
+.pop{animation:pop .4s cubic-bezier(.2,.9,.3,1.3) .45s both}
+.shake{animation:shake .5s ease-in-out .8s both}
+.side:active{filter:brightness(.95)}
+.gfill{transition:width .7s cubic-bezier(.34,1.3,.64,1),background-color .25s ease}
+@keyframes fadeinK{from{opacity:0}to{opacity:1}}
+.fadein{animation:fadeinK .3s ease-out .5s both}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 2130px; box-sizing: border-box; background: #F7F8FC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; padding-top: 44px; overflow: hidden; position: relative">
+
+  <div style="height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 20px">
+    <span style="font-size: 24px; font-weight: 900">커뮤니티</span>
+    <button aria-label="검색" style="width: 44px; height: 44px; border: none; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg></button>
+  </div>
+
+  <div style="margin: 8px 16px 0; height: 200px; box-sizing: border-box; background: #3157D5; border-radius: 24px; padding: 22px 20px; position: relative; overflow: hidden; color: #FFFFFF">
+    <div style="position: absolute; right: -40px; bottom: -70px; width: 210px; height: 210px; border-radius: 50%; background: #6F8BEB; opacity: 0.5"></div>
+    <img src="/_blob/633b6551b24b5c3c7900d0e24b0b8eb4" alt="" style="position: absolute; right: 6px; bottom: 26px; width: 120px; height: auto">
+    <span style="position: relative; background: #A3EA16; color: #202A40; font-size: 12px; font-weight: 900; padding: 4px 10px; border-radius: 999px">오늘의 질문</span>
+    <div style="position: relative; margin-top: 10px; font-size: 23px; font-weight: 900">아침 알람은?</div>
+    <div style="position: relative; margin-top: 14px; display: flex; gap: 8px">
+      <button style="height: 40px; border: none; border-radius: 999px; background: #FFFFFF; color: #3157D5; font-size: 14px; font-weight: 700; font-family: inherit; padding: 0 14px">한 번에 일어남</button>
+      <button style="height: 40px; border: none; border-radius: 999px; background: #FFFFFF; color: #3157D5; font-size: 14px; font-weight: 700; font-family: inherit; padding: 0 14px">여러 번 끔</button>
+    </div>
+    <div style="position: relative; margin-top: 10px; font-size: 13px; color: #E3E9FF">답하고 <b style="color: #FFFFFF">+5P</b> 받기</div>
+    <div style="position: absolute; right: 18px; bottom: 12px; background: rgba(32,42,64,0.35); color: #FFFFFF; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px">1 / 4</div>
+    <div style="display: none"><span style="width: 14px; height: 4px; border-radius: 999px; background: #FFFFFF"></span><span style="width: 4px; height: 4px; border-radius: 999px; background: #9FB2FF"></span><span style="width: 4px; height: 4px; border-radius: 999px; background: #9FB2FF"></span><span style="width: 4px; height: 4px; border-radius: 999px; background: #9FB2FF"></span></div>
+  </div>
+
+  <div style="margin: 20px 20px 0; display: flex; align-items: baseline; gap: 6px"><span style="font-size: 16px; font-weight: 900">지금 HOT</span><span style="font-size: 12px; color: #545E73">참여가 많은 순</span></div>
+  <div style="margin-top: 10px; padding-left: 16px; display: flex; gap: 8px; overflow: hidden">
+    <sc-for list="{{hot}}" as="h" hint-placeholder-count="3">
+      <a href="Vote.dc.html" style="flex-shrink: 0; height: 40px; box-sizing: border-box; background: #FFFFFF; border: 1px solid #E2E5EE; border-radius: 999px; display: flex; align-items: center; gap: 8px; padding: 0 14px 0 6px; text-decoration: none; color: #202A40">
+        <span style="width: 28px; height: 28px; border-radius: 50%; background: {{h.bg}}; color: {{h.color}}; font-size: 13px; font-weight: 900; display: flex; align-items: center; justify-content: center">{{h.rank}}</span>
+        <span style="font-size: 14px; font-weight: 700">{{h.title}}</span>
+        <span style="font-size: 12px; color: #545E73">{{h.n}}명</span>
+      </a>
+    </sc-for>
+  </div>
+
+  <div style="margin-top: 20px; padding: 0 20px; display: flex; gap: 22px; border-bottom: 1px solid #E2E5EE; font-size: 15px">
+    <span style="padding-bottom: 10px; border-bottom: 3px solid #3157D5; color: #3157D5; font-weight: 700">전체</span>
+    <span style="padding-bottom: 10px; color: #545E73">밸런스</span>
+    <span style="padding-bottom: 10px; color: #545E73">나만 그래?</span>
+    <span style="padding-bottom: 10px; color: #545E73">골라 줘</span>
+    <span style="padding-bottom: 10px; color: #545E73">월드컵</span>
+  </div>
+  <div style="margin: 12px 20px 0; display: flex; justify-content: space-between; align-items: center"><span style="font-size: 13px; color: #545E73">게시글 12개</span><button style="height: 32px; border: none; background: transparent; font-size: 13px; font-weight: 700; font-family: inherit; color: #374158; padding: 0">최신순 ▾</button></div>
+
+  <div style="margin: 8px 16px 0; display: flex; flex-direction: column; gap: 12px">
+
+    <!-- 나만 그래? -->
+    <article style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px">
+      <div style="display: flex; align-items: center; gap: 6px">
+        <span style="background: #EFF1F7; color: #545E73; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">나만 그래?</span>
+        <span style="font-size: 12px; color: #545E73">옛썰러 · 2시간 전</span>
+      </div>
+      <div style="margin-top: 8px; font-size: 15px; font-weight: 900">시험 전날만 되면 방 청소하고 싶은 거 나만 그래?</div>
+      <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px">
+        <button onClick="{{me0}}" style="position: relative; overflow: hidden; height: 44px; border: none; border-radius: 12px; background: #F1F4FF; color: #2949B5; font-family: inherit; font-size: 14px; font-weight: 700"><span class="grow" style="position: absolute; left: 0; top: 0; bottom: 0; width: {{meW0}}%; background: {{meF0}}"></span><span style="position: relative">나도 그래{{meP0}}</span></button>
+        <button onClick="{{me1}}" style="position: relative; overflow: hidden; height: 44px; border: none; border-radius: 12px; background: #EFF1F7; color: #374158; font-family: inherit; font-size: 14px; font-weight: 700"><span class="grow" style="position: absolute; left: 0; top: 0; bottom: 0; width: {{meW1}}%; background: {{meF1}}"></span><span style="position: relative">나는 아니야{{meP1}}</span></button>
+      </div>
+      <div style="margin-top: 10px; font-size: 12px; color: #545E73">{{meN}}명 · 댓글 4</div>
+    </article>
+
+    <!-- 밸런스 1: 아직 안 함 (연한 색) -->
+    <article style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px">
+      <div style="display: flex; align-items: center; gap: 6px">
+        <span style="background: #E3E9FF; color: #2949B5; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">밸런스</span>
+        <span style="font-size: 15px; font-weight: 900">통학, 어느 파야?</span>
+      </div>
+      <div style="position: relative; margin-top: 12px; height: 56px; border-radius: 16px; overflow: hidden; display: flex">
+        <button class="grow side" onClick="{{a1}}" aria-label="광역버스파 고르기" style="width: {{w1}}%; border: none; background: {{bgA1}}; color: {{fgA1}}; font-family: inherit; font-size: 14px; font-weight: 900; text-align: left; padding: 0 14px; white-space: nowrap; overflow: hidden">광역버스<sc-if value="{{v1}}" hint-placeholder-val="{{false}}"><span class="pop" style="display: inline-block; margin-left: 6px; font-size: 18px">{{pA1}}%</span></sc-if></button>
+        <button class="tint side" onClick="{{b1}}" aria-label="지옥철파 고르기" style="flex: 1; border: none; background: {{bgB1}}; color: {{fgB1}}; font-family: inherit; font-size: 14px; font-weight: 900; text-align: right; padding: 0 14px; white-space: nowrap; overflow: hidden"><sc-if value="{{v1}}" hint-placeholder-val="{{false}}"><span class="pop" style="display: inline-block; margin-right: 6px; font-size: 18px">{{pB1}}%</span></sc-if>지옥철</button>
+        <span class="slide {{sh1}}" style="position: absolute; top: 50%; left: {{w1}}%; transform: translate(-50%,-50%); width: 30px; height: 30px; border-radius: 50%; background: {{vsBg1}}; border: 3px solid #FFFFFF; color: {{vsFg1}}; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center; pointer-events: none">VS</span>
+      </div>
+      <div style="margin-top: 10px; display: flex; justify-content: space-between; font-size: 12px; color: #545E73"><span>{{lead1}}</span><span>{{n1}}명 · 댓글 12</span></div>
+    </article>
+
+    <!-- 골라 줘 (애니메이션) -->
+    <article style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px">
+      <div style="display: flex; align-items: center; gap: 6px">
+        <span style="background: #EFF1F7; color: #545E73; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">골라 줘</span>
+        <span style="font-size: 12px; color: #545E73">옛썰러 · 3시간 전</span>
+      </div>
+      <div style="margin-top: 8px; font-size: 15px; font-weight: 900">종강 파티 메뉴 골라 줘</div>
+      <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px">
+        <sc-for list="{{gOpts}}" as="o" hint-placeholder-count="4">
+          <button onClick="{{o.pick}}" aria-label="{{o.label}} 고르기" style="position: relative; overflow: hidden; height: 44px; border: 1px solid {{o.bd}}; border-radius: 12px; background: #FFFFFF; padding: 0; font-family: inherit; color: #202A40; text-align: left">
+            <span class="gfill" style="position: absolute; left: 0; top: 0; bottom: 0; width: {{o.w}}%; background: {{o.fill}}; transition-delay: {{o.delay}}s"></span>
+            <span style="position: relative; height: 100%; display: flex; align-items: center; gap: 8px; padding: 0 14px">
+              <sc-if value="{{o.mine}}" hint-placeholder-val="{{false}}"><svg class="pop" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3157D5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></sc-if>
+              <span style="flex: 1; font-size: 14px; font-weight: {{o.fw}}">{{o.label}}</span>
+              <sc-if value="{{o.top}}" hint-placeholder-val="{{false}}"><span class="pop" style="background: #A3EA16; color: #202A40; font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 999px">1위</span></sc-if>
+              <sc-if value="{{o.voted}}" hint-placeholder-val="{{false}}"><span class="fadein" style="width: 36px; text-align: right; font-size: 13px; font-weight: 700; color: {{o.pc}}">{{o.p}}%</span></sc-if>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="margin-top: 10px; font-size: 12px; color: #545E73">{{gN}}명 · 댓글 6</div>
+    </article>
+
+    <!-- 월드컵 C안: 순위표 미리보기 -->
+    <article style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px">
+      <div style="display: flex; align-items: center; gap: 6px">
+        <span style="background: #FEF6E7; color: #93370D; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">월드컵 16강</span>
+        <span style="font-size: 12px; color: #545E73">옛썰 공식 · 어제</span>
+      </div>
+      <div style="margin-top: 8px; font-size: 15px; font-weight: 900">시험 끝나면 제일 먼저 하고 싶은 것</div>
+      <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 10px"><span style="width: 22px; height: 22px; border-radius: 50%; background: #A3EA16; font-size: 12px; font-weight: 900; display: flex; align-items: center; justify-content: center">1</span><span style="width: 112px; font-size: 14px; font-weight: 700; white-space: nowrap">하루 종일 잠자기</span><div style="flex: 1; height: 8px; background: #EFF1F7; border-radius: 999px; overflow: hidden"><div style="width: 75%; height: 8px; background: #3157D5; border-radius: 999px"></div></div><span style="width: 32px; text-align: right; font-size: 12px; font-weight: 700">75%</span></div>
+        <div style="display: flex; align-items: center; gap: 10px"><span style="width: 22px; height: 22px; border-radius: 50%; background: #EFF1F7; font-size: 12px; font-weight: 900; display: flex; align-items: center; justify-content: center">2</span><span style="width: 112px; font-size: 14px; white-space: nowrap">방 대청소</span><div style="flex: 1; height: 8px; background: #EFF1F7; border-radius: 999px; overflow: hidden"><div style="width: 67%; height: 8px; background: #9FB2FF; border-radius: 999px"></div></div><span style="width: 32px; text-align: right; font-size: 12px; color: #545E73">67%</span></div>
+        <div style="display: flex; align-items: center; gap: 10px"><span style="width: 22px; height: 22px; border-radius: 50%; background: #EFF1F7; font-size: 12px; font-weight: 900; display: flex; align-items: center; justify-content: center">3</span><span style="width: 112px; font-size: 14px; white-space: nowrap">게임</span><div style="flex: 1; height: 8px; background: #EFF1F7; border-radius: 999px; overflow: hidden"><div style="width: 63%; height: 8px; background: #9FB2FF; border-radius: 999px"></div></div><span style="width: 32px; text-align: right; font-size: 12px; color: #545E73">63%</span></div>
+      </div>
+      <div style="margin-top: 10px; font-size: 12px; color: #545E73">1:1 승률 · 132명 참여 · 댓글 3</div>
+      <a href="WcPlay.dc.html" style="margin-top: 12px; height: 44px; border-radius: 12px; background: #F1F4FF; color: #2949B5; font-size: 14px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center">내 1위는 다를까? 해보기 (약 1분)</a>
+    </article>
+
+    <!-- 설문 홍보 -->
+    <article style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px">
+      <div style="display: flex; align-items: center; gap: 6px">
+        <span style="background: #EFF1F7; color: #545E73; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">설문 홍보</span>
+        <span style="font-size: 12px; color: #545E73">옛썰러 · 5시간 전</span>
+      </div>
+      <div style="margin-top: 8px; font-size: 15px; font-weight: 900">1분이면 끝나요! 통학 시간 설문 참여 부탁해요</div>
+      <a href="#" style="margin-top: 10px; border: 1px solid #E2E5EE; border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; text-decoration: none; color: #202A40">
+        <div style="flex: 1"><div style="font-size: 14px; font-weight: 700">대학생 통학 시간 조사</div><div style="margin-top: 2px; font-size: 12px; color: #545E73">8문항 · 약 2분</div></div>
+        <span style="background: #F0F8D5; color: #506D23; font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 999px">+50P</span>
+      </a>
+      <div style="margin-top: 10px; font-size: 12px; color: #545E73">댓글 2</div>
+    </article>
+
+    <!-- 밸런스 2: 이미 투표함 (내 편만 진하게) -->
+    <article style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px">
+      <div style="display: flex; align-items: center; gap: 6px">
+        <span style="background: #E3E9FF; color: #2949B5; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">밸런스</span>
+        <span style="font-size: 15px; font-weight: 900">조별과제, 어느 파야?</span>
+      </div>
+      <div style="position: relative; margin-top: 12px; height: 56px; border-radius: 16px; overflow: hidden; display: flex">
+        <button class="grow side" onClick="{{a2}}" aria-label="혼자 다 하기파 고르기" style="width: {{w2}}%; border: none; background: {{bgA2}}; color: {{fgA2}}; font-family: inherit; font-size: 14px; font-weight: 900; text-align: left; padding: 0 14px; white-space: nowrap; overflow: hidden">혼자 다 하기<sc-if value="{{v2}}" hint-placeholder-val="{{true}}"><span style="display: inline-block; margin-left: 6px; font-size: 18px">{{pA2}}%</span></sc-if></button>
+        <button class="tint side" onClick="{{b2}}" aria-label="무임승차 감수파 고르기" style="flex: 1; border: none; background: {{bgB2}}; color: {{fgB2}}; font-family: inherit; font-size: 14px; font-weight: 900; text-align: right; padding: 0 14px; white-space: nowrap; overflow: hidden"><sc-if value="{{v2}}" hint-placeholder-val="{{true}}"><span style="display: inline-block; margin-right: 6px; font-size: 18px">{{pB2}}%</span></sc-if>무임승차 감수</button>
+        <span class="slide" style="position: absolute; top: 50%; left: {{w2}}%; transform: translate(-50%,-50%); width: 30px; height: 30px; border-radius: 50%; background: {{vsBg2}}; border: 3px solid #FFFFFF; color: {{vsFg2}}; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center; pointer-events: none">VS</span>
+      </div>
+      <div style="margin-top: 10px; display: flex; justify-content: space-between; font-size: 12px; color: #545E73"><span>{{lead2}}</span><span>{{n2}}명 · 댓글 21</span></div>
+    </article>
+  </div>
+
+
+  <button aria-label="글쓰기" style="position: absolute; right: 20px; bottom: 40px; width: 60px; height: 60px; border: none; border-radius: 50%; background: #3157D5; box-shadow: 0 8px 20px rgba(49,87,213,0.4); display: flex; align-items: center; justify-content: center; padding: 0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2130}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { p1: null, p2: 0, p3: null, g: null }; }
+  renderVals() {
+    var self = this, st = this.state;
+    function card(pick, base, la, lb) {
+      var a = base[0] + (pick === 0 ? 1 : 0), b = base[1] + (pick === 1 ? 1 : 0), t = a + b;
+      var pA = Math.round(a / t * 100), pB = 100 - pA, v = pick !== null;
+      var lightA = ['#E3E9FF', '#2949B5'], lightB = ['#F0F8D5', '#506D23'];
+      var A = pick === 0 ? ['#3157D5', '#FFFFFF'] : lightA;
+      var B = pick === 1 ? ['#A3EA16', '#202A40'] : lightB;
+      var hot = [['1', '통학, 어느 파야?', 48], ['2', '종강 파티 메뉴 골라 줘', 22], ['3', '시험 전날 청소 나만 그래?', 80]].map(function (h, i) {
+      return { rank: h[0], title: h[1], n: h[2], bg: i === 0 ? '#3157D5' : '#E3E9FF', color: i === 0 ? '#FFFFFF' : '#2949B5' };
+    });
+    return {
+      hot: hot,
+        v: v, pA: pA, pB: pB, n: t, w: v ? Math.max(30, Math.min(70, pA)) : 50,
+        bgA: A[0], fgA: A[1], bgB: B[0], fgB: B[1],
+        vsBg: v ? '#202A40' : '#FFFFFF', vsFg: v ? '#A3EA16' : '#545E73',
+        lead: v ? (pA >= pB ? la : lb) + '파가 ' + Math.abs(pA - pB) + '%p 앞서는 중' : '내 편을 눌러 끌어당기기'
+      };
+    }
+    var c1 = card(st.p1, [28, 20], '광역버스', '지옥철');
+    var m = [57 + (st.p3 === 0 ? 1 : 0), 23 + (st.p3 === 1 ? 1 : 0)], mt = m[0] + m[1], mp = Math.round(m[0] / mt * 100), mv = st.p3 !== null;
+    var GL = ['삼겹살', '치킨', '마라탕', '떡볶이'], GB = [12, 7, 2, 1], gv = st.g !== null;
+    var gc = GB.map(function (x, i) { return x + (st.g === i ? 1 : 0); }), gt = gc.reduce(function (a, b) { return a + b; }, 0);
+    var gmax = Math.max.apply(null, gc);
+    var gOpts = GL.map(function (l, i) {
+      var p = Math.round(gc[i] / gt * 100), mine = st.g === i;
+      return { label: l, p: p, voted: gv, mine: mine, top: gv && gc[i] === gmax,
+        w: gv ? p : 0, delay: (i * 0.08).toFixed(2), fill: mine ? '#C7D2FF' : '#EFF1F7',
+        bd: mine ? '#3157D5' : '#E2E5EE', fw: mine ? 900 : 500, pc: mine ? '#2949B5' : '#545E73',
+        pick: function () { if (self.state.g === null) self.setState({ g: i }); } };
+    });
+    var c2 = card(st.p2, [41, 26], '혼자 다 하기', '무임승차 감수');
+    return {
+      gOpts: gOpts, gN: gt,
+      meN: mt, meW0: mv ? mp : 0, meW1: mv ? 100 - mp : 0, meP0: mv ? ' ' + mp + '%' : '', meP1: mv ? ' ' + (100 - mp) + '%' : '',
+      meF0: st.p3 === 0 ? '#C7D2FF' : '#E3E9FF', meF1: st.p3 === 1 ? '#CDD2DF' : '#E2E5EE',
+      v1: c1.v, pA1: c1.pA, pB1: c1.pB, n1: c1.n, w1: c1.w, bgA1: c1.bgA, fgA1: c1.fgA, bgB1: c1.bgB, fgB1: c1.fgB, vsBg1: c1.vsBg, vsFg1: c1.vsFg, lead1: c1.lead, sh1: c1.v ? 'shake' : '',
+      v2: c2.v, pA2: c2.pA, pB2: c2.pB, n2: c2.n, w2: c2.w, bgA2: c2.bgA, fgA2: c2.fgA, bgB2: c2.bgB, fgB2: c2.fgB, vsBg2: c2.vsBg, vsFg2: c2.vsFg, lead2: c2.lead,
+      a1: function () { if (self.state.p1 === null) self.setState({ p1: 0 }); },
+      b1: function () { if (self.state.p1 === null) self.setState({ p1: 1 }); },
+      a2: function () { if (self.state.p2 === null) self.setState({ p2: 0 }); },
+      b2: function () { if (self.state.p2 === null) self.setState({ p2: 1 }); },
+      me0: function () { if (self.state.p3 === null) self.setState({ p3: 0 }); },
+      me1: function () { if (self.state.p3 === null) self.setState({ p3: 1 }); },
+      reset: function () { self.setState({ p1: null, p2: null, p3: null, g: null }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>월드컵 진행</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+@keyframes inL{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}
+@keyframes inR{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.inl{animation:inL .3s ease-out both}
+.inr{animation:inR .3s ease-out .05s both}
+.pop{animation:pop .35s ease-out both}
+.card{transition:transform .2s ease, opacity .2s ease, border-color .2s ease}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F7F8FC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; position: relative; padding-top: 44px; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; padding: 0 6px">
+    <button aria-label="그만하기" style="width: 44px; height: 44px; border: none; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    <div style="flex: 1; min-width: 0; text-align: center; font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 44px">시험 끝나면 제일 먼저 하고 싶은 것</div>
+  </div>
+
+  <sc-if value="{{playing}}" hint-placeholder-val="{{true}}">
+    <div style="padding: 8px 20px 0">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <span style="background: #202A40; color: #A3EA16; font-size: 15px; font-weight: 900; padding: 6px 14px; border-radius: 999px">16강</span>
+        <span style="font-size: 14px; font-weight: 700; color: #545E73"><b style="color: #202A40">{{num}}</b> / 8</span>
+      </div>
+      <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px">
+        <sc-for list="{{segs}}" as="s" hint-placeholder-count="8"><div style="height: 6px; border-radius: 999px; background: {{s.c}}"></div></sc-for>
+      </div>
+      <div style="margin-top: 14px; font-size: 14px; color: #545E73; text-align: center">더 하고 싶은 쪽을 눌러 주세요</div>
+    </div>
+
+    <sc-for list="{{pair}}" as="p" hint-placeholder-count="1">
+      <div style="margin: 14px 16px 0; position: relative; display: flex; flex-direction: column; gap: 12px">
+        <button class="card inl" onClick="{{p.pickA}}" style="position: relative; height: 250px; border: none; border-radius: 28px; background: #3157D5; font-family: inherit; display: flex; align-items: center; justify-content: center; opacity: {{p.aOp}}; transform: scale({{p.aScale}}); box-shadow: {{p.aShadow}}; overflow: hidden; padding: 0 24px">
+          <span style="position: absolute; left: -30px; top: -40px; width: 140px; height: 140px; border-radius: 50%; background: #6F8BEB; opacity: 0.35"></span>
+          <span style="position: relative; font-size: 28px; font-weight: 900; color: #FFFFFF; letter-spacing: -0.5px">{{p.a}}</span>
+          <sc-if value="{{p.aOn}}" hint-placeholder-val="{{false}}"><span style="position: absolute; right: 16px; top: 16px; width: 36px; height: 36px; border-radius: 50%; background: #A3EA16; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span></sc-if>
+        </button>
+        <button class="card inr" onClick="{{p.pickB}}" style="position: relative; height: 250px; border: none; border-radius: 28px; background: #A3EA16; font-family: inherit; display: flex; align-items: center; justify-content: center; opacity: {{p.bOp}}; transform: scale({{p.bScale}}); box-shadow: {{p.bShadow}}; overflow: hidden; padding: 0 24px">
+          <span style="position: absolute; right: -30px; bottom: -40px; width: 140px; height: 140px; border-radius: 50%; background: #C2E96B; opacity: 0.8"></span>
+          <span style="position: relative; font-size: 28px; font-weight: 900; color: #202A40; letter-spacing: -0.5px">{{p.b}}</span>
+          <sc-if value="{{p.bOn}}" hint-placeholder-val="{{false}}"><span style="position: absolute; right: 16px; top: 16px; width: 36px; height: 36px; border-radius: 50%; background: #3157D5; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span></sc-if>
+        </button>
+        <span style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 48px; height: 48px; border-radius: 50%; background: #202A40; border: 4px solid #F7F8FC; color: #A3EA16; font-size: 15px; font-weight: 900; display: flex; align-items: center; justify-content: center; pointer-events: none">VS</span>
+      </div>
+    </sc-for>
+
+    <div style="position: absolute; left: 0; right: 0; bottom: 30px; display: flex; justify-content: center">
+      <button onClick="{{undo}}" style="height: 44px; border: none; background: transparent; color: {{undoColor}}; font-size: 14px; font-weight: 700; font-family: inherit">← 이전 선택 다시 하기</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{between}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 100px 24px auto; display: flex; flex-direction: column; align-items: center; text-align: center">
+      <div class="pop" style="font-size: 44px; font-weight: 900; color: #3157D5">8강 진출!</div>
+      <div style="margin-top: 10px; font-size: 15px; color: #545E73">16개 중 8개가 남았어요</div>
+      <div style="margin-top: 22px; width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{winners}}" as="w" hint-placeholder-count="8"><span style="height: 44px; border-radius: 12px; background: #FFFFFF; border: 1px solid #E2E5EE; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700">{{w}}</span></sc-for>
+      </div>
+      <button onClick="{{restart}}" style="margin-top: 26px; width: 100%; height: 56px; border: none; border-radius: 16px; background: #3157D5; color: #FFFFFF; font-size: 17px; font-weight: 700; font-family: inherit">8강 시작</button>
+      <a href="WcWin.dc.html" style="margin-top: 8px; font-size: 13px; color: #545E73; padding: 10px">(프로토타입) 우승 화면으로 건너뛰기</a>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { idx: 0, picks: [], chosen: null }; }
+  componentWillUnmount() { clearTimeout(this.t); }
+  renderVals() {
+    var self = this, st = this.state;
+    var C = ['하루 종일 잠자기', '드라마 몰아보기', '방 대청소', '영화관', '게임', '노래방', '친구랑 술 한잔', 'PC방', '맛집 탐방', '한강 산책', '여행 가기', '쇼핑', '운동', '치킨 시키기', '본가 가기', '카페 투어'];
+    var pick = function (side) {
+      return function () {
+        if (self.state.chosen !== null) return;
+        self.setState({ chosen: side });
+        clearTimeout(self.t);
+        self.t = setTimeout(function () {
+          var p = self.state.picks.concat([side]);
+          self.setState({ picks: p, idx: self.state.idx + 1, chosen: null });
+        }, 420);
+      };
+    };
+    var a = C[st.idx * 2], b = C[st.idx * 2 + 1];
+    var on = function (s) { return st.chosen === s; }, off = function (s) { return st.chosen !== null && st.chosen !== s; };
+    var pair = st.idx < 8 ? [{
+      key: st.idx, a: a, b: b, pickA: pick(0), pickB: pick(1),
+      aOn: on(0), bOn: on(1),
+      aShadow: on(0) ? '0 12px 28px rgba(49,87,213,0.45)' : '0 6px 16px rgba(49,87,213,0.2)',
+      bShadow: on(1) ? '0 12px 28px rgba(111,148,45,0.45)' : '0 6px 16px rgba(111,148,45,0.2)',
+      aOp: off(0) ? 0.3 : 1, bOp: off(1) ? 0.3 : 1, aScale: on(0) ? 1.04 : off(0) ? 0.96 : 1, bScale: on(1) ? 1.04 : off(1) ? 0.96 : 1
+    }] : [];
+    var segs = [0, 1, 2, 3, 4, 5, 6, 7].map(function (i) { return { c: i < st.idx ? '#3157D5' : i === st.idx ? '#9FB2FF' : '#E2E5EE' }; });
+    var winners = st.picks.map(function (s, i) { return C[i * 2 + s]; });
+    return {
+      playing: st.idx < 8, between: st.idx >= 8, num: Math.min(st.idx + 1, 8), segs: segs, pair: pair, winners: winners,
+      undoColor: st.idx > 0 ? '#3157D5' : '#AEB5C5',
+      undo: function () { if (self.state.idx > 0) self.setState({ idx: self.state.idx - 1, picks: self.state.picks.slice(0, -1), chosen: null }); },
+      restart: function () { self.setState({ idx: 0, picks: [], chosen: null }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

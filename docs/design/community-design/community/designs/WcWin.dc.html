@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>월드컵 우승</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+@keyframes hop{0%{transform:translateY(0)}25%{transform:translateY(-24px) rotate(-4deg)}50%{transform:translateY(0) scale(1.06,.94)}70%{transform:translateY(-8px)}100%{transform:translateY(0)}}
+@keyframes pop{0%{opacity:0;transform:scale(.4)}65%{opacity:1;transform:scale(1.1)}100%{opacity:1;transform:scale(1)}}
+@keyframes fall{0%{opacity:0;transform:translateY(-40px) rotate(0)}15%{opacity:1}100%{opacity:0;transform:translateY(260px) rotate(300deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.hop{animation:hop .9s ease-out .2s both}
+.pop{animation:pop .5s cubic-bezier(.2,.9,.3,1.3) both}
+.fadeup{animation:fadeUp .4s ease-out both}
+.conf{position:absolute;width:8px;height:14px;border-radius:2px;animation:fall 1.8s ease-in both}
+@media (prefers-reduced-motion: reduce){*{animation:none !important}.conf{display:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F7F8FC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; position: relative; padding-top: 44px; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; padding: 0 6px">
+    <a href="Main.dc.html" aria-label="닫기" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+  </div>
+
+  <span class="conf" style="left: 60px; top: 100px; background: #A3EA16; animation-delay: .1s"></span>
+  <span class="conf" style="left: 120px; top: 90px; background: #3157D5; animation-delay: .3s"></span>
+  <span class="conf" style="left: 210px; top: 110px; background: #9FB2FF; animation-delay: .2s"></span>
+  <span class="conf" style="left: 290px; top: 95px; background: #A3EA16; animation-delay: .4s"></span>
+  <span class="conf" style="left: 330px; top: 120px; background: #3157D5; animation-delay: .15s"></span>
+
+  <div style="display: flex; flex-direction: column; align-items: center; padding: 6px 24px 0; text-align: center">
+    <span class="pop" style="background: #A3EA16; color: #202A40; font-size: 13px; font-weight: 900; padding: 5px 12px; border-radius: 999px">나의 우승</span>
+    <div style="position: relative; margin-top: 16px; width: 170px; height: 150px; display: flex; align-items: flex-end; justify-content: center">
+      <div class="pop" style="position: absolute; left: 15px; top: 0; width: 140px; height: 140px; border-radius: 50%; background: #E3E9FF"></div>
+      <img class="hop" src="/_blob/633b6551b24b5c3c7900d0e24b0b8eb4" alt="옛썰 캐릭터" style="position: relative; width: 168px; height: auto">
+    </div>
+    <h1 class="fadeup" style="margin: 18px 0 0; font-size: 32px; font-weight: 900; color: #3157D5; letter-spacing: -0.5px; animation-delay: .3s">하루 종일 잠자기</h1>
+    <p class="fadeup" style="margin: 6px 0 0; font-size: 14px; color: #545E73; animation-delay: .4s">시험 끝나면 제일 먼저 하고 싶은 것 · 16강</p>
+  </div>
+
+  <div class="fadeup" style="margin: 26px 16px 0; background: #FFFFFF; border: 1px solid #E2E5EE; border-radius: 20px; padding: 16px; animation-delay: .55s">
+    <div style="font-size: 14px; color: #374158"><b style="color: #202A40">25%</b>가 나랑 같은 걸 우승으로 골랐어요</div>
+    <div style="margin-top: 12px; font-size: 12px; color: #545E73">지금 순위 · 1:1 승률</div>
+    <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 10px">
+      <sc-for list="{{top}}" as="t" hint-placeholder-count="3">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="width: 18px; font-size: 13px; font-weight: 900; color: {{t.rc}}">{{t.rank}}</span>
+          <span style="width: 110px; font-size: 14px; font-weight: {{t.w}}">{{t.label}}</span>
+          <div style="flex: 1; height: 8px; background: #EFF1F7; border-radius: 999px; overflow: hidden"><div style="height: 8px; width: {{t.p}}%; background: {{t.c}}; border-radius: 999px"></div></div>
+          <span style="width: 34px; text-align: right; font-size: 12px; color: #545E73">{{t.p}}%</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px 30px; display: flex; flex-direction: column; gap: 8px">
+    <a href="Worldcup.dc.html" style="height: 56px; border-radius: 16px; background: #3157D5; color: #FFFFFF; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">전체 랭킹 보기</a>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+      <a href="WcPlay.dc.html" style="height: 48px; border: 1px solid #E2E5EE; border-radius: 14px; background: #FFFFFF; color: #374158; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">다시 하기</a>
+      <button style="height: 48px; border: 1px solid #E2E5EE; border-radius: 14px; background: #FFFFFF; color: #374158; font-size: 15px; font-weight: 700; font-family: inherit">친구에게 공유</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var top = [['하루 종일 잠자기', 75, true], ['방 대청소', 67], ['게임', 63]].map(function (t, i) {
+      return { rank: i + 1, label: t[0], p: t[1], w: t[2] ? 900 : 500, c: t[2] ? '#3157D5' : '#C7D2FF', rc: t[2] ? '#3157D5' : '#8B93A5' };
+    });
+    return { top: top };
+  }
+}
+</script>
+</body>
+</html>

@@ -17,6 +17,8 @@ export const colors = {
   onPrimaryMuted: "#C7D2FF", // Blue 200: 파란 바탕 위 보조 글씨
   primaryDeco: "#6F8BEB", // Blue 400: 장식 원 · 잠긴 칸 점선
   primaryDeep: "#203A91", // Blue 700: 잠긴 칸 바탕
+  // 커뮤니티 투표 결과에서 내가 고른 보기 채움 (2026-11-14 커뮤니티 시안)
+  primaryLight: "#C7D2FF", // Blue 200
   accentRing: "#C2E96B", // Lime 400: 완료 도장 안쪽 테두리
   // 강조 (별·포인트·완료 뱃지). 흰 바탕 위 글자색으로 쓰지 않는다 (잘 안 읽힘) → 바탕으로 쓰고 글자는 onAccent
   accent: "#A3EA16", // Lime 500

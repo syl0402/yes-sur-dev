@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>투표 상세</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5}a:hover{color:#203A91}
+@keyframes fillBar{from{width:0}}
+.fill{animation:fillBar .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tugIn{from{width:50%}}
+.tug{animation:tugIn .9s cubic-bezier(.34,1.4,.64,1) .2s both}
+@media (prefers-reduced-motion: reduce){*{animation:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 1560px; box-sizing: border-box; background: #FFFFFF; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; position: relative; padding-top: 44px; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; padding: 0 6px">
+    <a href="Main.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <div style="flex: 1"></div>
+    <button aria-label="공유" style="width: 44px; height: 44px; border: none; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"></path></svg></button>
+    <button aria-label="더보기 (신고 등)" style="width: 44px; height: 44px; border: none; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="#202A40" aria-hidden="true"><circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle></svg></button>
+  </div>
+
+  <div style="padding: 4px 20px 0">
+    <div style="display: flex; align-items: center; gap: 6px">
+      <span style="background: #E3E9FF; color: #2949B5; font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 999px">밸런스</span>
+      <span style="font-size: 13px; color: #545E73; display: flex; align-items: center; gap: 3px">옛썰 공식 <svg width="14" height="14" viewBox="0 0 24 24" aria-label="공식 계정" role="img"><circle cx="12" cy="12" r="10" fill="#3157D5"></circle><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg> · 11.9</span>
+    </div>
+    <h1 style="margin: 12px 0 0; font-size: 23px; font-weight: 900">통학 방법 골라주세요</h1>
+    <p style="margin: 6px 0 0; font-size: 15px; color: #374158">여러분이라면 뭘 고르실 건가요?</p>
+  </div>
+
+  <div style="margin: 18px 20px 0">
+    <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 900"><span style="color: #3157D5">광역버스파</span><span style="color: #506D23">지옥철파</span></div>
+    <div style="position: relative; margin-top: 8px; height: 72px; border-radius: 18px; overflow: hidden; display: flex">
+      <div class="tug" style="width: 58%; background: #3157D5; color: #FFFFFF; display: flex; align-items: center; gap: 8px; padding: 0 16px; box-sizing: border-box"><span style="font-size: 26px; font-weight: 900">58%</span><span style="background: #A3EA16; color: #202A40; font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 999px">내 선택</span></div>
+      <div style="flex: 1; background: #F0F8D5; color: #506D23; display: flex; align-items: center; justify-content: flex-end; padding: 0 16px"><span style="font-size: 22px; font-weight: 900">42%</span></div>
+      <span style="position: absolute; top: 50%; left: 58%; transform: translate(-50%,-50%); width: 36px; height: 36px; border-radius: 50%; background: #202A40; border: 3px solid #FFFFFF; color: #A3EA16; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center">VS</span>
+    </div>
+    <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; line-height: 1.45; color: #374158"><span>왕복 3시간 앉아서 가는 광역버스</span><span style="text-align: right">왕복 1시간 30분 서서 가는 지옥철</span></div>
+    <div style="margin-top: 10px; display: flex; justify-content: space-between; font-size: 13px"><b style="color: #3157D5">광역버스파가 16%p 앞서는 중</b><span style="color: #545E73">48명 참여</span></div>
+  </div>
+
+  <div style="margin: 22px 16px 0; background: #F7F8FC; border-radius: 20px; padding: 16px">
+    <div style="font-size: 16px; font-weight: 900">그룹별로 보기</div>
+    <div style="margin-top: 10px; display: flex; gap: 6px">
+      <sc-for list="{{splits}}" as="s" hint-placeholder-count="4">
+        <button onClick="{{s.pick}}" style="height: 34px; border: 1px solid {{s.border}}; border-radius: 999px; background: {{s.bg}}; color: {{s.color}}; font-size: 13px; font-weight: 700; font-family: inherit; padding: 0 12px">{{s.label}}</button>
+      </sc-for>
+    </div>
+    <div style="margin-top: 10px; display: flex; gap: 6px">
+      <sc-for list="{{opts}}" as="o" hint-placeholder-count="2">
+        <button onClick="{{o.pick}}" style="height: 30px; border: none; border-radius: 8px; background: {{o.bg}}; color: {{o.color}}; font-size: 12px; font-weight: 700; font-family: inherit; padding: 0 10px">{{o.label}}</button>
+      </sc-for>
+    </div>
+    <div style="margin-top: 12px; font-size: 13px; color: #374158"><b>'{{focusLabel}}'</b>를 고른 비율</div>
+    <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px">
+      <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="width: 62px; display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 700; color: {{g.lc}}">{{g.label}}</span><span style="font-size: 11px; color: #545E73">{{g.n}}명</span></span>
+          <div style="flex: 1; height: 12px; background: #FFFFFF; border-radius: 999px; overflow: hidden"><div class="fill" style="height: 12px; width: {{g.p}}%; background: {{g.c}}; border-radius: 999px"></div></div>
+          <span style="width: 40px; text-align: right; font-size: 14px; font-weight: {{g.w}}; color: {{g.lc}}">{{g.p}}%</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="margin-top: 10px; display: flex; justify-content: space-between; font-size: 12px; color: #545E73; border-top: 1px dashed #CDD2DF; padding-top: 8px"><span>전체</span><b style="color: #202A40">{{allP}}%</b></div>
+    <sc-if value="{{hasFew}}" hint-placeholder-val="{{false}}"><div style="margin-top: 6px; font-size: 12px; color: #93370D">10명 미만 그룹은 흐리게 표시했어요</div></sc-if>
+  </div>
+
+  <div style="margin: 26px 20px 0; display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 17px; font-weight: 900">댓글 4</span><span style="font-size: 13px; color: #545E73">인기순</span></div>
+  <div style="margin: 4px 20px 0">
+    <div style="padding: 14px 0; border-bottom: 1px solid #EFF1F7">
+      <div style="display: flex; align-items: center; gap: 6px"><b style="font-size: 14px">익명1</b><span style="background: #E3E9FF; color: #2949B5; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 999px">광역버스</span><span style="flex: 1"></span><button aria-label="댓글 메뉴" style="width: 32px; height: 32px; border: none; background: transparent; padding: 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="#AEB5C5" aria-hidden="true"><circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle></svg></button></div>
+      <div style="margin-top: 4px; font-size: 15px; line-height: 1.5">앉아서 자면서 가면 3시간도 금방이에요</div>
+      <div style="margin-top: 6px; display: flex; gap: 14px; font-size: 12px; color: #545E73"><span>11/02 20:07</span><button style="border: none; background: transparent; padding: 0; font: inherit; color: #3157D5; font-weight: 700">좋아요 3</button><button style="border: none; background: transparent; padding: 0; font: inherit; color: #545E73">답글 달기</button></div>
+      <div style="margin-top: 12px; margin-left: 12px; padding-left: 12px; border-left: 2px solid #E2E5EE">
+        <div style="display: flex; align-items: center; gap: 4px"><b style="font-size: 14px">옛썰 공식</b><svg width="13" height="13" viewBox="0 0 24 24" aria-label="공식 계정" role="img"><circle cx="12" cy="12" r="10" fill="#3157D5"></circle><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+        <div style="margin-top: 4px; font-size: 15px">인정합니다</div>
+        <div style="margin-top: 6px; display: flex; gap: 14px; font-size: 12px; color: #545E73"><span>11/02 20:11</span><span>좋아요 1</span></div>
+      </div>
+    </div>
+    <div style="padding: 14px 0; border-bottom: 1px solid #EFF1F7">
+      <div style="display: flex; align-items: center; gap: 6px"><b style="font-size: 14px">익명2</b><span style="background: #EFF1F7; color: #374158; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 999px">지옥철</span><span style="background: #3157D5; color: #FFFFFF; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 999px">글쓴이</span></div>
+      <div style="margin-top: 4px; font-size: 15px; line-height: 1.5">시간이 금이라 무조건 지하철</div>
+      <div style="margin-top: 6px; display: flex; gap: 14px; font-size: 12px; color: #545E73"><span>11/07 19:39</span><span>좋아요</span><span>답글 달기</span></div>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-top: 1px solid #EFF1F7; padding: 10px 16px 30px; display: flex; align-items: center; gap: 8px">
+    <button style="height: 40px; border: none; border-radius: 999px; background: #E3E9FF; color: #2949B5; font-size: 13px; font-weight: 700; font-family: inherit; padding: 0 12px; flex-shrink: 0">익명 ✓</button>
+    <label for="cmt" style="position: absolute; width: 1px; height: 1px; overflow: hidden">댓글 입력</label>
+    <input id="cmt" placeholder="댓글을 남겨 주세요" style="flex: 1; min-width: 0; height: 44px; box-sizing: border-box; border: 1px solid #E2E5EE; border-radius: 999px; padding: 0 16px; font-size: 15px; font-family: inherit; outline-color: #3157D5">
+    <button aria-label="등록" style="width: 44px; height: 44px; border: none; border-radius: 50%; background: #3157D5; padding: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"></path></svg></button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1560}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { split: 'major', focus: 0 }; }
+  renderVals() {
+    var self = this, st = this.state;
+    var O = ['광역버스', '지옥철'], ALL = [58, 42];
+    var G = {
+      major: [['인문', 9, 44], ['사회', 12, 67], ['자연', 10, 50], ['공학', 11, 73], ['예체능', 6, 33]],
+      grade: [['1학년', 8, 38], ['2학년', 13, 54], ['3학년', 15, 67], ['4학년', 12, 58]],
+      gender: [['여성', 26, 54], ['남성', 18, 67], ['미입력', 4, 50]],
+      age: [['20~21세', 14, 50], ['22~23세', 22, 64], ['24세 이상', 12, 58]]
+    };
+    var splits = [['major', '계열'], ['grade', '학년'], ['gender', '성별'], ['age', '나이대']].map(function (s) {
+      var on = st.split === s[0];
+      return { label: s[1], bg: on ? '#202A40' : '#FFFFFF', color: on ? '#FFFFFF' : '#374158', border: on ? '#202A40' : '#E2E5EE', pick: function () { self.setState({ split: s[0] }); } };
+    });
+    var opts = O.map(function (o, i) {
+      var on = st.focus === i;
+      return { label: o, bg: on ? '#3157D5' : '#EFF1F7', color: on ? '#FFFFFF' : '#374158', pick: function () { self.setState({ focus: i }); } };
+    });
+    var raw = G[st.split].map(function (g) { return { label: g[0], n: g[1], p: st.focus === 0 ? g[2] : 100 - g[2] }; });
+    raw.sort(function (a, b) { return b.p - a.p; });
+    var max = raw[0].p, min = raw[raw.length - 1].p;
+    var groups = raw.map(function (g) {
+      var few = g.n < 10;
+      return { label: g.label, n: g.n, p: g.p, w: g.p === max ? 900 : 500,
+        c: few ? '#E3E9FF' : g.p === max ? '#3157D5' : g.p === min ? '#9FB2FF' : '#C7D2FF', lc: few ? '#8B93A5' : '#202A40' };
+    });
+    return { splits: splits, opts: opts, groups: groups, focusLabel: O[st.focus], allP: ALL[st.focus], hasFew: raw.some(function (g) { return g.n < 10; }) };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>밸런스 첫 투표 · 보기 입력 개선</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+@keyframes pop{0%{opacity:0;transform:scale(.4)}70%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
+.grow{transition:width .8s cubic-bezier(.34,1.4,.64,1),background-color .25s ease,color .25s ease}
+.tint{transition:background-color .25s ease,color .25s ease}
+.slide{transition:left .8s cubic-bezier(.34,1.4,.64,1),background-color .25s ease}
+.pop{animation:pop .4s cubic-bezier(.2,.9,.3,1.3) .45s both}
+input::placeholder{color:#8B93A5;font-weight:400}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 760px; box-sizing: border-box; background: #F7F8FC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; padding: 16px">
+
+  <div style="font-size: 13px; font-weight: 700; color: #545E73; margin: 0 4px 8px">1. 첫 투표 (0명일 때)</div>
+  <article style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px">
+    <div style="display: flex; align-items: center; gap: 6px">
+      <span style="background: #E3E9FF; color: #2949B5; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">밸런스</span>
+      <span style="font-size: 12px; color: #545E73">익명 · 방금</span>
+    </div>
+    <div style="margin-top: 8px; font-size: 15px; font-weight: 900">점심은 학식 vs 편의점</div>
+    <div style="position: relative; margin-top: 12px; height: 56px; border-radius: 16px; overflow: hidden; display: flex">
+      <button class="grow" onClick="{{a}}" aria-label="학식 고르기" style="width: {{w}}%; border: none; background: {{bgA}}; color: {{fgA}}; font-family: inherit; font-size: 14px; font-weight: 900; text-align: left; padding: 0 14px; white-space: nowrap; overflow: hidden">학식<sc-if value="{{v}}" hint-placeholder-val="{{false}}"><span class="pop" style="display: inline-block; margin-left: 6px; font-size: 18px">{{pA}}%</span></sc-if></button>
+      <button class="tint" onClick="{{b}}" aria-label="편의점 고르기" style="flex: 1; border: none; background: {{bgB}}; color: {{fgB}}; font-family: inherit; font-size: 14px; font-weight: 900; text-align: right; padding: 0 14px; white-space: nowrap; overflow: hidden"><sc-if value="{{v}}" hint-placeholder-val="{{false}}"><span class="pop" style="display: inline-block; margin-right: 6px; font-size: 18px">{{pB}}%</span></sc-if>편의점</button>
+      <span class="slide" style="position: absolute; top: 50%; left: {{w}}%; transform: translate(-50%,-50%); width: 30px; height: 30px; border-radius: 50%; background: {{vsBg}}; border: 3px solid #FFFFFF; color: {{vsFg}}; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center; pointer-events: none">VS</span>
+    </div>
+    <div style="margin-top: 10px; display: flex; justify-content: space-between; font-size: 12px; color: #545E73">
+      <span style="color: {{leadColor}}; font-weight: {{leadWeight}}">{{lead}}</span><span>{{n}}명 · 댓글 0</span>
+    </div>
+  </article>
+  <div style="margin: 8px 4px 0; font-size: 12px; color: #545E73; line-height: 1.6">빈 상자 대신 막대를 그대로 보여줘요. 0명일 때도 바로 누를 수 있고, 처음 누른 사람은 100%로 끝까지 밀어요.</div>
+
+  <div style="font-size: 13px; font-weight: 700; color: #545E73; margin: 24px 4px 8px">2. 글쓰기 · 보기</div>
+  <div style="background: #FFFFFF; border-radius: 20px; padding: 16px">
+    <div style="font-size: 15px; font-weight: 700">보기</div>
+    <div style="position: relative; margin-top: 10px; display: flex; flex-direction: column; gap: 8px">
+      <label style="height: 56px; box-sizing: border-box; border: 1px solid #C7D2FF; border-radius: 14px; background: #F1F4FF; display: flex; align-items: center; gap: 10px; padding: 0 14px">
+        <input value="{{ta}}" onChange="{{onA}}" placeholder="첫 번째 편 (예: 학식)" aria-label="첫 번째 보기" style="flex: 1; min-width: 0; border: none; outline: none; font-size: 16px; font-weight: 700; font-family: inherit; background: transparent; color: #203A91">
+        <span style="font-size: 12px; color: #545E73">{{la}}/12</span>
+      </label>
+      <label style="height: 56px; box-sizing: border-box; border: 1px solid #D0EB83; border-radius: 14px; background: #F0F8D5; display: flex; align-items: center; gap: 10px; padding: 0 14px">
+        <input value="{{tb}}" onChange="{{onB}}" placeholder="두 번째 편 (예: 편의점)" aria-label="두 번째 보기" style="flex: 1; min-width: 0; border: none; outline: none; font-size: 16px; font-weight: 700; font-family: inherit; background: transparent; color: #506D23">
+        <span style="font-size: 12px; color: #545E73">{{lb}}/12</span>
+      </label>
+      <span aria-hidden="true" style="position: absolute; right: 64px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 0 1px #E2E5EE; color: #545E73; font-size: 10px; font-weight: 900; display: flex; align-items: center; justify-content: center">VS</span>
+    </div>
+  </div>
+
+  <div style="margin-top: 14px; text-align: right"><button onClick="{{reset}}" style="height: 32px; border: none; background: transparent; color: #3157D5; font-size: 13px; font-weight: 700; font-family: inherit">다시 해보기</button></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":760}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { pick: null, ta: '', tb: '', pc: 3 }; }
+  renderVals() {
+    var self = this, st = this.state, v = st.pick !== null;
+    var pA = st.pick === 0 ? 100 : 0, pB = v ? 100 - pA : 0;
+    var A = st.pick === 0 ? ['#3157D5', '#FFFFFF'] : ['#E3E9FF', '#2949B5'];
+    var B = st.pick === 1 ? ['#A3EA16', '#202A40'] : ['#F0F8D5', '#506D23'];
+    var PH = ['예: 삼겹살', '예: 치킨', '예: 마라탕', '예: 떡볶이', '예: 피자'];
+    var pOpts = [];
+    for (var i = 0; i < st.pc; i++) pOpts.push({ n: i + 1, ph: PH[i], del: st.pc > 3 && i === st.pc - 1, remove: function () { self.setState({ pc: self.state.pc - 1 }); } });
+    return {
+      pOpts: pOpts, canAdd: st.pc < 5, add: function () { if (self.state.pc < 5) self.setState({ pc: self.state.pc + 1 }); },
+      v: v, pA: pA, pB: pB, n: v ? 1 : 0,
+      w: v ? (st.pick === 0 ? 72 : 28) : 50,
+      bgA: A[0], fgA: A[1], bgB: B[0], fgB: B[1],
+      vsBg: v ? '#202A40' : '#FFFFFF', vsFg: v ? '#A3EA16' : '#545E73',
+      lead: v ? '첫 번째로 편을 정했어요!' : '아직 아무도 안 골랐어요 · 첫 표를 던져 보세요',
+      leadColor: v ? '#2949B5' : '#545E73', leadWeight: v ? 700 : 400,
+      ta: st.ta, tb: st.tb, la: st.ta.length, lb: st.tb.length,
+      pvA: st.ta || '학식', pvB: st.tb || '편의점',
+      onA: function (e) { self.setState({ ta: e.target.value.slice(0, 12) }); },
+      onB: function (e) { self.setState({ tb: e.target.value.slice(0, 12) }); },
+      a: function () { if (self.state.pick === null) self.setState({ pick: 0 }); },
+      b: function () { if (self.state.pick === null) self.setState({ pick: 1 }); },
+      reset: function () { self.setState({ pick: null, ta: '', tb: '', pc: 3 }); }
+    };
+  }
+}
+</script>
+</body>
+</html>
