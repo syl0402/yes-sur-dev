@@ -58,7 +58,14 @@ export default function CompositionChart({
         <Text style={styles.title}>{compact ? "응답자 구성" : "누가 답했나"}</Text>
         {allCount > 0 && !donutShown && <Text style={styles.total}>{allCount}명</Text>}
       </View>
-      {summary && <Text style={styles.summary}>{summary}</Text>}
+      {/* 가장 많이 답한 사람 (2026-11-14 데이터 허브 시안: 연회색 상자) */}
+      {summary && (
+        <View style={styles.summaryBox}>
+          <Text style={styles.summary}>
+            가장 많이 답한 사람: <Text style={styles.summaryStrong}>{summary}</Text>
+          </Text>
+        </View>
+      )}
       <TextTabs options={DIMS} value={dim} onChange={setDim} fill />
       {shown.length === 0 ? (
         <Text style={styles.hidden}>{hidden.length > 0 ? "모든 묶음이 5명 미만이라 숨겼어요." : "정보가 없어요."}</Text>
@@ -90,7 +97,7 @@ function summarize(groups: Record<GroupDim, GroupCount[]>): string | null {
     const names = list.filter((g) => g.n === max).map((g) => g.label).join("/");
     return value === "major" ? `${names} 계열` : names;
   }).filter((t): t is string => t !== null);
-  return tops.length > 0 ? `가장 많은 응답자: ${tops.join(" · ")}` : null;
+  return tops.length > 0 ? tops.join(" · ") : null;
 }
 
 type Row = { label: string; n: number; pct: number; color: string; onDark: boolean };
@@ -203,11 +210,20 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: colors.textMuted,
   },
+  summaryBox: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    backgroundColor: colors.surfaceSubtle,
+  },
   summary: {
-    marginTop: -4,
     fontSize: fontSize.small,
-    color: colors.textMuted,
-    lineHeight: 19,
+    color: colors.textStrong,
+    lineHeight: 20,
+  },
+  summaryStrong: {
+    fontWeight: "700",
+    color: colors.text,
   },
   hidden: {
     fontSize: fontSize.caption,

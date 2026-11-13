@@ -1,5 +1,5 @@
 import * as Sharing from "expo-sharing";
-import { type ComponentRef, useRef, useState } from "react";
+import { type ComponentRef, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { captureRef } from "react-native-view-shot";
 
@@ -18,6 +18,7 @@ import { formatDate, formatPoints, formatShortDate } from "@/lib/format";
 import { type CrossResults, type FullResults, GROUP_DIMS, type Group, type GroupDim, sortGroups } from "@/lib/hub";
 import { showNotice } from "@/lib/notice";
 import { buildInsights, formatSeconds } from "@/lib/resultSummary";
+import { fetchRules } from "@/lib/rules";
 import { canDrawSvg } from "@/lib/nativeFeatures";
 import { supabase } from "@/lib/supabase";
 
@@ -26,11 +27,15 @@ type Tab = "questions" | "people" | "info";
 type Dim = "all" | GroupDim | "cross";
 
 // 나눠 보기 선택지
+// 2026-11-14 데이터 허브 시안: 칩 한 줄 (전체 · 성별 · 나이대 · 학년 · 계열 · 다른 문항 답별)
 const DIM_OPTIONS: { value: Dim; label: string }[] = [
   { value: "all", label: "전체" },
   ...GROUP_DIMS,
-  { value: "cross", label: "문항 답별" },
+  { value: "cross", label: "다른 문항 답별" },
 ];
+
+// 조사 정보 · 나눠 보기에 쓰는 기준 (point_rules)
+const RESULT_RULE_KEYS = ["trust_min_responses", "trust_min_pass_rate", "low_response_warning"];
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "questions", label: "문항별 결과" },
@@ -60,6 +65,19 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
   // 공유 이미지로 찍을 카드 (화면 밖에 그려 둔다)
   const shareRef = useRef<ComponentRef<typeof View>>(null);
   const [sharing, setSharing] = useState(false);
+  // 신뢰도 기준·소표본 기준 (point_rules) · 응답 대상
+  const [rules, setRules] = useState<Record<string, number>>({});
+  const [audience, setAudience] = useState<"all" | "campus" | null>(null);
+
+  useEffect(() => {
+    fetchRules(RESULT_RULE_KEYS).then(setRules);
+    supabase
+      .from("surveys")
+      .select("audience")
+      .eq("id", surveyId)
+      .maybeSingle()
+      .then(({ data }) => setAudience((data?.audience as "all" | "campus" | undefined) ?? null));
+  }, [surveyId]);
 
   if (full.total === 0) return <Text style={styles.muted}>결과에 반영된 응답이 없어요.</Text>;
 
@@ -79,7 +97,11 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
     setCross(data as CrossResults);
   };
 
-  const crossIndex = crossable.find((c) => c.q.id === crossId)?.index ?? -1;
+  // 신뢰도 높음: 유효 응답 기준 이상 + 확인 문항 통과율 기준 이상 (서버 get_hub_preview와 같은 기준)
+  const trusted =
+    rules.trust_min_responses !== undefined &&
+    full.total >= rules.trust_min_responses &&
+    (full.pass_rate === null || full.pass_rate >= (rules.trust_min_pass_rate ?? 1) * 100);
   const insights = buildInsights(full);
   // 공유 카드 큰 숫자: 하나 고르기 문항 중 1위 비율이 가장 높은 것
   const hero = full.overall.reduce<ShareHero | null>((best, q) => {
@@ -129,16 +151,20 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
 
       {tab === "questions" && (
         <>
-          {/* 나눠 보는 기준: 버튼 하나 (문항 답별이면 기준 문항 버튼이 하나 더, 2026-11-10 정리) */}
+          {/* 나눠 보기: 칩 한 줄 (화면 전체 문항에 같이 적용, 이름표 없이 칩만). 다른 문항 답별이면 기준 문항 버튼이 하나 더 */}
+          <View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dimRow}>
+              {DIM_OPTIONS.filter((o) => o.value !== "cross" || crossable.length > 0).map((o) => {
+                const on = o.value === dim;
+                return (
+                  <Pressable key={o.value} onPress={() => setDim(o.value)} style={[styles.dimChip, on && styles.dimChipOn]} hitSlop={4}>
+                    <Text style={[styles.dimText, on && styles.dimTextOn]}>{o.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
           <View style={styles.selects}>
-            <SelectButton
-              title="나눠 보기"
-              options={DIM_OPTIONS.filter((o) => o.value !== "cross" || crossable.length > 0)}
-              value={dim}
-              onChange={setDim}
-              defaultValue="all"
-              placeholder="나눠 보기"
-            />
             {dim === "cross" && (
               <SelectButton
                 title="어떤 문항의 답별로 나눠 볼까요?"
@@ -162,7 +188,13 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
           {dim !== "all" &&
             dim !== "cross" &&
             full.overall.map((q, index) => (
-              <GroupedQuestion key={q.id} index={index} question={q} groups={sortGroups(dim, full.groups[dim])} />
+              <GroupedQuestion
+                key={q.id}
+                index={index}
+                question={q}
+                groups={sortGroups(dim, full.groups[dim])}
+                fewUnder={rules.low_response_warning ?? 10}
+              />
             ))}
 
           {dim === "cross" &&
@@ -171,9 +203,16 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
               <ActivityIndicator color={colors.primary} />
             ) : (
               <>
-                <Text style={styles.hint}>Q{crossIndex + 1}의 답별로 나눠 봤어요</Text>
                 {full.overall.map((q, index) =>
-                  q.id === crossId ? null : <GroupedQuestion key={q.id} index={index} question={q} groups={cross.groups} />,
+                  q.id === crossId ? null : (
+                    <GroupedQuestion
+                      key={q.id}
+                      index={index}
+                      question={q}
+                      groups={cross.groups}
+                      fewUnder={rules.low_response_warning ?? 10}
+                    />
+                  ),
                 )}
               </>
             ))}
@@ -183,15 +222,34 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
       {/* 응답자 구성: 도넛 (2026-11-13 결정, A안 나눔 막대 대신). 그림 부품이 없는 옛 앱만 나눔 막대 */}
       {tab === "people" && <CompositionChart groups={full.groups} variant={canDrawSvg ? "donut" : "bar"} />}
 
-      {/* 조사 정보: 연회색 상자 하나에 이름표–값 줄 (내 정보 회원정보와 같은 모양, 2026-11-10) */}
+      {/* 조사 정보: 신뢰도 이유(연두 상자, 기준은 point_rules) + 이름표–값 줄 (2026-11-14 데이터 허브 시안) */}
       {tab === "info" && (
         <View style={styles.infoWrap}>
+          {trusted && (
+            <View style={styles.trustBox}>
+              <Text style={styles.trustTitle}>✓ 신뢰도 높음인 이유</Text>
+              <View>
+                <Text style={styles.trustLine}>
+                  · 유효 응답 {full.total}명 ({rules.trust_min_responses}명 이상)
+                </Text>
+                {full.pass_rate !== null && (
+                  <Text style={styles.trustLine}>
+                    · 확인 문항 통과율 {full.pass_rate}% ({Math.round((rules.trust_min_pass_rate ?? 0) * 100)}% 이상)
+                  </Text>
+                )}
+                {full.excluded > 0 && (
+                  <Text style={styles.trustLine}>· 확인 문항을 틀린 응답 {full.excluded}건은 결과에서 뺐어요</Text>
+                )}
+              </View>
+            </View>
+          )}
           <View style={styles.infoBox}>
             {[
               { label: "유효 응답", value: `${full.total}명` },
               { label: "확인 문항 통과율", value: full.pass_rate !== null ? `${full.pass_rate}%` : "-" },
               { label: "평균 응답 시간", value: full.avg_seconds !== null ? formatSeconds(full.avg_seconds) : "-" },
               { label: "조사 기간", value: `${formatShortDate(full.started_at)} ~ ${formatShortDate(full.ended_at)}` },
+              ...(audience ? [{ label: "대상", value: audience === "campus" ? "우리 학교 학생" : "전체 대학생" }] : []),
               ...(full.share_earned !== null
                 ? [
                     {
@@ -207,19 +265,32 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
               </View>
             ))}
           </View>
-          {full.excluded > 0 && <Text style={styles.infoNote}>확인 문항을 틀린 응답 {full.excluded}건은 결과에서 뺐어요.</Text>}
+          {!trusted && full.excluded > 0 && (
+            <Text style={styles.infoNote}>확인 문항을 틀린 응답 {full.excluded}건은 결과에서 뺐어요.</Text>
+          )}
         </View>
       )}
     </>
   );
 }
 
-// 문항 하나를 묶음별로 (회원정보 그룹 또는 교차 분석). 2026-11-10 정리 (데이터 시각화: 강조형)
-// - 고르기: 묶음마다 100% 나눔 막대 한 줄. 고른 답 하나만 파랑으로 왼쪽 끝에 → 묶음끼리 길이로 바로 비교. 나머지 답은 회색 칸
-//   위 보기 버튼으로 강조할 답을 바꾼다 (처음엔 전체 1위 답)
-// - 척도: 묶음마다 평균 막대 + 전체 평균 세로선
-// - "모든 답 보기": 묶음마다 전체 막대 (표처럼 숫자 확인). 5명 미만 묶음은 맨 아래 한 줄로
-function GroupedQuestion({ index, question: q, groups }: { index: number; question: QuestionStats; groups: Group[] }) {
+// 문항 하나를 묶음별로 (회원정보 그룹 또는 교차 분석). 2026-11-14 데이터 허브 시안 Detail:
+// - 고르기: 위 보기 칩으로 볼 답을 고르면 "'답'이라고 답한 비율"을 묶음별 가로 막대로, 큰 순서 정렬
+//   가장 높은 묶음 진한 파랑·굵게, 가장 낮은 묶음 Blue 300, 나머지 Blue 200. 아래 점선 + 전체 평균
+// - 척도: 묶음별 평균 점수를 같은 방식으로
+// - 응답이 적은 묶음(point_rules low_response_warning 미만)은 흐리게 + 주의 문구, 5명 미만은 숨김(개인정보)
+// - "모든 답 숫자로 보기": 묶음마다 전체 막대 (표처럼 숫자 확인)
+function GroupedQuestion({
+  index,
+  question: q,
+  groups,
+  fewUnder,
+}: {
+  index: number;
+  question: QuestionStats;
+  groups: Group[];
+  fewUnder: number;
+}) {
   const [open, setOpen] = useState(false);
   const overallTop = [...q.options].sort((a, b) => b.count - a.count)[0];
   const [focusId, setFocusId] = useState<number | null>(overallTop?.id ?? null);
@@ -237,89 +308,100 @@ function GroupedQuestion({ index, question: q, groups }: { index: number; questi
     );
   }
 
+  const isScale = q.type === "scale";
   const focus = q.options.find((o) => o.id === focusId) ?? overallTop;
+
+  // 묶음마다 값: 고르기 = 고른 답의 비율(%), 척도 = 평균 점수. 큰 순서
+  const rows = shown
+    .map(({ g, s }) => ({
+      label: g.label,
+      n: g.n ?? s.answered,
+      value: isScale ? (s.scale?.avg ?? 0) : percent(s.options.find((o) => o.id === focus?.id)?.count ?? 0, s.answered),
+    }))
+    .sort((a, b) => b.value - a.value);
+  const solid = rows.filter((r) => r.n >= fewUnder);
+  const maxV = solid.length > 0 ? solid[0].value : null;
+  const minV = solid.length > 1 ? solid[solid.length - 1].value : null;
+  const hasFew = rows.some((r) => r.n < fewUnder);
+  const overall = isScale ? (q.scale?.avg ?? null) : percent(focus?.count ?? 0, q.answered);
+  const unit = isScale ? "점" : "%";
 
   return (
     <Card>
       <QuestionHeader index={index} question={q} />
 
-      {/* 고르기: 강조할 답 고르기 */}
-      {!open && q.type !== "scale" && q.options.length > 1 && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.focusRow}>
+      {/* 고르기: 볼 답 고르기 */}
+      {!open && !isScale && q.options.length > 1 && (
+        <View style={styles.focusRow}>
           {q.options.map((o) => {
             const on = o.id === focus?.id;
             return (
               <Pressable key={o.id} onPress={() => setFocusId(o.id)} style={[styles.focusChip, on && styles.focusChipOn]} hitSlop={4}>
-                {on && <View style={styles.focusDot} />}
                 <Text style={[styles.focusText, on && styles.focusTextOn]} numberOfLines={1}>
                   {o.text}
                 </Text>
               </Pressable>
             );
           })}
-        </ScrollView>
-      )}
-
-      {/* 척도: 전체 평균 안내 */}
-      {!open && q.type === "scale" && q.scale?.avg != null && (
-        <View style={styles.avgLegend}>
-          <View style={styles.avgMarkLegend} />
-          <Text style={styles.label}>전체 평균 {q.scale.avg}점</Text>
         </View>
       )}
 
-      {!open &&
-        shown.map(({ g, s }) => {
-          if (q.type === "scale") {
-            const avg = s.scale?.avg ?? 0;
-            const overall = q.scale?.avg ?? null;
+      {!open && rows.length > 0 && (
+        <View style={styles.compare}>
+          <Text style={styles.compareTitle}>
+            {isScale ? (
+              "묶음별 평균 점수"
+            ) : (
+              <>
+                <Text style={styles.compareStrong}>‘{focus?.text}’</Text>라고 답한 비율
+              </>
+            )}
+          </Text>
+          {rows.map((r) => {
+            const few = r.n < fewUnder;
+            const hi = !few && r.value === maxV;
+            const lo = !few && !hi && r.value === minV;
             return (
-              <View key={g.label} style={styles.row}>
-                <View style={styles.rowTop}>
-                  <Text style={styles.rowLabel} numberOfLines={1}>
-                    {g.label} <Text style={styles.groupN}>{g.n}명</Text>
+              <View key={r.label} style={styles.compareRow}>
+                <View style={styles.compareName}>
+                  <Text style={[styles.compareLabel, few && styles.fewText]} numberOfLines={1}>
+                    {r.label}
                   </Text>
-                  <Text style={styles.rowValue}>{avg}점</Text>
+                  <Text style={styles.groupN}>{r.n}명</Text>
                 </View>
-                <View style={styles.track}>
-                  <View style={[styles.fillPrimary, { width: `${(avg / 5) * 100}%` }]} />
-                  {overall != null && <View style={[styles.avgMark, { left: `${(overall / 5) * 100}%` }]} />}
+                <View style={styles.compareTrack}>
+                  <View
+                    style={[
+                      styles.compareFill,
+                      { width: `${isScale ? (r.value / 5) * 100 : r.value}%` },
+                      few ? styles.fillFew : hi ? styles.fillHi : lo ? styles.fillLo : styles.fillMid,
+                    ]}
+                  />
                 </View>
+                <Text style={[styles.compareValue, hi && styles.compareValueHi, few && styles.fewText]}>
+                  {r.value}
+                  {unit}
+                </Text>
               </View>
             );
-          }
-          // 고른 답을 맨 앞(왼쪽)에, 나머지는 원래 순서대로 회색 칸
-          const ordered = [
-            ...s.options.filter((o) => o.id === focus?.id),
-            ...s.options.filter((o) => o.id !== focus?.id && o.count > 0),
-          ];
-          const focusPct = percent(s.options.find((o) => o.id === focus?.id)?.count ?? 0, s.answered);
-          const sum = ordered.reduce((a, o) => a + o.count, 0) || 1;
-          return (
-            <View key={g.label} style={styles.row}>
-              <View style={styles.rowTop}>
-                <Text style={styles.rowLabel} numberOfLines={1}>
-                  {g.label} <Text style={styles.groupN}>{g.n}명</Text>
+          })}
+          {overall !== null && (
+            <>
+              <DashedLine />
+              <View style={styles.average}>
+                <Text style={styles.label}>전체 평균</Text>
+                <Text style={styles.averageValue}>
+                  {overall}
+                  {unit}
                 </Text>
-                <Text style={styles.rowValue}>{focusPct}%</Text>
               </View>
-              <View style={styles.stack}>
-                {ordered.map((o, i) =>
-                  o.count === 0 ? null : (
-                    <View
-                      key={o.id}
-                      style={[
-                        styles.segment,
-                        { flex: o.count / sum },
-                        o.id === focus?.id ? styles.segmentFocus : i % 2 === 0 ? styles.segmentRest : styles.segmentRestAlt,
-                      ]}
-                    />
-                  ),
-                )}
-              </View>
-            </View>
-          );
-        })}
+            </>
+          )}
+          {hasFew && (
+            <Text style={styles.fewNote}>{fewUnder}명 미만 묶음은 흐리게 표시했어요. 해석에 주의해 주세요.</Text>
+          )}
+        </View>
+      )}
 
       {open &&
         shown.map(({ g, s }) => {
@@ -329,7 +411,7 @@ function GroupedQuestion({ index, question: q, groups }: { index: number; questi
               <Text style={styles.groupTitle}>
                 {g.label} <Text style={styles.groupN}>{g.n}명</Text>
               </Text>
-              {q.type === "scale" ? (
+              {isScale ? (
                 (s.scale?.counts ?? []).map((count, i) => (
                   <Bar key={i} label={`${i + 1}점`} count={count} pct={percent(count, s.answered)} />
                 ))
@@ -347,18 +429,81 @@ function GroupedQuestion({ index, question: q, groups }: { index: number; questi
 
       {shown.length > 0 && (
         <Pressable onPress={() => setOpen(!open)} hitSlop={8} style={styles.more}>
-          <Text style={styles.moreText}>{open ? "접기 ▴" : q.type === "scale" ? "점수 분포 보기 ▾" : "모든 답 숫자로 보기 ▾"}</Text>
+          <Text style={styles.moreText}>{open ? "접기 ▴" : isScale ? "점수 분포 보기 ▾" : "모든 답 숫자로 보기 ▾"}</Text>
         </Pressable>
       )}
     </Card>
   );
 }
 
+// 가로 점선 한 줄 (한 면만 점선 테두리는 아이폰에서 안 그려져서, 높이 1 상자 안에 점선 상자를 넣고 잘라 낸다)
+function DashedLine() {
+  return (
+    <View style={styles.dashClip}>
+      <View style={styles.dash} />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  dashClip: {
+    height: 1,
+    overflow: "hidden",
+  },
+  dash: {
+    height: 2,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderStyle: "dashed",
+    borderRadius: 1,
+  },
   offscreen: {
     position: "absolute",
     left: -10000,
     top: 0,
+  },
+  // 나눠 보기 칩 (고르면 진한 남색)
+  dimRow: {
+    gap: 6,
+  },
+  dimChip: {
+    height: 30,
+    justifyContent: "center",
+    paddingHorizontal: 11,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+  },
+  dimChipOn: {
+    borderColor: colors.text,
+    backgroundColor: colors.text,
+  },
+  dimText: {
+    fontSize: fontSize.caption,
+    fontWeight: "700",
+    color: colors.textStrong,
+  },
+  dimTextOn: {
+    color: colors.onPrimary,
+  },
+  // 조사 정보
+  trustBox: {
+    gap: spacing.sm,
+    paddingVertical: 14,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.lg,
+    backgroundColor: colors.accentSoft,
+  },
+  trustTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: colors.text,
+  },
+  trustLine: {
+    fontSize: fontSize.small,
+    lineHeight: 20,
+    color: colors.textStrong,
   },
   infoWrap: {
     gap: spacing.sm,
@@ -409,115 +554,109 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     paddingHorizontal: spacing.xs,
   },
-  // 강조할 답 고르기
+  // 볼 답 고르기 칩 (고르면 파랑)
   focusRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 6,
   },
   focusChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: radius.pill,
+    height: 28,
+    justifyContent: "center",
+    paddingHorizontal: 9,
+    borderRadius: radius.sm,
     backgroundColor: colors.surfaceMuted,
   },
   focusChipOn: {
-    backgroundColor: colors.primarySoft,
-  },
-  focusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
     backgroundColor: colors.primary,
   },
   focusText: {
-    maxWidth: 160,
+    maxWidth: 180,
     fontSize: fontSize.caption,
-    fontWeight: "600",
-    color: colors.textMuted,
+    fontWeight: "700",
+    color: colors.textStrong,
   },
   focusTextOn: {
-    color: colors.text,
+    color: colors.onPrimary,
+  },
+  // 묶음별 비교 막대
+  compare: {
+    gap: 12,
+  },
+  compareTitle: {
+    fontSize: fontSize.small,
+    color: colors.textStrong,
+  },
+  compareStrong: {
     fontWeight: "700",
   },
-  // 묶음 한 줄: 위 이름·값, 아래 막대
-  row: {
-    gap: 6,
-  },
-  rowTop: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    gap: spacing.sm,
-  },
-  rowLabel: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.text,
-  },
-  rowValue: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: colors.text,
-  },
-  // 100% 나눔 막대 (칸 사이 2px 흰 틈)
-  stack: {
-    flexDirection: "row",
-    height: 12,
-    gap: 2,
-    borderRadius: radius.pill,
-    overflow: "hidden",
-  },
-  segment: {
-    height: "100%",
-  },
-  segmentFocus: {
-    backgroundColor: colors.primary,
-  },
-  segmentRest: {
-    backgroundColor: colors.chartMuted,
-  },
-  segmentRestAlt: {
-    backgroundColor: colors.border,
-  },
-  // 척도 평균 막대 + 전체 평균 세로선
-  track: {
-    height: 12,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceMuted,
-  },
-  fillPrimary: {
-    height: "100%",
-    borderRadius: radius.pill,
-    backgroundColor: colors.primary,
-  },
-  avgMark: {
-    position: "absolute",
-    top: -3,
-    bottom: -3,
-    width: 2,
-    marginLeft: -1,
-    borderRadius: 1,
-    backgroundColor: colors.text,
-  },
-  avgLegend: {
+  compareRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 10,
   },
-  avgMarkLegend: {
-    width: 2,
-    height: 12,
-    borderRadius: 1,
-    backgroundColor: colors.text,
+  compareName: {
+    width: 64,
+  },
+  compareLabel: {
+    fontSize: fontSize.small,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  compareTrack: {
+    flex: 1,
+    height: 14,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceMuted,
+    overflow: "hidden",
+  },
+  compareFill: {
+    height: "100%",
+    borderRadius: radius.pill,
+  },
+  fillHi: {
+    backgroundColor: colors.primary,
+  },
+  fillLo: {
+    backgroundColor: colors.primaryMuted,
+  },
+  fillMid: {
+    backgroundColor: colors.onPrimaryMuted,
+  },
+  fillFew: {
+    backgroundColor: colors.primarySoft,
+  },
+  compareValue: {
+    width: 48,
+    textAlign: "right",
+    fontSize: 14,
+    fontWeight: "500",
+    color: colors.text,
+  },
+  compareValueHi: {
+    fontWeight: "800",
+  },
+  fewText: {
+    color: colors.textSubtle,
+  },
+  average: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: -4,
+  },
+  averageValue: {
+    fontSize: fontSize.caption,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  fewNote: {
+    fontSize: fontSize.caption,
+    color: colors.warning,
   },
   group: {
     gap: 6,
     padding: spacing.sm,
     borderRadius: radius.md,
-    // 카드 안 옅은 상자 (화면 바탕이 흰색이 되어 회색 상자 색으로, 2026-11-09)
     backgroundColor: colors.surfaceMuted,
   },
   groupTitle: {
@@ -526,7 +665,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   groupN: {
-    fontSize: fontSize.caption,
+    fontSize: 11,
     fontWeight: "400",
     color: colors.textMuted,
   },

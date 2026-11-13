@@ -46,6 +46,9 @@ export const colors = {
   borderStrong: "#CDD2DF", // Natural 300
 
   // 상태
+  // 소표본 주의·응답 적음 (2026-11-14 데이터 허브 시안)
+  warning: "#93370D",
+  warningSoft: "#FEF6E7",
   danger: "#E5484D",
   dangerSoft: "#FDECEC",
   // 커뮤니티 HOT 표시 (롤링 줄 제목·🔥 HOT 뱃지, 2026-11-03)

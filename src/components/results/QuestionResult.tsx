@@ -3,7 +3,6 @@
 // - 5점 척도: 큰 평균 + 1~5점 세로 막대 (분포)
 import { StyleSheet, View } from "react-native";
 
-import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
@@ -33,10 +32,9 @@ export function QuestionHeader({ index, question: q, right }: { index: number; q
   return (
     <View style={styles.headBox}>
       <View style={styles.head}>
-        <View style={styles.headLeft}>
-          <Badge label={`Q${index + 1}`} />
-          <Text style={styles.type}>{QUESTION_TYPE_LABELS[q.type]}</Text>
-        </View>
+        <Text style={styles.type}>
+          <Text style={styles.qNo}>Q{index + 1}</Text> · {QUESTION_TYPE_LABELS[q.type]}
+        </Text>
         <Text style={styles.type}>{right ?? `응답 ${q.answered}명`}</Text>
       </View>
       <Text style={styles.questionText}>{q.text}</Text>
@@ -157,10 +155,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  headLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
+  qNo: {
+    fontWeight: "800",
+    color: colors.primary,
   },
   type: {
     fontSize: fontSize.caption,
@@ -168,7 +165,7 @@ const styles = StyleSheet.create({
   },
   questionText: {
     fontSize: fontSize.body,
-    fontWeight: "700",
+    fontWeight: "800",
     color: colors.text,
     lineHeight: 23,
   },
