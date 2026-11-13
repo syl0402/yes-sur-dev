@@ -16,13 +16,13 @@ import {
   OPTION_TEXT_MAX,
   OTHER_OPTION_LABEL,
   QUESTION_TEXT_MAX,
-  QUESTION_TYPE_LABELS,
   type QuestionType,
   SCALE_LABELS,
   type SurveyDraft,
   isChoice,
   makeRequestId,
   newQuestion,
+  questionTypeLabel,
 } from "@/lib/surveyDraft";
 
 type Props = {
@@ -31,14 +31,16 @@ type Props = {
   onChange: (patch: Partial<SurveyDraft>) => void;
 };
 
-// 답변 방식 고르기 창의 설명 (지금 있는 4종만. 순위·긴 주관식·사진은 테스트 후 검토)
-const TYPE_DESC: Record<QuestionType, string> = {
-  single: "보기 중 하나만 골라요",
-  multi: "해당하는 것을 모두 골라요",
-  scale: "1~5점 중에서 골라요",
-  text: "응답자가 글로 직접 써요",
-};
-const TYPE_ORDER: QuestionType[] = ["single", "multi", "scale", "text"];
+// 답변 방식 고르기 창 (2026-11-14 짧은·긴 주관식 나눔. 순위·사진은 테스트 후 검토)
+// 주관식은 type text + long(짧은 false · 긴 true)
+type TypeChoice = { key: string; type: QuestionType; long?: boolean; label: string; desc: string; icon: keyof typeof questionIcons };
+const TYPE_CHOICES: TypeChoice[] = [
+  { key: "single", type: "single", label: "하나 고르기", desc: "보기 중 하나만 골라요", icon: "single" },
+  { key: "multi", type: "multi", label: "여러 개 고르기", desc: "해당하는 것을 모두 골라요", icon: "multi" },
+  { key: "scale", type: "scale", label: "5점 척도", desc: "1~5점 중에서 골라요", icon: "scale" },
+  { key: "short", type: "text", long: false, label: "짧은 주관식", desc: "한 줄로 짧게 써요", icon: "shortText" },
+  { key: "long", type: "text", long: true, label: "긴 주관식", desc: "여러 줄로 자유롭게 써요", icon: "text" },
+];
 
 export default function QuestionsStep({ draft, rules, onChange }: Props) {
   const questions = draft.questions;
@@ -84,10 +86,10 @@ export default function QuestionsStep({ draft, rules, onChange }: Props) {
   };
 
   // 고르기 문항으로 바꿀 때 보기가 2개보다 적으면 빈 칸을 채워 둔다
-  const changeType = (index: number, type: QuestionType) => {
+  const changeType = (index: number, c: TypeChoice) => {
     const q = questions[index];
-    const options = isChoice(type) && q.options.length < 2 ? ["", ""] : q.options;
-    update(index, { type, options });
+    const options = isChoice(c.type) && q.options.length < 2 ? ["", ""] : q.options;
+    update(index, { type: c.type, options, long: c.type === "text" ? c.long : undefined });
   };
 
   const full = questions.length >= maxQuestions;
@@ -112,7 +114,10 @@ export default function QuestionsStep({ draft, rules, onChange }: Props) {
               <Text style={[styles.summaryTitle, !q.text.trim() && styles.summaryEmpty]} numberOfLines={1}>
                 {q.text.trim() || "질문을 아직 안 썼어요"}
               </Text>
-              <Text style={styles.summaryType}>{QUESTION_TYPE_LABELS[q.type]}</Text>
+              <Text style={styles.summaryType}>
+                {questionTypeLabel(q)}
+                {q.required === false ? " · 선택" : ""}
+              </Text>
             </View>
           </Pressable>
         ) : (
@@ -121,7 +126,7 @@ export default function QuestionsStep({ draft, rules, onChange }: Props) {
             <View style={styles.cardHeader}>
               <Text style={styles.qNumber}>Q{index + 1}</Text>
               <Pressable style={styles.typeChip} onPress={() => setTypeSheetFor(index)} hitSlop={4}>
-                <Text style={styles.typeChipText}>{QUESTION_TYPE_LABELS[q.type]}</Text>
+                <Text style={styles.typeChipText}>{questionTypeLabel(q)}</Text>
                 <AppIcon name={questionIcons.caret} size={14} color={colors.textStrong} />
               </Pressable>
               <View style={styles.spacer} />
@@ -210,34 +215,31 @@ export default function QuestionsStep({ draft, rules, onChange }: Props) {
             {q.type === "text" && (
               <View style={styles.textPreview}>
                 <Text style={styles.textPreviewText}>
-                  응답자가 직접 써요 (최대 {rules.answer_text_max}자) · 답은 등록자만 볼 수 있어요
+                  {q.long === false ? "한 줄로" : "여러 줄로"} 직접 써요 (최대 {rules.answer_text_max}자) · 답은 등록자만 볼 수
+                  있어요
                 </Text>
               </View>
             )}
 
-            {/* 아래 줄: 옵션 더보기(고르기 문항: 보기 순서 섞기) · 필수 스위치(주관식만 끌 수 있음) */}
-            {(isChoice(q.type) || q.type === "text") && (
-              <View style={styles.footer}>
-                {isChoice(q.type) ? (
-                  <Pressable onPress={() => setMoreKey(moreKey === q.key ? null : q.key)} hitSlop={8}>
-                    <Text style={styles.moreText}>{moreKey === q.key ? "옵션 접기 ▴" : "옵션 더보기 ▾"}</Text>
-                  </Pressable>
-                ) : (
-                  <View />
-                )}
-                {q.type === "text" && (
-                  <View style={styles.requiredRow}>
-                    <Text style={styles.requiredText}>필수</Text>
-                    <Switch
-                      value={q.required !== false}
-                      onValueChange={(on) => update(index, { required: on })}
-                      trackColor={{ true: colors.primary, false: colors.border }}
-                      thumbColor={colors.surface}
-                    />
-                  </View>
-                )}
+            {/* 아래 줄: 옵션 더보기(고르기 문항: 보기 순서 섞기) · 필수 스위치(모든 문항, 2026-11-14) */}
+            <View style={styles.footer}>
+              {isChoice(q.type) ? (
+                <Pressable onPress={() => setMoreKey(moreKey === q.key ? null : q.key)} hitSlop={8}>
+                  <Text style={styles.moreText}>{moreKey === q.key ? "옵션 접기 ▴" : "옵션 더보기 ▾"}</Text>
+                </Pressable>
+              ) : (
+                <View />
+              )}
+              <View style={styles.requiredRow}>
+                <Text style={styles.requiredText}>필수</Text>
+                <Switch
+                  value={q.required !== false}
+                  onValueChange={(on) => update(index, { required: on })}
+                  trackColor={{ true: colors.primary, false: colors.border }}
+                  thumbColor={colors.surface}
+                />
               </View>
-            )}
+            </View>
             {isChoice(q.type) && moreKey === q.key && (
               <View style={styles.moreBox}>
                 <View style={styles.requiredRow}>
@@ -252,8 +254,8 @@ export default function QuestionsStep({ draft, rules, onChange }: Props) {
                 <Text style={formStyles.hint}>응답자마다 보기 순서가 달라요. 해당 없음·기타는 늘 맨 아래예요.</Text>
               </View>
             )}
-            {q.type === "text" && q.required === false && (
-              <Text style={formStyles.hint}>응답자가 비워 두고 넘어갈 수 있어요.</Text>
+            {q.required === false && (
+              <Text style={formStyles.hint}>응답자가 비워 두고 넘어갈 수 있어요. 이 문항 결과는 답한 사람만으로 계산해요.</Text>
             )}
           </View>
         ),
@@ -269,23 +271,24 @@ export default function QuestionsStep({ draft, rules, onChange }: Props) {
       {typeSheetFor !== null && questions[typeSheetFor] && (
         <BottomSheet onClose={() => setTypeSheetFor(null)}>
           <Text style={styles.sheetTitle}>답변 방식</Text>
-          {TYPE_ORDER.map((t) => {
-            const on = questions[typeSheetFor].type === t;
+          {TYPE_CHOICES.map((c) => {
+            const cur = questions[typeSheetFor];
+            const on = cur.type === c.type && (c.type !== "text" || (cur.long !== false) === c.long);
             return (
               <Pressable
-                key={t}
+                key={c.key}
                 style={[styles.typeRow, on && styles.typeRowOn]}
                 onPress={() => {
-                  changeType(typeSheetFor, t);
+                  changeType(typeSheetFor, c);
                   setTypeSheetFor(null);
                 }}
               >
                 <View style={styles.typeIcon}>
-                  <AppIcon name={questionIcons[t]} size={20} color={colors.primaryStrong} />
+                  <AppIcon name={questionIcons[c.icon]} size={20} color={colors.primaryStrong} />
                 </View>
                 <View style={styles.typeMain}>
-                  <Text style={styles.typeLabel}>{QUESTION_TYPE_LABELS[t]}</Text>
-                  <Text style={styles.typeDesc}>{TYPE_DESC[t]}</Text>
+                  <Text style={styles.typeLabel}>{c.label}</Text>
+                  <Text style={styles.typeDesc}>{c.desc}</Text>
                 </View>
               </Pressable>
             );

@@ -21,8 +21,8 @@ import { supabase } from "@/lib/supabase";
 import { OTHER_TEXT_MAX, type OptionKind, type QuestionType, SCALE_LABELS } from "@/lib/surveyDraft";
 
 type Option = { id: number; sort_order: number; text: string; kind: OptionKind };
-// required: false면 비워도 되는 주관식 (2026-11-10)
-type Question = { id: number; type: QuestionType; text: string; required: boolean; options: Option[] };
+// required: false면 비워도 되는 문항 (2026-11-10 주관식 → 2026-11-14 모든 종류) · long: 긴 주관식(여러 줄) / 짧은(한 줄)
+type Question = { id: number; type: QuestionType; text: string; required: boolean; long: boolean; options: Option[] };
 // 문항 하나의 답: 고르기는 optionIds(+ 기타를 골랐으면 otherText), 척도는 scale(1~5), 주관식은 text
 type Answer = { optionIds?: number[]; otherText?: string; scale?: number; text?: string };
 // 화면 위에 보여 줄 설문 정보 (제목·예상 시간·보상)
@@ -46,7 +46,7 @@ const CANNOT_CONTINUE = ["already_responded", "survey_closed", "survey_full", "n
 async function fetchQuestions(surveyId: number): Promise<Question[]> {
   const { data } = await supabase
     .from("questions")
-    .select("id, sort_order, type, text, is_required, shuffle_options, question_options(id, sort_order, text, kind)")
+    .select("id, sort_order, type, text, is_required, shuffle_options, long_text, question_options(id, sort_order, text, kind)")
     .eq("survey_id", surveyId)
     .order("sort_order");
 
@@ -59,6 +59,7 @@ async function fetchQuestions(surveyId: number): Promise<Question[]> {
       type: q.type as QuestionType,
       text: q.text,
       required: q.is_required !== false,
+      long: q.long_text !== false,
       options: [...(q.shuffle_options ? shuffled(normal) : normal), ...special],
     };
   });
@@ -89,9 +90,16 @@ async function fetchSurveyInfo(surveyId: number): Promise<SurveyInfo | null> {
 }
 
 // 이 문항에 답을 다 했는지 ([다음] 버튼 활성 조건)
-// 선택 주관식은 비워도 된다. 기타를 골랐으면 글을 적어야 한다
+// 필수가 아닌 문항은 비워도 된다 (고른 게 없거나 글이 비었으면 통과). 기타를 골랐으면 글을 적어야 한다
+function isEmptyAnswer(q: Question, a: Answer | undefined): boolean {
+  if (!a) return true;
+  if (q.type === "scale") return a.scale === undefined;
+  if (q.type === "text") return (a.text ?? "").trim() === "";
+  return (a.optionIds?.length ?? 0) === 0;
+}
+
 function isAnswered(q: Question, a: Answer | undefined): boolean {
-  if (q.type === "text" && !q.required) return true;
+  if (!q.required && isEmptyAnswer(q, a)) return true;
   if (!a) return false;
   if (pickedOther(q, a) && (a.otherText ?? "").trim().length < 1) return false;
   if (q.type === "single") return a.optionIds?.length === 1;
@@ -100,9 +108,10 @@ function isAnswered(q: Question, a: Answer | undefined): boolean {
   return (a.text ?? "").trim().length >= 1;
 }
 
-// submit_response에 보낼 형식 (docs/DB.md "submit_response 답 형식"). 비운 선택 주관식은 text_value ""
+// submit_response에 보낼 형식 (docs/DB.md "submit_response 답 형식"). 비운 선택 문항: 주관식 text_value "" · 고르기 option_ids [] · 척도 scale_value 없음
 function toRpcAnswer(q: Question, a: Answer | undefined) {
-  if (q.type === "scale") return { question_id: q.id, scale_value: a?.scale };
+  if (q.type === "scale") return a?.scale === undefined ? { question_id: q.id } : { question_id: q.id, scale_value: a.scale };
+  if (q.type !== "text" && isEmptyAnswer(q, a)) return { question_id: q.id, option_ids: [] };
   if (q.type === "text") return { question_id: q.id, text_value: (a?.text ?? "").trim() };
   return pickedOther(q, a)
     ? { question_id: q.id, option_ids: a?.optionIds, other_text: (a?.otherText ?? "").trim() }
@@ -186,7 +195,9 @@ export default function SurveyRespond() {
   // 기타에 적은 글은 보기를 바꿔도 남겨 둔다 (다시 기타를 고르면 그대로)
   const toggleOption = (optionId: number) => {
     if (question.type === "single") {
-      setAnswer({ ...answer, optionIds: [optionId] });
+      // 필수가 아닌 문항은 고른 보기를 다시 누르면 풀린다 (건너뛰기)
+      const again = !question.required && answer?.optionIds?.[0] === optionId;
+      setAnswer({ ...answer, optionIds: again ? [] : [optionId] });
       return;
     }
     // 여러 개 고르기: 해당 없음은 혼자만 (고르면 다른 보기가 풀리고, 다른 보기를 고르면 해당 없음이 풀린다)
@@ -335,7 +346,7 @@ export default function SurveyRespond() {
                     <Pressable
                       key={v}
                       style={({ pressed }) => [styles.scaleButton, on && styles.scaleButtonOn, pressed && styles.pressed]}
-                      onPress={() => setAnswer({ scale: v })}
+                      onPress={() => setAnswer(!question.required && on ? {} : { scale: v })}
                       accessibilityRole="radio"
                       accessibilityState={{ checked: on }}
                       accessibilityLabel={`${v}점, ${SCALE_LABELS[i]}`}
@@ -356,13 +367,15 @@ export default function SurveyRespond() {
 
           {question.type === "text" && (
             <View style={styles.textBox}>
+              {/* 짧은 주관식은 한 줄 입력, 긴 주관식은 큰 상자 (2026-11-14) */}
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, !question.long && styles.textInputShort]}
                 value={answer?.text ?? ""}
                 onChangeText={(text) => setAnswer({ text })}
                 placeholder="답을 입력해 주세요"
                 maxLength={textMax}
-                multiline
+                multiline={question.long}
+                returnKeyType={question.long ? "default" : "done"}
               />
               <Text style={[styles.hint, styles.counter]}>
                 {(answer?.text ?? "").length} / {textMax}자
@@ -557,6 +570,9 @@ const styles = StyleSheet.create({
     fontSize: fontSize.body,
     color: colors.text,
     textAlignVertical: "top",
+  },
+  textInputShort: {
+    minHeight: 0,
   },
   counter: {
     textAlign: "right",

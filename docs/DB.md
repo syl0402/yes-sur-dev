@@ -60,6 +60,7 @@
 | `20261107000007_purge_cron.sql` | `pg_cron` 켜고 매일 한국 새벽 4시 `purge_expired_personal_data()` (작업 이름 `purge-expired-personal-data`) | 2026-11-07 |
 | `20261107000006_reward_contacts.sql` | 설문 보상 연락처: `survey_rewards`(작성자 보상 안내 2~300자 + 동의 시각) · `reward_contacts`(휴대폰, (설문, 회원) 기본 키, **앱 직접 접근 불가**) · `set_survey_reward`·`submit_reward_contact`(confirmed 응답자만, 동의 필수)·`has_my_reward_contact`·`get_reward_contacts`(작성자만, 번호만 무작위 순서)·`clear_reward_contacts`, `reward_contact_keep_days` 30 | 2026-11-07 |
 | `20261107000003~05_partnership*.sql` | 제휴·광고 문의: `partnership_inquiries`(담당자 정보, 본인만 읽기) · `send_partnership_inquiry` · 알게 된 경로 필수(store·friend·sns·community·search·school·other, 기타는 직접 입력) · `partnership_keep_days` 365 · `purge_expired_personal_data()` | 2026-11-07 |
+| `20261114000001_question_required_long.sql` | 필수 끄기를 모든 문항 종류로 (`questions_required_text_only` 제약 삭제, 확인 문항은 늘 필수) · 짧은/긴 주관식 `questions.long_text`(기본 true) · `create_survey`(required·long) · `submit_response`(비운 고르기 `option_ids []`·척도 값 없음 허용) · `get_survey_for_copy`(long) | 2026-11-14 |
 | `20261112000005_tag_suggestions.sql` | 카테고리별 추천 태그 `category_tag_suggestions`(카테고리·태그·순서, 읽기만) + 시안 추천 목록 8×6 | 2026-11-12 |
 | `20261107000002_survey_tags_grant.sql` | 태그 표 읽기 허가 (`grant select … to authenticated`). **새 표는 grant가 따로 필요** — 빠지면 앱에서 빈 목록 | 2026-11-07 |
 | `20261107000001_survey_tags.sql` | 설문 태그: `tags`(운영자 목록) · `survey_tags`(설문↔태그, 기본 키로 중복 방지), `set_survey_tags()`, `survey_tag_max` 3, `get_hub_list`에 `tags`, 첫 태그 20개(임시) | 2026-11-07 |

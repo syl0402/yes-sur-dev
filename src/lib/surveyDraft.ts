@@ -21,8 +21,10 @@ export type DraftQuestion = {
   // 단일·복수 선택에서만 쓴다
   options: string[];
   // 문항 옵션 (2026-11-10, 예전 임시저장에는 없음 → 없으면 기본값)
-  // required: 주관식만 끌 수 있다 (기본 true) / shuffle·none·other: 고르기 문항만 (기본 false)
+  // required: 모든 문항 (기본 true, 2026-11-14 전에는 주관식만) / shuffle·none·other: 고르기 문항만 (기본 false)
   required?: boolean;
+  // 주관식만: true(기본) = 긴 주관식(여러 줄) · false = 짧은 주관식(한 줄) (2026-11-14)
+  long?: boolean;
   shuffle?: boolean;
   // 보기 맨 아래 "해당 없음" · "기타 (직접 입력)" (문구는 서버가 정한다)
   none?: boolean;
@@ -90,6 +92,12 @@ export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
   scale: "5점 척도",
   text: "주관식",
 };
+
+// 주관식 이름: 짧은(한 줄) · 긴(여러 줄) (2026-11-14)
+export function questionTypeLabel(q: { type: QuestionType; long?: boolean }): string {
+  if (q.type === "text") return q.long === false ? "짧은 주관식" : "긴 주관식";
+  return QUESTION_TYPE_LABELS[q.type];
+}
 
 // 5점 척도 보기 (서버 주의 문항과 같은 표현)
 export const SCALE_LABELS = ["전혀 아니에요", "아니에요", "보통이에요", "그래요", "매우 그래요"];
@@ -271,11 +279,14 @@ export function toRpcQuestions(d: SurveyDraft) {
           type: q.type,
           text: q.text.trim(),
           options: q.options.map((o) => o.trim()),
+          required: q.required !== false,
           shuffle: q.shuffle === true,
           none: q.none === true,
           other: q.other === true,
         }
-      : { type: q.type, text: q.text.trim(), required: q.type !== "text" || q.required !== false },
+      : q.type === "text"
+        ? { type: q.type, text: q.text.trim(), required: q.required !== false, long: q.long !== false }
+        : { type: q.type, text: q.text.trim(), required: q.required !== false },
   );
 }
 
@@ -308,6 +319,7 @@ export async function fetchSurveyAsDraft(surveyId: number): Promise<SurveyDraft 
         text: string;
         options: string[];
         required?: boolean;
+        long?: boolean;
         shuffle?: boolean;
         none?: boolean;
         other?: boolean;
@@ -318,6 +330,7 @@ export async function fetchSurveyAsDraft(surveyId: number): Promise<SurveyDraft 
       text: q.text,
       options: q.options,
       required: q.required,
+      long: q.long,
       shuffle: q.shuffle,
       none: q.none,
       other: q.other,
