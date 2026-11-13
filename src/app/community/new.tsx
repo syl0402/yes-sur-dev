@@ -1,5 +1,5 @@
 // ys-142 글 만들기 · F-603 (밸런스 · 나만 그래? · 골라 줘 · 설문 홍보)
-import { Stack, router } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
@@ -22,7 +22,9 @@ const PICK_MAX_OPTIONS = 4;
 const KINDS = (Object.keys(KIND_LABELS) as PostKind[]).map((k) => ({ value: k, label: KIND_LABELS[k] }));
 
 export default function NewPost() {
-  const [kind, setKind] = useState<PostKind>("balance");
+  // ?promo=설문번호 로 들어오면 그 설문 홍보글로 시작 (등록 완료 화면에서, 2026-11-14)
+  const { promo } = useLocalSearchParams<{ promo?: string }>();
+  const [kind, setKind] = useState<PostKind>(promo ? "promo" : "balance");
   const [question, setQuestion] = useState("");
   const [body, setBody] = useState("");
   const [options, setOptions] = useState<string[]>(["", ""]);
@@ -43,9 +45,10 @@ export default function NewPost() {
     supabase.rpc("get_promotable_surveys").then(({ data }) => {
       const list = (data as { id: number; title: string }[] | null) ?? [];
       setMySurveys(list);
-      setSurveyId(list[0]?.id ?? null);
+      const wanted = list.find((s) => String(s.id) === promo);
+      setSurveyId(wanted?.id ?? list[0]?.id ?? null);
     });
-  }, []);
+  }, [promo]);
 
   const isPromo = kind === "promo";
   const needsOptions = kind !== "relate" && !isPromo;

@@ -4,17 +4,7 @@ import { Image } from "expo-image";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import Animated, {
-  Easing,
-  FadeInUp,
-  ZoomIn,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withDelay,
-  withSequence,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { FadeInUp, ZoomIn, useReducedMotion } from "react-native-reanimated";
 
 import AppIcon from "@/components/AppIcon";
 import RewardContactForm from "@/components/RewardContactForm";
@@ -22,6 +12,7 @@ import SurveyRowCard from "@/components/SurveyRowCard";
 import BottomBar from "@/components/ui/BottomBar";
 import BottomSheet from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
+import Hop from "@/components/ui/Hop";
 import { Text } from "@/components/ui/Text";
 import { uiIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
@@ -226,27 +217,6 @@ export default function SurveyDone() {
       )}
     </View>
   );
-}
-
-// 캐릭터 한 번 콩 (위로 26 → 내려와 살짝 눌림 → 작게 한 번 더). 동작 줄이기면 가만히
-function Hop({ children }: { children: React.ReactNode }) {
-  const reduce = useReducedMotion();
-  const y = useSharedValue(0);
-  useEffect(() => {
-    if (reduce) return;
-    const ease = Easing.out(Easing.quad);
-    y.value = withDelay(
-      100,
-      withSequence(
-        withTiming(-26, { duration: 220, easing: ease }),
-        withTiming(0, { duration: 230, easing: Easing.in(Easing.quad) }),
-        withTiming(-10, { duration: 180, easing: ease }),
-        withTiming(0, { duration: 270, easing: Easing.in(Easing.quad) }),
-      ),
-    );
-  }, [reduce, y]);
-  const style = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }] }));
-  return <Animated.View style={style}>{children}</Animated.View>;
 }
 
 // 내 포인트: 적립 전 → 적립 후로 숫자가 올라간다 (0.7초 뒤 시작, 약 0.6초). 동작 줄이기면 바로 최종값

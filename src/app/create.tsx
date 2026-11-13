@@ -294,15 +294,16 @@ export default function CreateSurvey() {
       await supabase.rpc("set_survey_show_nickname", { p_survey_id: surveyId, p_show: true });
     }
 
-    // 등록됐으니 임시저장은 지운다. 작성 화면을 내 설문 상세로 교체 (뒤로 가기로 돌아오지 않게)
+    // 등록됐으니 임시저장은 지운다. 작성 화면을 등록 완료 화면으로 교체 (뒤로 가기로 돌아오지 않게, 2026-11-14)
     deleteDraft(setup.userId, draftId);
     allowLeave();
-    router.replace({ pathname: "/survey/[id]", params: { id: String(surveyId) } });
-    showNotice(
-      "등록했어요",
-      "응답이 모이면 마이 탭 '내가 올린 설문'에서 볼 수 있어요." + (tagFailed ? "\n태그는 붙이지 못했어요." : "") +
-        (rewardFailed ? "\n보상 안내는 저장하지 못했어요." : ""),
-    );
+    const warn = [tagFailed ? "태그는 붙이지 못했어요." : "", rewardFailed ? "보상 안내는 저장하지 못했어요." : ""]
+      .filter(Boolean)
+      .join(" ");
+    router.replace({
+      pathname: "/survey/created",
+      params: { id: String(surveyId), target: draft.target, ...(warn ? { warn } : {}) },
+    });
   };
 
   const goNext = () => {
