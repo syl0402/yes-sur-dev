@@ -128,6 +128,9 @@ export const uiIcons = {
   // 데이터 허브 열람 전 잠긴 인사이트·문항 결과 (2026-11-14)
   lock: "lock-closed",
   insight: "bulb-outline",
+  // 결과 화면 아래 고정 바 [출처] [공유] (2026-11-14)
+  cite: "copy-outline",
+  share: "share-social-outline",
 } satisfies Record<string, IconName>;
 
 // 결과 "핵심 인사이트" 아이콘 (2026-11-10, 이모지 → 선 아이콘). 키는 인사이트 문장을 만드는 쪽의 이모지

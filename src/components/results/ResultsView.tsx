@@ -1,20 +1,16 @@
-import * as Sharing from "expo-sharing";
-import { type ComponentRef, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { captureRef } from "react-native-view-shot";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import CompositionChart from "@/components/results/CompositionChart";
 import InsightCard from "@/components/results/InsightCard";
 import QuestionResult, { Bar, QuestionHeader, percent, type QuestionStats } from "@/components/results/QuestionResult";
-import ShareCard, { type ShareHero } from "@/components/results/ShareCard";
-import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Segmented from "@/components/ui/Segmented";
 import SelectButton from "@/components/ui/SelectButton";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
-import { formatDate, formatPoints, formatShortDate } from "@/lib/format";
+import { formatPoints, formatShortDate } from "@/lib/format";
 import { type CrossResults, type FullResults, GROUP_DIMS, type Group, type GroupDim, sortGroups } from "@/lib/hub";
 import { showNotice } from "@/lib/notice";
 import { buildInsights, formatSeconds } from "@/lib/resultSummary";
@@ -55,6 +51,7 @@ type Props = {
 };
 
 // 전체 결과 (ys-131 열람 후 · ys-121 등록자): 핵심 인사이트 → 탭 [문항별 결과 | 응답자 | 조사 정보] (2026-11-01 정리, 2026-11-10 나눠 보기·그룹 막대 정리)
+// 결과 카드 공유는 아래 고정 바 [공유] → ShareSheet (2026-11-14)
 // 출처 복사·집계 CSV는 화면 아래 고정 바(ResultsActionBar)로 (2026-11-07)
 export default function ResultsView({ surveyId, full, title, questions = full.overall, showEarnings = true }: Props) {
   const [tab, setTab] = useState<Tab>("questions");
@@ -62,9 +59,6 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
   // 교차 분석: 기준 문항 · 불러온 결과 (null = 불러오는 중)
   const [crossId, setCrossId] = useState<number | null>(null);
   const [cross, setCross] = useState<CrossResults | null>(null);
-  // 공유 이미지로 찍을 카드 (화면 밖에 그려 둔다)
-  const shareRef = useRef<ComponentRef<typeof View>>(null);
-  const [sharing, setSharing] = useState(false);
   // 신뢰도 기준·소표본 기준 (point_rules) · 응답 대상
   const [rules, setRules] = useState<Record<string, number>>({});
   const [audience, setAudience] = useState<"all" | "campus" | null>(null);
@@ -81,8 +75,6 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
 
   if (full.total === 0) return <Text style={styles.muted}>결과에 반영된 응답이 없어요.</Text>;
 
-  // 숫자 카드용 짧은 기간 "10.16~10.23"
-  const shortPeriod = `${formatDate(full.started_at).slice(5)}~${formatDate(full.ended_at).slice(5)}`;
   // 기준으로 쓸 수 있는 문항 (하나 고르기·척도)
   const crossable = full.overall.map((q, index) => ({ q, index })).filter(({ q }) => q.type === "single" || q.type === "scale");
 
@@ -103,49 +95,10 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
     full.total >= rules.trust_min_responses &&
     (full.pass_rate === null || full.pass_rate >= (rules.trust_min_pass_rate ?? 1) * 100);
   const insights = buildInsights(full);
-  // 공유 카드 큰 숫자: 하나 고르기 문항 중 1위 비율이 가장 높은 것
-  const hero = full.overall.reduce<ShareHero | null>((best, q) => {
-    if (q.type !== "single" || q.answered === 0) return best;
-    const top = [...q.options].sort((a, b) => b.count - a.count)[0];
-    const pct = top ? percent(top.count, q.answered) : 0;
-    return top && (!best || pct > best.pct) ? { pct, option: top.text, question: q.text } : best;
-  }, null);
-  // 큰 숫자와 같은 내용(압도적 답)은 목록에서 빼고 최대 3개
-  const shareInsights = insights.filter((it) => !(hero && it.title.includes(`‘${hero.option}’`))).slice(0, 3);
-
-  // 결과 카드를 이미지로 만들어 공유 창 열기 (웹 미리보기에서는 버튼을 숨김)
-  const shareImage = async () => {
-    if (!shareRef.current) return;
-    setSharing(true);
-    try {
-      const uri = await captureRef(shareRef, { format: "png", quality: 1, result: "tmpfile" });
-      await Sharing.shareAsync(uri, { mimeType: "image/png", UTI: "public.png", dialogTitle: title });
-    } catch {
-      showNotice("이미지를 만들지 못했어요", "잠시 후 다시 시도해 주세요.");
-    } finally {
-      setSharing(false);
-    }
-  };
 
   return (
     <>
       <InsightCard insights={insights} />
-      {Platform.OS !== "web" && (
-        <Button title="결과 카드 이미지로 공유" variant="soft" onPress={shareImage} loading={sharing} />
-      )}
-      {/* 공유용 카드: 화면 밖에 그려 두고 이미지로 찍는다 */}
-      {Platform.OS !== "web" && (
-        <View style={styles.offscreen} pointerEvents="none">
-          <ShareCard
-            ref={shareRef}
-            title={title}
-            hero={hero}
-            insights={shareInsights}
-            total={full.total}
-            period={shortPeriod}
-          />
-        </View>
-      )}
 
       <Segmented options={TABS} value={tab} onChange={setTab} />
 
@@ -456,11 +409,6 @@ const styles = StyleSheet.create({
     borderColor: colors.borderStrong,
     borderStyle: "dashed",
     borderRadius: 1,
-  },
-  offscreen: {
-    position: "absolute",
-    left: -10000,
-    top: 0,
   },
   // 나눠 보기 칩 (고르면 진한 남색)
   dimRow: {
