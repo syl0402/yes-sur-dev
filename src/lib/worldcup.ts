@@ -26,6 +26,8 @@ export type Worldcup = {
 // get_worldcup_result
 export type WorldcupResult = {
   plays: number;
+  // 내가 첫 판에서 우승으로 고른 후보 id (공유 이미지용, 2026-11-14)
+  my_winner?: number | null;
   ranking: {
     id: number;
     name: string;

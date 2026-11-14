@@ -1,14 +1,20 @@
 // ys-144 오늘의 질문 상세 · F-604 (홈 카드에서. 답하기 + 계열·학년·성별·나이대 비교 + 댓글. 오늘 것만)
+// 2026-11-14 결과 공유 이미지: 답한 뒤 오른쪽 위 공유 아이콘 (밸런스 틀)
 import { Stack } from "expo-router";
 import { useCallback, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+
+import AppIcon from "@/components/AppIcon";
 
 import CommentComposer from "@/components/community/CommentComposer";
 import Comments from "@/components/community/Comments";
 import Chips from "@/components/create/Chips";
 import DailyCard, { type Daily } from "@/components/DailyCard";
 import { Bar, percent } from "@/components/results/QuestionResult";
+import { ShareBalance } from "@/components/share/CommunityShareCards";
+import SharePreviewSheet from "@/components/share/SharePreviewSheet";
 import { Text } from "@/components/ui/Text";
+import { uiIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { useCommentThread } from "@/hooks/useCommentThread";
 import { GROUP_DIMS, type GroupDim, sortGroups } from "@/lib/hub";
@@ -22,6 +28,9 @@ export default function TodayDaily() {
   const onLoaded = useCallback((d: Daily | null) => setDaily(d), []);
   // 댓글 (목록 + 아래 고정 입력칸)
   const thread = useCommentThread("daily", daily?.id ?? null);
+  // 공유 이미지 (답해서 결과를 볼 수 있을 때만)
+  const [shareOpen, setShareOpen] = useState(false);
+  const canShare = !!daily && daily.a !== null && daily.b !== null;
 
   return (
     <View style={styles.screen}>
@@ -31,7 +40,26 @@ export default function TodayDaily() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        <Stack.Screen options={{ title: "오늘의 질문" }} />
+        <Stack.Screen
+          options={{
+            title: "오늘의 질문",
+            headerRight: canShare
+              ? () => (
+                  <Pressable
+                    onPress={() => setShareOpen(true)}
+                    hitSlop={8}
+                    accessibilityLabel="결과 공유"
+                  >
+                    <AppIcon
+                      name={uiIcons.share}
+                      size={22}
+                      color={colors.text}
+                    />
+                  </Pressable>
+                )
+              : undefined,
+          }}
+        />
 
         <DailyCard onLoaded={onLoaded} />
 
@@ -82,6 +110,33 @@ export default function TodayDaily() {
         {daily && <Comments thread={thread} />}
       </ScrollView>
       {daily && <CommentComposer thread={thread} />}
+
+      {/* 공유 미리보기 창 (1080×1080 이미지) */}
+      {shareOpen && canShare && daily && (
+        <SharePreviewSheet
+          shape="square"
+          onClose={() => setShareOpen(false)}
+          renderCard={(width, ref) => (
+            <ShareBalance
+              ref={ref}
+              width={width}
+              data={{
+                kindLabel: "오늘의 질문",
+                question: daily.question,
+                labels: [daily.option_a, daily.option_b],
+                counts: [daily.a ?? 0, daily.b ?? 0],
+                mine:
+                  daily.my_choice === "a"
+                    ? 0
+                    : daily.my_choice === "b"
+                      ? 1
+                      : null,
+                suffix: true,
+              }}
+            />
+          )}
+        />
+      )}
     </View>
   );
 }

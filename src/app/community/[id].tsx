@@ -1,5 +1,6 @@
 // ys-141 커뮤니티 글 · F-602 (투표 + 결과 + 계열·학년·성별·나이대 비교 + 댓글, ⋯ 메뉴: 수정·삭제·신고)
 // 2026-11-14 커뮤니티 시안 ②: 큰 줄다리기 막대 · 그룹별로 보기는 데이터 허브와 같은 묶음 비교 막대 · 댓글에 고른 편 배지
+// 2026-11-14 결과 공유 이미지: 오른쪽 위 공유 아이콘 (결과를 볼 수 있을 때만, 설문 홍보 글 제외)
 import {
   Stack,
   router,
@@ -15,6 +16,7 @@ import {
   View,
 } from "react-native";
 
+import AppIcon from "@/components/AppIcon";
 import CommentComposer from "@/components/community/CommentComposer";
 import Comments from "@/components/community/Comments";
 import PostCard from "@/components/community/PostCard";
@@ -23,9 +25,15 @@ import GroupCompare, {
   FocusChips,
 } from "@/components/results/GroupCompare";
 import { percent } from "@/components/results/QuestionResult";
+import {
+  ShareBalance,
+  SharePick,
+} from "@/components/share/CommunityShareCards";
+import SharePreviewSheet from "@/components/share/SharePreviewSheet";
 import { Text } from "@/components/ui/Text";
+import { uiIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
-import type { Post } from "@/lib/community";
+import { KIND_LABELS, type Post } from "@/lib/community";
 import { showActions, showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
 import { GROUP_DIMS, type GroupDim, sortGroups } from "@/lib/hub";
@@ -61,6 +69,8 @@ export default function PostDetail() {
   useFocusEffect(load);
   // 댓글 (목록 + 아래 고정 입력칸). 댓글을 달면 글도 다시 불러온다 (댓글 수)
   const thread = useCommentThread("post", Number(id), load);
+  // 공유 미리보기 창
+  const [shareOpen, setShareOpen] = useState(false);
 
   if (post === undefined || typeof post === "string") {
     return (
@@ -76,6 +86,10 @@ export default function PostDetail() {
   }
 
   const p = post;
+  // 결과를 볼 수 있는 투표 글만 공유 (설문 홍보는 공유 이미지 없음)
+  const canShare = p.kind !== "promo" && p.counts !== null;
+  const isDuel =
+    (p.kind === "balance" || p.kind === "relate") && p.options.length === 2;
   const counts = post.counts ?? [];
   const total = counts.reduce((a, b) => a + b, 0);
   const topIndex = counts.length > 0 ? counts.indexOf(Math.max(...counts)) : 0;
@@ -143,9 +157,28 @@ export default function PostDetail() {
           options={{
             title: "커뮤니티",
             headerRight: () => (
-              <Pressable onPress={openMenu} hitSlop={8}>
-                <Text style={styles.menu}>⋯</Text>
-              </Pressable>
+              <View style={styles.headerButtons}>
+                {canShare && (
+                  <Pressable
+                    onPress={() => setShareOpen(true)}
+                    hitSlop={8}
+                    accessibilityLabel="결과 공유"
+                  >
+                    <AppIcon
+                      name={uiIcons.share}
+                      size={22}
+                      color={colors.text}
+                    />
+                  </Pressable>
+                )}
+                <Pressable
+                  onPress={openMenu}
+                  hitSlop={8}
+                  accessibilityLabel="더보기"
+                >
+                  <Text style={styles.menu}>⋯</Text>
+                </Pressable>
+              </View>
             ),
           }}
         />
@@ -221,6 +254,41 @@ export default function PostDetail() {
         />
       </ScrollView>
       <CommentComposer thread={thread} />
+
+      {/* 공유 미리보기 창 (1080×1080 이미지) */}
+      {shareOpen && canShare && p.counts && (
+        <SharePreviewSheet
+          shape="square"
+          onClose={() => setShareOpen(false)}
+          renderCard={(width, ref) =>
+            isDuel ? (
+              <ShareBalance
+                ref={ref}
+                width={width}
+                data={{
+                  kindLabel: KIND_LABELS[p.kind],
+                  question: p.question,
+                  labels: [p.options[0], p.options[1]],
+                  counts: [p.counts?.[0] ?? 0, p.counts?.[1] ?? 0],
+                  mine: p.my_choice,
+                  suffix: p.kind === "balance",
+                }}
+              />
+            ) : (
+              <SharePick
+                ref={ref}
+                width={width}
+                data={{
+                  question: p.question,
+                  options: p.options,
+                  counts: p.counts ?? [],
+                  mine: p.my_choice,
+                }}
+              />
+            )
+          }
+        />
+      )}
     </View>
   );
 }
@@ -239,6 +307,11 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: spacing.lg,
+    gap: spacing.md,
+  },
+  headerButtons: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.md,
   },
   menu: {

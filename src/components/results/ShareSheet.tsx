@@ -2,10 +2,8 @@
 // 공용 아래 창: [인사이트 카드 | 문항 카드] → 카드 미리보기 → (문항 카드면 문항 칩) → [이미지로 공유] [출처 복사]
 // 이미지는 화면 밖에 큰 카드를 그려 두고 찍는다 (스토리 1080×1920 · 정사각 1080×1080). 폰 공유 창에서 인스타·카톡·사진 저장을 고른다
 // 시안의 스토리 공유·이미지 저장·링크 복사 버튼은 테스트 후 검토 (새 부품·웹 공개 페이지 필요, docs/QUESTIONS.md)
-import * as Sharing from "expo-sharing";
 import { type ComponentRef, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { captureRef } from "react-native-view-shot";
 
 import { SquareCard, StoryCard } from "@/components/results/ResultCards";
 import BottomSheet from "@/components/ui/BottomSheet";
@@ -15,7 +13,7 @@ import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { copyCitation, shortPeriod } from "@/lib/citation";
 import type { FullResults } from "@/lib/hub";
-import { showNotice } from "@/lib/notice";
+import { shareViewAsImage } from "@/lib/shareImage";
 import { fetchRules } from "@/lib/rules";
 import { buildSquareData, buildStoryData, squareQuestions } from "@/lib/shareCards";
 
@@ -30,7 +28,6 @@ type Props = {
 
 // 이미지로 찍을 큰 카드의 화면 너비 (찍을 때 1080px로 맞춘다)
 const CAPTURE_WIDTH = 360;
-const OUT_WIDTH = 1080;
 
 export default function ShareSheet({ full, title, host, onClose }: Props) {
   const [kind, setKind] = useState<Kind>("story");
@@ -52,22 +49,9 @@ export default function ShareSheet({ full, title, host, onClose }: Props) {
   const period = shortPeriod(full);
 
   const share = async () => {
-    if (!captureRefView.current) return;
     setSharing(true);
-    try {
-      const uri = await captureRef(captureRefView, {
-        format: "png",
-        quality: 1,
-        result: "tmpfile",
-        width: OUT_WIDTH,
-        height: current === "story" ? (OUT_WIDTH * 16) / 9 : OUT_WIDTH,
-      });
-      await Sharing.shareAsync(uri, { mimeType: "image/png", UTI: "public.png", dialogTitle: title });
-    } catch {
-      showNotice("이미지를 만들지 못했어요", "잠시 후 다시 시도해 주세요.");
-    } finally {
-      setSharing(false);
-    }
+    await shareViewAsImage(captureRefView, current, title);
+    setSharing(false);
   };
 
   return (

@@ -13,6 +13,12 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import CommentComposer from "@/components/community/CommentComposer";
 import Comments from "@/components/community/Comments";
+import {
+  ShareWorldcup,
+  type WorldcupShare,
+  worldcupRankLine,
+} from "@/components/share/CommunityShareCards";
+import SharePreviewSheet from "@/components/share/SharePreviewSheet";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -59,6 +65,8 @@ export default function WorldcupScreen() {
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   // 댓글 (결과 화면에서만 목록 + 아래 고정 입력칸)
   const thread = useCommentThread("worldcup", Number(id));
+  // 결과 공유 미리보기 창 (스토리 1080×1920)
+  const [shareOpen, setShareOpen] = useState(false);
 
   const loadResult = useCallback(async () => {
     const { data } = await supabase.rpc("get_worldcup_result", {
@@ -150,6 +158,30 @@ export default function WorldcupScreen() {
     loadResult();
   };
 
+  // 공유 카드: 내 1위 = 방금 끝낸 판의 우승 후보, 없으면 서버가 준 내 첫 판 우승 후보
+  const myId = champion?.id ?? result?.my_winner ?? null;
+  const myIndex =
+    result && myId !== null
+      ? result.ranking.findIndex((r) => r.id === myId)
+      : -1;
+  const shareData: WorldcupShare | null =
+    result && myIndex >= 0
+      ? {
+          round: roundLabel(cup.size),
+          title: cup.title,
+          plays: result.plays,
+          mine: result.ranking[myIndex].name,
+          rankLine: worldcupRankLine(myIndex, result.ranking[myIndex].wins),
+          top: result.ranking
+            .slice(0, 3)
+            .map((r) => ({
+              name: r.name,
+              rate: r.win_rate,
+              mine: r.id === myId,
+            })),
+        }
+      : null;
+
   // 이전 선택 다시 하기
   const undo = () => {
     const prev = history[history.length - 1];
@@ -237,7 +269,21 @@ export default function WorldcupScreen() {
             )}
 
             <View style={styles.replay}>
-              <Button title="다시 하기" variant="outline" onPress={start} />
+              <View style={styles.replayRow}>
+                <Button
+                  title="다시 하기"
+                  variant="outline"
+                  onPress={start}
+                  style={styles.replayButton}
+                />
+                {shareData && (
+                  <Button
+                    title="결과 공유"
+                    onPress={() => setShareOpen(true)}
+                    style={styles.replayButton}
+                  />
+                )}
+              </View>
               <Text style={styles.replayNote}>
                 다시 하기는 결과에 반영되지 않아요
               </Text>
@@ -248,6 +294,17 @@ export default function WorldcupScreen() {
         )}
       </ScrollView>
       {phase === "result" && <CommentComposer thread={thread} />}
+
+      {/* 공유 미리보기 창 */}
+      {shareOpen && phase === "result" && shareData && (
+        <SharePreviewSheet
+          shape="story"
+          onClose={() => setShareOpen(false)}
+          renderCard={(width, ref) => (
+            <ShareWorldcup ref={ref} width={width} data={shareData} />
+          )}
+        />
+      )}
     </View>
   );
 }
@@ -301,6 +358,13 @@ const styles = StyleSheet.create({
     fontSize: fontSize.caption,
     fontWeight: "700",
     color: colors.warning,
+  },
+  replayRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  replayButton: {
+    flex: 1,
   },
   replay: {
     gap: spacing.xs,
