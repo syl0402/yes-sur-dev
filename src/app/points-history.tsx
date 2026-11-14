@@ -1,14 +1,19 @@
 // ys-159 포인트 내역 전체 · F-701 (마이 탭 "전체 내역 보기"에서. [전체 | 적립 | 사용] · 아래로 내리면 더 불러오기, 2026-11-10)
-import { Stack, useFocusEffect } from "expo-router";
+// 2026-11-14 마이 탭 시안 ③: 위에 지금 포인트 + 이번 달 모은·쓴, 맨 아래 "포인트는 어떻게 모으나요?"
+import { Stack, router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, type NativeScrollEvent, type NativeSyntheticEvent, ScrollView, StyleSheet, View } from "react-native";
 
 import LedgerList from "@/components/LedgerList";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import { Text } from "@/components/ui/Text";
 import TextTabs from "@/components/ui/TextTabs";
-import { colors, fontSize, spacing } from "@/constants/theme";
-import { fetchLedger, type LedgerItem, type LedgerKind } from "@/lib/ledger";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
+import { formatPoints } from "@/lib/format";
+import { fetchLedger, fetchMonthSummary, type LedgerItem, type LedgerKind } from "@/lib/ledger";
+import { supabase } from "@/lib/supabase";
 
 // 한 번에 불러오는 개수
 const PAGE = 30;
@@ -30,6 +35,8 @@ export default function PointsHistory() {
   const [items, setItems] = useState<LedgerItem[] | null>(null);
   const [done, setDone] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  // 위 요약: 지금 포인트 · 이번 달 모은 · 쓴
+  const [summary, setSummary] = useState<{ balance: number; earned: number; spent: number } | null>(null);
   // 탭을 빠르게 바꿨을 때 늦게 온 결과가 덮어쓰지 않게
   const requestId = useRef(0);
 
@@ -48,6 +55,13 @@ export default function PointsHistory() {
     useCallback(() => {
       loadFirst(kind);
     }, [loadFirst, kind]),
+  );
+  useFocusEffect(
+    useCallback(() => {
+      Promise.all([supabase.rpc("get_my_balance"), fetchMonthSummary()]).then(([{ data }, m]) =>
+        setSummary({ balance: typeof data === "number" ? data : 0, ...m }),
+      );
+    }, []),
   );
 
   const loadMore = async () => {
@@ -76,6 +90,25 @@ export default function PointsHistory() {
       scrollEventThrottle={200}
     >
       <Stack.Screen options={{ title: "포인트 내역" }} />
+
+      {/* 지금 포인트 + 이번 달 모은 · 쓴 */}
+      {summary && (
+        <Card>
+          <Text style={styles.label}>지금 내 포인트</Text>
+          <Text style={styles.balance}>{formatPoints(summary.balance)}</Text>
+          <View style={styles.month}>
+            <View style={[styles.monthBox, styles.monthEarn]}>
+              <Text style={styles.label}>이번 달 모은</Text>
+              <Text style={[styles.monthValue, styles.monthEarnValue]}>+{formatPoints(summary.earned)}</Text>
+            </View>
+            <View style={[styles.monthBox, styles.monthSpend]}>
+              <Text style={styles.label}>이번 달 쓴</Text>
+              <Text style={styles.monthValue}>-{formatPoints(summary.spent)}</Text>
+            </View>
+          </View>
+        </Card>
+      )}
+
       <TextTabs options={KINDS} value={kind} onChange={setKind} fill />
 
       {items === null ? (
@@ -92,6 +125,7 @@ export default function PointsHistory() {
               <Text style={styles.end}>내역을 모두 불러왔어요</Text>
             ) : null}
           </View>
+          {done && <Button title="포인트는 어떻게 모으나요?" variant="soft" onPress={() => router.push("/points")} />}
         </>
       )}
     </ScrollView>
@@ -110,6 +144,40 @@ const styles = StyleSheet.create({
   },
   loading: {
     marginTop: spacing.lg,
+  },
+  label: {
+    fontSize: fontSize.caption,
+    color: colors.iconStrong,
+  },
+  balance: {
+    fontSize: fontSize.hero,
+    fontWeight: "800",
+    color: colors.text,
+  },
+  month: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  monthBox: {
+    flex: 1,
+    gap: 2,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: radius.md,
+  },
+  monthEarn: {
+    backgroundColor: colors.primaryFaint,
+  },
+  monthSpend: {
+    backgroundColor: colors.surfaceSubtle,
+  },
+  monthValue: {
+    fontSize: fontSize.body,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  monthEarnValue: {
+    color: colors.primaryStrong,
   },
   footer: {
     alignItems: "center",
