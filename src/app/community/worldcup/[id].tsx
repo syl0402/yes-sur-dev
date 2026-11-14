@@ -1,33 +1,38 @@
 // ys-145 월드컵 · F-608 (시작 → 둘 중 하나 고르기 → 우승 → 랭킹·그룹 1위·댓글. 첫 판만 집계·포인트)
+// 2026-11-14 커뮤니티 시안 ⑤⑥③: 파랑/라임 대결 카드 · 고르면 0.4초 뒤 다음 대결 · 되돌리기 · 라운드 중간 화면 ·
+// 우승(꽃가루·마스코트) · 결과(시상대·전체 순위·그룹별 1위)
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { type ComponentRef, useCallback, useEffect, useRef, useState } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import Comments from "@/components/community/Comments";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
-import ProgressBar from "@/components/ui/ProgressBar";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
+import MatchView from "@/components/worldcup/MatchView";
+import ResultView from "@/components/worldcup/ResultView";
+import RoundBreak from "@/components/worldcup/RoundBreak";
+import WinView from "@/components/worldcup/WinView";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
-import { formatPoints } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
+import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
 import {
   type Bracket,
   type Candidate,
   type Worldcup,
   type WorldcupResult,
-  currentPair,
   pick,
   roundLabel,
   startBracket,
 } from "@/lib/worldcup";
 
-type Phase = "intro" | "play" | "win" | "result";
+// break: 라운드가 바뀔 때 중간 화면
+type Phase = "intro" | "play" | "break" | "win" | "result";
 
 export default function WorldcupScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -35,9 +40,16 @@ export default function WorldcupScreen() {
   const [cup, setCup] = useState<Worldcup | null | undefined>(undefined);
   const [phase, setPhase] = useState<Phase>("intro");
   const [bracket, setBracket] = useState<Bracket | null>(null);
+  // 되돌리기용: 고르기 전 대진들
+  const [history, setHistory] = useState<Bracket[]>([]);
+  // 중간 화면에 보여 줄 방금 끝난 라운드 후보 수
+  const [lastRound, setLastRound] = useState(0);
   const [champion, setChampion] = useState<Candidate | null>(null);
   const [reward, setReward] = useState(0);
   const [result, setResult] = useState<WorldcupResult | null>(null);
+  // 그룹별 1위를 보여 줄 최소 인원 (point_rules low_response_warning)
+  const [groupMin, setGroupMin] = useState(10);
+  const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
 
   const loadResult = useCallback(async () => {
     const { data } = await supabase.rpc("get_worldcup_result", { p_id: Number(id) });
@@ -45,6 +57,7 @@ export default function WorldcupScreen() {
   }, [id]);
 
   useEffect(() => {
+    fetchRules(["low_response_warning"]).then((r) => setGroupMin(r.low_response_warning ?? 10));
     supabase.rpc("get_worldcup", { p_id: Number(id) }).then(({ data, error }) => {
       if (error || !data) {
         setCup(null);
@@ -59,6 +72,11 @@ export default function WorldcupScreen() {
       }
     });
   }, [id, loadResult]);
+
+  // 화면이 바뀌면 맨 위로
+  useEffect(() => {
+    scroll.current?.scrollTo({ y: 0, animated: false });
+  }, [phase]);
 
   if (cup === undefined) {
     return (
@@ -79,6 +97,7 @@ export default function WorldcupScreen() {
 
   const start = () => {
     setBracket(startBracket(cup.candidates));
+    setHistory([]);
     setChampion(null);
     setReward(0);
     setPhase("play");
@@ -87,8 +106,16 @@ export default function WorldcupScreen() {
   const choose = async (side: 0 | 1) => {
     if (!bracket) return;
     const { bracket: next, champion: won } = pick(bracket, side);
+    setHistory((h) => [...h, bracket]);
     setBracket(next);
-    if (!won) return;
+    if (!won) {
+      // 라운드가 끝났으면 중간 화면 ("8강 진출!")
+      if (next.round.length < bracket.round.length) {
+        setLastRound(bracket.round.length);
+        setPhase("break");
+      }
+      return;
+    }
 
     setChampion(won);
     setPhase("win");
@@ -105,14 +132,24 @@ export default function WorldcupScreen() {
     loadResult();
   };
 
+  // 이전 선택 다시 하기
+  const undo = () => {
+    const prev = history[history.length - 1];
+    if (!prev) return;
+    setHistory((h) => h.slice(0, -1));
+    setBracket(prev);
+    setPhase("play");
+  };
+
   return (
     <ScrollView
+      ref={scroll}
       style={styles.screen}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="handled"
     >
-      <Stack.Screen options={{ title: "월드컵" }} />
+      <Stack.Screen options={{ title: phase === "result" ? "월드컵 결과" : "월드컵" }} />
 
       {phase === "intro" && (
         <Card style={styles.introCard}>
@@ -127,118 +164,50 @@ export default function WorldcupScreen() {
         </Card>
       )}
 
-      {phase === "play" && bracket && <Match bracket={bracket} size={cup.size} onPick={choose} />}
+      {phase === "play" && bracket && (
+        <MatchView bracket={bracket} onPick={choose} onUndo={history.length > 0 ? undo : undefined} />
+      )}
+
+      {phase === "break" && bracket && (
+        <RoundBreak from={lastRound} winners={bracket.round} onStart={() => setPhase("play")} onUndo={undo} />
+      )}
 
       {phase === "win" && champion && (
-        <View style={styles.win}>
-          <Text style={styles.trophy}>🏆</Text>
-          <Text style={styles.winName}>{champion.name}</Text>
-          <Text style={styles.muted}>우승!</Text>
-          {reward > 0 && (
-            <View style={styles.rewardPill}>
-              <Text style={styles.rewardText}>+{formatPoints(reward)}</Text>
-            </View>
-          )}
-          <Button title="다른 사람들은? 랭킹 보기" onPress={() => setPhase("result")} style={styles.winButton} />
-        </View>
+        <WinView
+          champion={champion}
+          title={cup.title}
+          size={cup.size}
+          result={result}
+          reward={reward}
+          onRanking={() => setPhase("result")}
+          onReplay={start}
+        />
       )}
 
       {phase === "result" && (
         <>
-          <Card>
+          <View style={styles.head}>
+            <View style={styles.headBadge}>
+              <Text style={styles.headBadgeText}>
+                {roundLabel(cup.size)}
+                {result ? ` · ${result.plays}명 참여` : ""}
+              </Text>
+            </View>
             <Text style={styles.title}>{cup.title}</Text>
-            <Text style={styles.muted}>
-              {roundLabel(cup.size)} · {result ? `${result.plays}명 참여` : "불러오는 중"}
-            </Text>
-          </Card>
+          </View>
 
-          {result && <Ranking result={result} />}
+          {result ? <ResultView result={result} groupMin={groupMin} /> : <ActivityIndicator color={colors.primary} />}
 
-          <Button title="다시 하기 (결과에 안 들어가요)" variant="outline" onPress={start} />
+          <View style={styles.replay}>
+            <Button title="다시 하기" variant="outline" onPress={start} />
+            <Text style={styles.replayNote}>다시 하기는 결과에 반영되지 않아요</Text>
+          </View>
 
           <SectionHeader title="댓글" />
           <Comments type="worldcup" id={cup.id} />
         </>
       )}
     </ScrollView>
-  );
-}
-
-// 둘 중 하나 고르기 (위·아래 큰 카드)
-function Match({ bracket, size, onPick }: { bracket: Bracket; size: number; onPick: (side: 0 | 1) => void }) {
-  const [a, b] = currentPair(bracket);
-  const pairs = bracket.round.length / 2;
-  return (
-    <>
-      <View style={styles.matchTop}>
-        <Text style={styles.roundLabel}>{roundLabel(bracket.round.length)}</Text>
-        {pairs > 1 && (
-          <Text style={styles.muted}>
-            {bracket.pair + 1} / {pairs}
-          </Text>
-        )}
-      </View>
-      <ProgressBar value={bracket.matches.length / (size - 1)} />
-      <Choice name={a.name} onPress={() => onPick(0)} />
-      <Text style={styles.vs}>VS</Text>
-      <Choice name={b.name} onPress={() => onPick(1)} />
-    </>
-  );
-}
-
-function Choice({ name, onPress }: { name: string; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.choice, pressed && styles.choicePressed]}>
-      <Text style={styles.choiceText}>{name}</Text>
-    </Pressable>
-  );
-}
-
-// 랭킹: 우승 비율 · 1:1 승률 + 계열별·성별 1위
-function Ranking({ result }: { result: WorldcupResult }) {
-  const majors = result.groups.filter((g) => g.dim === "major");
-  const genders = result.groups.filter((g) => g.dim === "gender");
-  return (
-    <>
-      <SectionHeader title="랭킹" subtitle="우승 비율 순 · 1:1 승률은 맞붙었을 때 이긴 비율" />
-      <Card>
-        <View style={styles.rankHead}>
-          <Text style={[styles.headText, styles.rankNo]}>순위</Text>
-          <Text style={[styles.headText, styles.rankName]}>후보</Text>
-          <Text style={[styles.headText, styles.rankNum]}>우승</Text>
-          <Text style={[styles.headText, styles.rankNum]}>1:1 승률</Text>
-        </View>
-        {result.ranking.map((r, i) => (
-          <View key={r.id} style={styles.rankRow}>
-            <Text style={[styles.rankNo, styles.rankNoText, i === 0 && styles.first]}>{i + 1}</Text>
-            <View style={styles.rankName}>
-              <Text style={[styles.rankNameText, i === 0 && styles.first]} numberOfLines={1}>
-                {r.name}
-              </Text>
-              <ProgressBar value={r.win_rate / 100} height={4} />
-            </View>
-            <Text style={[styles.rankNum, styles.rankNumText]}>{r.win_rate}%</Text>
-            <Text style={[styles.rankNum, styles.rankNumText]}>{r.match_rate}%</Text>
-          </View>
-        ))}
-      </Card>
-
-      {(majors.length > 0 || genders.length > 0) && (
-        <>
-          <SectionHeader title="그룹별 1위" subtitle="인원이 적은 그룹은 숨겨요" />
-          <Card>
-            {[...majors, ...genders].map((g) => (
-              <View key={`${g.dim}:${g.label}`} style={styles.groupRow}>
-                <Text style={styles.groupLabel}>{g.label}</Text>
-                <Text style={[styles.groupTop, g.hidden && styles.muted]}>
-                  {g.hidden ? "인원이 적어 숨김" : `${g.top} · ${g.n}명`}
-                </Text>
-              </View>
-            ))}
-          </Card>
-        </>
-      )}
-    </>
   );
 }
 
@@ -276,136 +245,28 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     color: colors.textMuted,
   },
-  matchTop: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-  },
-  roundLabel: {
-    fontSize: fontSize.title,
-    fontWeight: "800",
-    color: colors.primary,
-  },
-  choice: {
-    minHeight: 140,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.lg,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    ...shadow.card,
-  },
-  choicePressed: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primarySoft,
-  },
-  choiceText: {
-    fontSize: fontSize.title,
-    fontWeight: "800",
-    color: colors.text,
-    textAlign: "center",
-  },
-  vs: {
-    fontSize: fontSize.body,
-    fontWeight: "800",
-    color: colors.textSubtle,
-    textAlign: "center",
-  },
-  win: {
-    alignItems: "center",
+  head: {
     gap: spacing.sm,
-    paddingVertical: spacing.xl,
   },
-  trophy: {
-    fontSize: 72,
-  },
-  winName: {
-    fontSize: fontSize.hero,
-    fontWeight: "800",
-    color: colors.primary,
-    textAlign: "center",
-  },
-  rewardPill: {
-    marginTop: spacing.sm,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
+  // "16강 · n명 참여" (시안: 연노랑 바탕 + 갈색 글자)
+  headBadge: {
+    alignSelf: "flex-start",
+    paddingVertical: 4,
+    paddingHorizontal: 9,
     borderRadius: radius.pill,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.warningSoft,
   },
-  rewardText: {
-    fontSize: fontSize.body,
-    fontWeight: "800",
-    color: colors.onAccent,
-  },
-  winButton: {
-    alignSelf: "stretch",
-    marginTop: spacing.lg,
-  },
-  rankHead: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingBottom: spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headText: {
+  headBadgeText: {
     fontSize: fontSize.caption,
-    color: colors.textMuted,
+    fontWeight: "700",
+    color: colors.warning,
   },
-  rankRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingVertical: spacing.xs,
+  replay: {
+    gap: spacing.xs,
   },
-  rankNo: {
-    width: 28,
+  replayNote: {
+    fontSize: fontSize.caption,
+    color: colors.iconStrong,
     textAlign: "center",
-  },
-  rankNoText: {
-    fontSize: fontSize.body,
-    fontWeight: "800",
-    color: colors.textSubtle,
-  },
-  rankName: {
-    flex: 1,
-    gap: 4,
-  },
-  rankNameText: {
-    fontSize: fontSize.body,
-    fontWeight: "600",
-    color: colors.text,
-  },
-  first: {
-    color: colors.primary,
-  },
-  rankNum: {
-    width: 56,
-    textAlign: "right",
-  },
-  rankNumText: {
-    fontSize: fontSize.small,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  groupRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: spacing.md,
-    paddingVertical: 2,
-  },
-  groupLabel: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
-  },
-  groupTop: {
-    flexShrink: 1,
-    fontSize: fontSize.small,
-    fontWeight: "700",
-    color: colors.text,
-    textAlign: "right",
   },
 });

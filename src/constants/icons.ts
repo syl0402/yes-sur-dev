@@ -147,3 +147,10 @@ export const bookmarkIcons = {
   on: "fig-bookmark",
   off: "bookmark-outline",
 } satisfies Record<string, IconName>;
+
+// 월드컵 (2026-11-14 커뮤니티 시안): 고른 카드 체크 · 결과 시상대 트로피 · 이전 선택 되돌리기
+export const worldcupIcons = {
+  check: "checkmark",
+  trophy: "trophy",
+  undo: "arrow-undo",
+} satisfies Record<string, IconName>;
