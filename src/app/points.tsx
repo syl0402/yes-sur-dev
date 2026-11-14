@@ -1,6 +1,7 @@
 // ys-157 포인트 안내 · F-702 (모으는 법·쓰는 법·규칙. 숫자는 모두 point_rules에서)
 // 2026-11-09 정리: 설문 길이별 숫자(응답 보상·등록비)를 표 하나로 모으고, 모으기·쓰기 목록은 짧게
 // 2026-11-10: 카드·목록 줄을 앱 공통 모양(Card · ListRow)으로
+// 2026-11-14 마이 탭 시안 ⑧: 맨 위 연파랑 카드 안에 "지금 nP면 3분 이내 설문에 n명" (내 포인트 ÷ 3분 이내 1명당 등록비)
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
@@ -12,6 +13,7 @@ import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
 import { BAND_RULE_KEYS, BANDS } from "@/lib/pointBands";
 import { fetchRules } from "@/lib/rules";
+import { supabase } from "@/lib/supabase";
 
 const RULE_KEYS = [
   "welcome",
@@ -35,9 +37,12 @@ type Row = { label: string; value: string; note?: string };
 
 export default function PointsGuide() {
   const [r, setR] = useState<Record<string, number> | null>(null);
+  // 내 포인트 (단체·로그인 전이면 null → 계산 상자 숨김)
+  const [balance, setBalance] = useState<number | null>(null);
 
   useEffect(() => {
     fetchRules(RULE_KEYS).then(setR);
+    supabase.rpc("get_my_balance").then(({ data }) => setBalance(typeof data === "number" ? data : null));
   }, []);
 
   if (r === null) {
@@ -104,6 +109,14 @@ export default function PointsGuide() {
       <View style={styles.hero}>
         <Text style={styles.heroTitle}>응답 2번 = 내 설문 응답 1명</Text>
         <Text style={styles.heroText}>같은 길이의 설문이면, 등록비(1명당)는 응답 보상의 절반이에요.</Text>
+        {balance !== null && r.price_le3 > 0 && (
+          <View style={styles.calc}>
+            <Text style={styles.calcText}>
+              지금 <Text style={styles.calcStrong}>{formatPoints(balance)}</Text>면 3분 이내 설문에{" "}
+              <Text style={styles.calcBlue}>{Math.floor(balance / r.price_le3)}명</Text>을 모을 수 있어요
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* 설문 길이별 숫자를 한 표에 (2026-11-10: 이모지 소제목 → 작은 회색 소제목, 표는 연회색 상자) */}
@@ -188,6 +201,27 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     lineHeight: 19,
     color: colors.text,
+  },
+  // 내 포인트로 몇 명 모을 수 있는지 (흰 상자)
+  calc: {
+    marginTop: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: radius.md,
+    backgroundColor: colors.onPrimary,
+  },
+  calcText: {
+    fontSize: fontSize.label,
+    lineHeight: 21,
+    color: colors.textStrong,
+  },
+  calcStrong: {
+    fontWeight: "700",
+    color: colors.text,
+  },
+  calcBlue: {
+    fontWeight: "700",
+    color: colors.primaryStrong,
   },
   // 묶음: 작은 회색 제목 + 내용 (내 정보 화면과 같은 모양)
   group: {

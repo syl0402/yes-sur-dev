@@ -43,6 +43,8 @@ export type PendingFeedback = {
   body: string;
   screen: string | null;
   device: { os?: string; osVersion?: string; model?: string | null; appVersion?: string | null };
+  // 화면 캡처 경로 (최대 3장, 2026-11-14)
+  image_paths?: string[] | null;
   created_at: string;
 };
 
@@ -50,7 +52,7 @@ export type PendingFeedback = {
 export const FEEDBACK_CATEGORY_LABELS: Record<string, string> = {
   bug: "버그·오류",
   inconvenience: "불편해요",
-  idea: "제안",
+  idea: "바라는 기능",
   other: "기타",
 };
 

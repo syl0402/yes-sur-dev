@@ -1,7 +1,7 @@
 // ys-180 운영자 화면 · F-704 (팀 운영자 계정만. [신고 | 의견 | 단체] 처리, 2026-10-31)
 import { Stack, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Linking, ScrollView, StyleSheet, View } from "react-native";
 
 import LinkedText from "@/components/LinkedText";
 import Badge, { type BadgeTone } from "@/components/ui/Badge";
@@ -22,6 +22,7 @@ import {
 } from "@/lib/admin";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
+import { feedbackImageUrl } from "@/lib/feedbackImage";
 import { formatDate } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
@@ -239,6 +240,23 @@ export default function Admin() {
                   .filter(Boolean)
                   .join("\n")}
               </Text>
+              {(f.image_paths ?? []).length > 0 && (
+                <View style={styles.captures}>
+                  {(f.image_paths ?? []).map((path, i) => (
+                    <Button
+                      key={path}
+                      title={`캡처 ${i + 1}`}
+                      variant="outline"
+                      small
+                      onPress={async () => {
+                        const url = await feedbackImageUrl(path);
+                        if (url) Linking.openURL(url);
+                        else showNotice("캡처를 열지 못했어요", "잠시 후 다시 시도해 주세요.");
+                      }}
+                    />
+                  ))}
+                </View>
+              )}
               <Button
                 title="답변 쓰기"
                 variant="soft"
@@ -332,6 +350,11 @@ const styles = StyleSheet.create({
   muted: {
     fontSize: fontSize.small,
     color: colors.textMuted,
+  },
+  captures: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
   },
   feedbackBody: {
     fontSize: fontSize.body,

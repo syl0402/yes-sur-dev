@@ -1,15 +1,16 @@
 // ys-156 친구 초대 · F-905 (내 초대 코드 복사·공유 + 가입 직후 친구 코드 입력, 기간은 point_rules. 2026-11-10 화면 정리)
+// 2026-11-14 마이 탭 시안 ④: 파란 코드 카드 · 초대한 친구 · 받은 포인트 · 연두 "친구한테 코드 받았어요"(남은 일수) · 안내 3줄
 import * as Clipboard from "expo-clipboard";
 import { Stack, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, ScrollView, Share, StyleSheet, View } from "react-native";
 
 import { formStyles } from "@/components/create/formStyles";
-import PrimaryButton from "@/components/PrimaryButton";
+import Card from "@/components/ui/Card";
 import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
-import { formatDate, formatPoints } from "@/lib/format";
+import { formatPoints } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
@@ -34,12 +35,24 @@ export default function InviteScreen() {
   const [error, setError] = useState("");
   // 입력 기간(일)·한 달 최대 인원 (point_rules)
   const [rules, setRules] = useState<Record<string, number>>({});
+  // 초대로 받은 포인트 (내가 초대한 쪽으로 받은 것만)
+  const [earned, setEarned] = useState(0);
+  // 코드 입력 남은 일수 (마감일까지, 오늘 포함)
+  const [daysLeft, setDaysLeft] = useState(0);
 
   const load = useCallback(() => {
     supabase.rpc("get_my_invite").then(({ data, error: loadError }) => {
       setInvite(loadError ? errorMessage(loadError) : (data as Invite));
+      if (data) setDaysLeft(Math.max(0, Math.ceil((new Date((data as Invite).deadline).getTime() - Date.now()) / 86400000)));
     });
     fetchRules(["invite_window_days", "invite_monthly_max"]).then(setRules);
+    supabase
+      .from("point_ledger")
+      .select("amount")
+      .eq("status", "confirmed")
+      .eq("reason", "invite")
+      .eq("ref_id", "inviter")
+      .then(({ data }) => setEarned((data ?? []).reduce((sum, r) => sum + r.amount, 0)));
   }, []);
 
   useFocusEffect(load);
@@ -105,72 +118,92 @@ export default function InviteScreen() {
     >
       <Stack.Screen options={{ title: "친구 초대" }} />
 
-      {/* 맨 위: 무엇을 받는지 한눈에 (2026-11-10 정리) */}
+      {/* 맨 위: 무엇을 받는지 한눈에 */}
       <View style={styles.hero}>
-        <Text style={styles.heroTitle}>친구 초대하고{"\n"}함께 포인트 받기</Text>
+        <Text style={styles.heroTitle}>친구 초대하고{"\n"}같이 포인트 받기</Text>
         <Text style={styles.heroSub}>
-          친구가 내 코드를 입력하면 나는 <Text style={styles.heroStrong}>{formatPoints(invite.inviter_reward)}</Text>, 친구는{" "}
-          <Text style={styles.heroStrong}>{formatPoints(invite.invitee_reward)}</Text>를 받아요.
+          친구가 내 코드를 넣으면 나는 <Text style={styles.heroStrong}>{formatPoints(invite.inviter_reward)}</Text>, 친구는{" "}
+          <Text style={styles.heroStrong}>{formatPoints(invite.invitee_reward)}</Text>
         </Text>
       </View>
 
-      {/* 내 초대 코드: 연파랑 상자 + 복사(흰) · 공유(파랑) */}
-      <View style={styles.codeBox}>
-        <Text style={styles.codeLabel}>내 초대 코드</Text>
-        <Text style={styles.code} selectable>
-          {invite.code}
-        </Text>
-        <Text style={styles.invited}>지금까지 {invite.invited}명을 초대했어요</Text>
-        <View style={styles.buttons}>
-          <Pressable style={({ pressed }) => [styles.button, styles.copyButton, pressed && styles.pressed]} onPress={copy}>
-            <Text style={styles.copyText}>코드 복사</Text>
-          </Pressable>
-          <Pressable style={({ pressed }) => [styles.button, styles.shareButton, pressed && styles.pressed]} onPress={share}>
-            <Text style={styles.shareText}>공유하기</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      {invite.can_redeem && (
-        <View style={styles.group}>
-          <Text style={styles.groupTitle}>친구에게 받은 코드가 있나요?</Text>
-          <TextInput
-            style={formStyles.input}
-            value={code}
-            onChangeText={(t) => setCode(t.toUpperCase())}
-            placeholder="6자리 코드"
-            maxLength={CODE_LENGTH}
-            autoCapitalize="characters"
-            autoCorrect={false}
-          />
-          <Text style={formStyles.hint}>
-            가입 후 {rules.invite_window_days ?? ""}일 안에 한 번만 입력할 수 있어요 ({formatDate(invite.deadline)}까지)
+      <View style={styles.block}>
+        {/* 내 초대 코드: 파란 카드 + 복사(반투명) · 공유(흰) */}
+        <View style={styles.codeCard}>
+          <Text style={styles.codeLabel}>내 초대 코드</Text>
+          <Text style={styles.code} selectable>
+            {invite.code}
           </Text>
+          <View style={styles.buttons}>
+            <Pressable style={({ pressed }) => [styles.button, styles.copyButton, pressed && styles.pressed]} onPress={copy}>
+              <Text style={styles.copyText}>코드 복사</Text>
+            </Pressable>
+            <Pressable style={({ pressed }) => [styles.button, styles.shareButton, pressed && styles.pressed]} onPress={share}>
+              <Text style={styles.shareText}>공유하기</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* 초대한 친구 · 받은 포인트 */}
+        <Card style={styles.stats}>
+          <View style={styles.stat}>
+            <Text style={styles.statValue}>{invite.invited}명</Text>
+            <Text style={styles.statLabel}>초대한 친구</Text>
+          </View>
+          <View style={[styles.stat, styles.statLine]}>
+            <Text style={styles.statValue}>{formatPoints(earned)}</Text>
+            <Text style={styles.statLabel}>받은 포인트</Text>
+          </View>
+        </Card>
+      </View>
+
+      {/* 친구한테 받은 코드 입력 (가입 후 기간 안에, 한 번만) */}
+      {invite.can_redeem && (
+        <View style={styles.redeem}>
+          <View style={styles.redeemHead}>
+            <Text style={styles.redeemTitle}>친구한테 코드 받았어요</Text>
+            <Text style={styles.redeemDays}>{daysLeft}일 남음</Text>
+          </View>
+          <Text style={styles.redeemSub}>가입하고 {rules.invite_window_days ?? ""}일 안에 한 번만 넣을 수 있어요</Text>
+          <View style={styles.redeemRow}>
+            <TextInput
+              style={styles.redeemInput}
+              value={code}
+              onChangeText={(t) => setCode(t.toUpperCase())}
+              placeholder="코드 6자리"
+              maxLength={CODE_LENGTH}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              accessibilityLabel="친구 초대 코드"
+            />
+            <Pressable
+              style={({ pressed }) => [
+                styles.redeemButton,
+                code.trim().length !== CODE_LENGTH && styles.redeemButtonOff,
+                pressed && styles.pressed,
+              ]}
+              onPress={redeem}
+              disabled={code.trim().length !== CODE_LENGTH || sending}
+            >
+              <Text style={styles.redeemButtonText}>{sending ? "…" : "받기"}</Text>
+            </Pressable>
+          </View>
           {error !== "" && <Text style={formStyles.error}>{error}</Text>}
-          <PrimaryButton title="입력" onPress={redeem} disabled={code.trim().length !== CODE_LENGTH} loading={sending} />
         </View>
       )}
 
-      {/* 이렇게 초대해요: 선 없는 연회색 상자 (코드 입력 칸이 사라진 뒤에도 방법을 알 수 있게) */}
-      <View style={styles.group}>
-        <Text style={styles.groupTitle}>이렇게 초대해요</Text>
-        <View style={styles.howBox}>
-          {[
-            "공유하기로 친구에게 내 코드를 보내요",
-            `친구가 가입하고 ${rules.invite_window_days ?? ""}일 안에 마이 탭 > 친구 초대에서 코드를 입력해요`,
-            `나는 ${formatPoints(invite.inviter_reward)}, 친구는 ${formatPoints(invite.invitee_reward)}를 받아요`,
-          ].map((step, i) => (
-            <View key={i} style={styles.step}>
-              <View style={styles.stepNo}>
-                <Text style={styles.stepNoText}>{i + 1}</Text>
-              </View>
-              <Text style={styles.stepText}>{step}</Text>
-            </View>
-          ))}
-        </View>
+      {/* 코드를 넣을 수 없을 때 이유 한 줄 (가입 후 기간 지남 · 이미 넣음) */}
+      {!invite.can_redeem && (
+        <Text style={styles.redeemOff}>친구 코드는 가입하고 {rules.invite_window_days ?? ""}일 안에 한 번만 넣을 수 있어요.</Text>
+      )}
+
+      {/* 안내 */}
+      <View style={styles.notes}>
+        <Text style={styles.note}>· 친구가 가입하고 {rules.invite_window_days ?? ""}일 안에 코드를 넣어야 해요</Text>
         {rules.invite_monthly_max !== undefined && (
-          <Text style={styles.howNote}>포인트는 한 달에 {rules.invite_monthly_max}명까지 받을 수 있어요.</Text>
+          <Text style={styles.note}>· 포인트는 한 달에 {rules.invite_monthly_max}명까지 받을 수 있어요</Text>
         )}
+        <Text style={styles.note}>· 내 코드는 내가 넣을 수 없어요</Text>
       </View>
     </ScrollView>
   );
@@ -191,127 +224,176 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingBottom: spacing.xl,
-    gap: 28,
+    gap: 22,
+  },
+  muted: {
+    fontSize: fontSize.small,
+    color: colors.textMuted,
   },
   hero: {
     gap: spacing.sm,
-    paddingTop: spacing.xs,
   },
   heroTitle: {
     fontSize: fontSize.title,
-    fontWeight: "700",
     lineHeight: 30,
+    fontWeight: "800",
     color: colors.text,
   },
   heroSub: {
     fontSize: 15,
     lineHeight: 22,
-    color: colors.textMuted,
+    color: colors.iconStrong,
   },
   heroStrong: {
     fontWeight: "700",
-    color: colors.primary,
+    color: colors.primaryStrong,
   },
-  codeBox: {
-    padding: spacing.lg,
-    gap: 6,
-    borderRadius: radius.xl,
+  block: {
+    gap: 10,
+  },
+  // 파란 코드 카드
+  codeCard: {
     alignItems: "center",
-    backgroundColor: colors.primarySoft,
+    padding: 20,
+    borderRadius: radius.xl,
+    backgroundColor: colors.primary,
   },
   codeLabel: {
     fontSize: fontSize.small,
-    fontWeight: "600",
-    color: colors.textMuted,
+    color: colors.primarySoft,
   },
   code: {
-    fontSize: 34,
+    marginTop: 6,
+    fontSize: 32,
     fontWeight: "800",
     letterSpacing: 6,
-    color: colors.primary,
-  },
-  invited: {
-    fontSize: fontSize.caption,
-    color: colors.textMuted,
+    color: colors.onPrimary,
   },
   buttons: {
+    alignSelf: "stretch",
     flexDirection: "row",
     gap: spacing.sm,
-    marginTop: spacing.md,
-    alignSelf: "stretch",
+    marginTop: 14,
   },
   button: {
     flex: 1,
-    paddingVertical: 14,
+    height: 46,
     borderRadius: radius.md,
     alignItems: "center",
+    justifyContent: "center",
   },
   copyButton: {
-    backgroundColor: colors.surface,
-  },
-  shareButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.onPrimarySoft,
   },
   copyText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: colors.primary,
-  },
-  shareText: {
-    fontSize: 15,
+    fontSize: fontSize.label,
     fontWeight: "700",
     color: colors.onPrimary,
+  },
+  shareButton: {
+    backgroundColor: colors.onPrimary,
+  },
+  shareText: {
+    fontSize: fontSize.label,
+    fontWeight: "700",
+    color: colors.primaryStrong,
   },
   pressed: {
     opacity: 0.7,
   },
-  muted: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
-    textAlign: "center",
-  },
-  // 묶음: 작은 회색 제목 + 내용 (내 정보 화면과 같은 모양)
-  group: {
-    gap: spacing.sm,
-  },
-  groupTitle: {
-    fontSize: fontSize.small,
-    fontWeight: "600",
-    color: colors.textMuted,
-  },
-  howBox: {
-    padding: 18,
-    gap: 14,
-    borderRadius: 16,
-    backgroundColor: colors.surfaceMuted,
-  },
-  step: {
+  stats: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 0,
   },
-  stepNo: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surface,
-  },
-  stepNoText: {
-    fontSize: fontSize.caption,
-    fontWeight: "800",
-    color: colors.primary,
-  },
-  stepText: {
+  stat: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 22,
+    alignItems: "center",
+    gap: 2,
+  },
+  statLine: {
+    borderLeftWidth: 1,
+    borderLeftColor: colors.surfaceMuted,
+  },
+  statValue: {
+    fontSize: fontSize.subtitle,
+    fontWeight: "800",
     color: colors.text,
   },
-  howNote: {
-    paddingHorizontal: spacing.xs,
+  statLabel: {
     fontSize: fontSize.caption,
-    color: colors.textSubtle,
+    color: colors.iconStrong,
+  },
+  // 친구한테 받은 코드 입력 (연두 상자)
+  redeem: {
+    gap: 4,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    backgroundColor: colors.accentSoft,
+  },
+  redeemHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  redeemTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  redeemDays: {
+    fontSize: fontSize.caption,
+    fontWeight: "700",
+    color: colors.onAccentSoft,
+  },
+  redeemSub: {
+    fontSize: fontSize.small,
+    color: colors.onAccentSoft,
+  },
+  redeemRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  redeemInput: {
+    flex: 1,
+    height: 48,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: colors.accentLine,
+    borderRadius: radius.md,
+    backgroundColor: colors.onPrimary,
+    fontSize: fontSize.body,
+    fontWeight: "700",
+    letterSpacing: 2,
+    color: colors.text,
+  },
+  redeemButton: {
+    height: 48,
+    paddingHorizontal: 18,
+    borderRadius: radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.text,
+  },
+  redeemButtonOff: {
+    backgroundColor: colors.disabled,
+  },
+  redeemButtonText: {
+    fontSize: fontSize.label,
+    fontWeight: "700",
+    color: colors.onPrimary,
+  },
+  redeemOff: {
+    fontSize: fontSize.small,
+    color: colors.textMuted,
+  },
+  notes: {
+    gap: 4,
+  },
+  note: {
+    fontSize: fontSize.caption,
+    lineHeight: 18,
+    color: colors.iconStrong,
   },
 });

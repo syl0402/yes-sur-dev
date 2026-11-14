@@ -1,11 +1,14 @@
 // ys-171 제휴·광고 문의 · F-902 확장 (2026-11-07 팀 피드백, 푸망 문의 폼 참고)
 // 담당자 정보 → 알게 된 경로(필수, 기타는 직접 입력) → 브랜드 → 문의 내용 → [필수] 개인정보 수집 동의 → 내가 보낸 문의.
 // 운영자가 전화·메일로 답한다
+// 2026-11-14 마이 탭 시안 ⑩: "어떤 곳인가요?"(첫 칸 이름·예시가 바뀜) · "무엇을 하고 싶나요?"(여러 개) 칩 → 문의 내용 앞에 [종류 · 하고 싶은 것]으로 붙여 보낸다
+// (서버 표는 그대로. 휴대폰은 서버에서 필수라 그대로 필수, 알게 된 경로는 맨 아래로)
 import { Stack, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import Chips from "@/components/create/Chips";
+import Chip from "@/components/ui/Chip";
 import { formStyles } from "@/components/create/formStyles";
 import PrimaryButton from "@/components/PrimaryButton";
 import CheckRow from "@/components/ui/CheckRow";
@@ -32,6 +35,25 @@ const SOURCES: { value: Source; label: string }[] = [
 
 const BODY_MAX = 1000;
 
+type OrgType = "brand" | "agency" | "student" | "other";
+
+// 어떤 곳인가요? → 첫 칸 이름 · 예시
+const ORG_TYPES: { value: OrgType; label: string; field: string; placeholder: string }[] = [
+  { value: "brand", label: "기업·브랜드", field: "회사·브랜드 이름", placeholder: "예: 옛썰커피" },
+  { value: "agency", label: "광고 대행사", field: "대행사 이름", placeholder: "예: ○○애드" },
+  { value: "student", label: "학생회·동아리", field: "학교 · 단체 이름", placeholder: "예: 중앙대 총학생회" },
+  { value: "other", label: "기타", field: "회사·단체 이름", placeholder: "회사·단체 이름" },
+];
+
+type Purpose = "survey" | "ad" | "event";
+
+// 무엇을 하고 싶나요? (여러 개)
+const PURPOSES: { value: Purpose; label: string }[] = [
+  { value: "survey", label: "설문 의뢰" },
+  { value: "ad", label: "광고·배너" },
+  { value: "event", label: "이벤트 제휴" },
+];
+
 const STATUS_LABELS: Record<string, string> = {
   pending: "확인 중",
   answered: "연락드림",
@@ -41,6 +63,8 @@ const STATUS_LABELS: Record<string, string> = {
 type MyInquiry = { id: number; brand: string; body: string; status: string; created_at: string };
 
 export default function Partnership() {
+  const [orgType, setOrgType] = useState<OrgType>("brand");
+  const [purposes, setPurposes] = useState<Purpose[]>([]);
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
   const [jobTitle, setJobTitle] = useState("");
@@ -108,7 +132,7 @@ export default function Partnership() {
       p_source: source ?? undefined,
       p_source_etc: source === "other" ? sourceEtc.trim() : undefined,
       p_brand: brand.trim(),
-      p_body: body.trim(),
+      p_body: withTags(body.trim()),
       p_consent: consent,
     });
     setSending(false);
@@ -123,6 +147,16 @@ export default function Partnership() {
     showNotice("문의를 접수했어요", "남겨 주신 연락처로 빠르게 연락드릴게요. 아래 '내가 보낸 문의'에서 확인할 수 있어요.");
   };
 
+  const org = ORG_TYPES.find((o) => o.value === orgType) ?? ORG_TYPES[0];
+  // 문의 내용 앞에 고른 칩을 붙인다: "[기업·브랜드 · 설문 의뢰, 광고·배너] …"
+  function withTags(text: string) {
+    const picked = PURPOSES.filter((p) => purposes.includes(p.value)).map((p) => p.label);
+    const tag = [org.label, picked.join(", ")].filter(Boolean).join(" · ");
+    return `[${tag}] ${text}`.slice(0, BODY_MAX);
+  }
+  const togglePurpose = (p: Purpose) =>
+    setPurposes((all) => (all.includes(p) ? all.filter((x) => x !== p) : [...all, p]));
+
   const keep = keepDays !== null ? `접수 후 ${keepDays}일 뒤 자동 삭제` : "접수 후 일정 기간 뒤 자동 삭제";
 
   return (
@@ -136,23 +170,40 @@ export default function Partnership() {
       <Stack.Screen options={{ title: "제휴·광고 문의" }} />
 
       <View style={styles.intro}>
-        <Text style={styles.heading}>옛썰과 제휴</Text>
+        <Text style={styles.heading}>옛썰과 함께해요</Text>
         <Text style={styles.lead}>
           학교 메일로 인증된 대학생들이 모인 옛썰과 함께 설문·이벤트를 진행하고, 브랜드를 홍보해 보세요. 아래 폼을
           채워 주시면 옛썰에서 빠르게 회신드릴게요.
         </Text>
       </View>
 
+      <View style={styles.field}>
+        <Text style={styles.label}>어떤 곳인가요?</Text>
+        <Chips options={ORG_TYPES} selected={orgType} onSelect={setOrgType} />
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>
+          무엇을 하고 싶나요? <Text style={styles.labelLight}>여러 개 가능</Text>
+        </Text>
+        <View style={formStyles.chips}>
+          {PURPOSES.map((p) => (
+            <Chip key={p.value} label={p.label} selected={purposes.includes(p.value)} onPress={() => togglePurpose(p.value)} />
+          ))}
+        </View>
+      </View>
+
       <View style={formStyles.card}>
-        <Text style={formStyles.label}>담당자 정보</Text>
-        <TextInput style={formStyles.input} value={name} onChangeText={setName} placeholder="성함" maxLength={30} />
+        <Text style={formStyles.label}>{org.field}</Text>
         <TextInput
           style={formStyles.input}
           value={company}
           onChangeText={setCompany}
-          placeholder="회사·단체"
+          placeholder={org.placeholder}
           maxLength={50}
         />
+        <Text style={formStyles.label}>담당자 성함</Text>
+        <TextInput style={formStyles.input} value={name} onChangeText={setName} placeholder="홍길동" maxLength={30} />
         <TextInput
           style={formStyles.input}
           value={jobTitle}
@@ -160,19 +211,21 @@ export default function Partnership() {
           placeholder="직함 (선택)"
           maxLength={30}
         />
+        <Text style={formStyles.label}>휴대폰 번호</Text>
         <TextInput
           style={formStyles.input}
           value={phone}
           onChangeText={setPhone}
-          placeholder="휴대폰 번호"
+          placeholder="010-0000-0000"
           keyboardType="phone-pad"
           maxLength={13}
         />
+        <Text style={formStyles.label}>연락받을 이메일</Text>
         <TextInput
           style={formStyles.input}
           value={email}
           onChangeText={setEmail}
-          placeholder="이메일"
+          placeholder="name@company.com"
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
@@ -181,21 +234,7 @@ export default function Partnership() {
       </View>
 
       <View style={formStyles.card}>
-        <Text style={formStyles.label}>옛썰을 어디서 처음 알게 됐나요?</Text>
-        <Chips options={SOURCES} selected={source} onSelect={setSource} />
-        {source === "other" && (
-          <TextInput
-            style={formStyles.input}
-            value={sourceEtc}
-            onChangeText={setSourceEtc}
-            placeholder="어디서 알게 됐는지 적어 주세요"
-            maxLength={50}
-          />
-        )}
-      </View>
-
-      <View style={formStyles.card}>
-        <Text style={formStyles.label}>제휴 문의 및 광고</Text>
+        <Text style={formStyles.label}>홍보할 브랜드·서비스</Text>
         <TextInput
           style={formStyles.input}
           value={brand}
@@ -215,6 +254,20 @@ export default function Partnership() {
         <Text style={formStyles.hint}>
           {body.length} / {BODY_MAX}자
         </Text>
+      </View>
+
+      <View style={formStyles.card}>
+        <Text style={formStyles.label}>옛썰을 어디서 처음 알게 됐나요?</Text>
+        <Chips options={SOURCES} selected={source} onSelect={setSource} />
+        {source === "other" && (
+          <TextInput
+            style={formStyles.input}
+            value={sourceEtc}
+            onChangeText={setSourceEtc}
+            placeholder="어디서 알게 됐는지 적어 주세요"
+            maxLength={50}
+          />
+        )}
       </View>
 
       {/* 동의 체크는 다른 화면(보상 연락처)과 같은 작은 체크 줄 (2026-11-12) */}
@@ -285,6 +338,19 @@ const styles = StyleSheet.create({
   },
   body: {
     minHeight: 140,
+  },
+  field: {
+    gap: spacing.sm,
+  },
+  label: {
+    fontSize: fontSize.label,
+    fontWeight: "700",
+    color: colors.iconStrong,
+  },
+  labelLight: {
+    fontSize: fontSize.caption,
+    fontWeight: "400",
+    color: colors.textMuted,
   },
   termsLink: {
     fontSize: fontSize.small,

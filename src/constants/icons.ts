@@ -165,3 +165,9 @@ export const commentIcons = {
   people: "people-outline",
   chat: "chatbubble-outline",
 } satisfies Record<string, IconName>;
+
+// 의견 보내기 화면 캡처 첨부 (2026-11-14 마이 탭 시안)
+export const feedbackIcons = {
+  image: "image-outline",
+  remove: "close",
+} satisfies Record<string, IconName>;

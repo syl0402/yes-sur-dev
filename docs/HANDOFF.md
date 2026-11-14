@@ -83,6 +83,14 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 월드컵 `src/components/worldcup/`: `MatchView`(대결·되돌리기) · `RoundBreak`(라운드 중간) · `WinView`(우승) · `ResultView`(시상대·순위·그룹별 1위)
 - `GrowBar` `delay`: 여러 막대를 차례로 채울 때
 
+### 마이 탭 시안 부품 (2026-11-14)
+- `fetchMySurveys` · `MySurvey` (`src/lib/mySurveys.ts`): 내가 올린 설문 + 데이터 탭 열람 수. `MySurveyCard` (`src/components/my/MySurveyCard.tsx`): 응답 0명이면 "홍보하기 ›"
+- `fetchMyDataRows` · `fetchMyCommunity` (`src/lib/myActivity.ts`): 내 데이터(응답·스크랩·열람) / 내 글·댓글·참여(`get_my_participation`)
+- 화면: `my-surveys`(내 설문 전체) · `my-data`(내 데이터) · `my-posts`(내 커뮤니티 활동 [글|댓글|참여])
+- `fetchLedger`의 `detail` (웰컴 미션 이름 · 보너스 · "목표 n명 × nP"), `fetchMonthSummary` (이번 달 모은·쓴)
+- 의견 캡처(최대 3장): `pickFeedbackImages` · `uploadFeedbackImage` · `feedbackImageUrl` (`src/lib/feedbackImage.ts`, 저장소 feedback 비공개)
+- `Segmented`: 흰 알약이 미끄러짐 (모든 화면 공통)
+
 ### `formatHost` (`src/lib/surveys.ts`, 2026-10-30)
 설문 작성자 표시: 인증된 단체는 `"경영학과 학생회 ✓"`, 학생 설문은 `"개인"`. 설문을 읽을 때 `host_name, host_verified`를 같이 select 한다.
 ```ts

@@ -3,6 +3,7 @@ import { Stack, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 
+import Badge from "@/components/ui/Badge";
 import ListRow from "@/components/ui/ListRow";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, spacing } from "@/constants/theme";
@@ -134,7 +135,13 @@ export default function AccountHome() {
         </View>
         <View style={styles.profileMain}>
           <Text style={styles.name}>{account.name ? `${account.name}님` : ""}</Text>
-          {account.info.find((r) => r.label === "학교")?.value ? <Text style={styles.profileSub}>{account.info.find((r) => r.label === "학교")?.value}</Text> : null}
+          {/* 학교 + "학교 메일 인증" (학생은 가입할 때 학교 메일로 인증함, 2026-11-14 마이 탭 시안) */}
+          {account.info.find((r) => r.label === "학교")?.value ? (
+            <View style={styles.schoolLine}>
+              <Text style={styles.profileSub}>{account.info.find((r) => r.label === "학교")?.value}</Text>
+              {!account.isOrg && <Badge label="✓ 학교 메일 인증" tone="lime" size="sm" />}
+            </View>
+          ) : null}
         </View>
       </View>
 
@@ -254,6 +261,11 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: spacing.xl,
     gap: 28,
+  },
+  schoolLine: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   profile: {
     flexDirection: "row",
