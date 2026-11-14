@@ -400,7 +400,7 @@ update organizations set reject_reason = '사유' where id = (select id from aut
 - [ ] 다음에 앱을 다시 빌드할 때 (2026-11-13): `npx expo install --check`로 Expo 부품 15개 버전 맞추기 (expo doctor 경고, 마지막 숫자만 낮음 · 지금 빌드는 정상)
   - 같이 할 것 (2026-11-14): 데이터 허브 열람 전 잠긴 인사이트를 진짜 흐림(blur)으로 — `expo-blur` 설치(새 부품). 지금은 흐린 막대 + 자물쇠로 대신 (`src/app/data/[id].tsx`)
   - 같이 할 것 (2026-11-14): 누르면 앱으로 바로 열리는 링크(App Links, `yessur.expo.app`) — 설문·결과 공유, 친구 초대
-- [ ] **테스트 시작일 아침 (Google 검토 통과 → 테스터 들어오기 전)**: `supabase/seed/test_start.sql` 1~6번 차례로 실행 (미션 시작일·미리보기 초기화, 개발 설문 전부 삭제, 개발용 오늘의 질문 삭제, result_min_count 5, 공식 설문 10개). 전날까지 팀 메일로 단체 가입 + dev_tools 11번. 아래 11/13·11/14 항목들을 이 파일로 묶음 (2026-11-13)
+- [x] **테스트 시작일 아침 (Google 검토 통과 → 테스터 들어오기 전)**: `supabase/seed/test_start.sql` 1~6번 차례로 실행 (미션 시작일·미리보기 초기화, 개발 설문 전부 삭제, 개발용 오늘의 질문 삭제, result_min_count 5, 공식 설문 10개). 전날까지 팀 메일로 단체 가입 + dev_tools 11번. 아래 11/13·11/14 항목들을 이 파일로 묶음 (2026-11-13)
 - [ ] 글자 크기 정리 (2026-11-12): 화면에 숫자로 직접 쓴 글자 크기(24·23·20 등, 약 86곳)를 `theme.ts` fontSize에 이름 붙여 한꺼번에 정리. 규칙 "글꼴은 theme.ts에서만" 맞추기
 - [ ] 아래 선택 창 통일 (2026-11-12): `YearPicker`·`SelectButton`도 공용 `BottomSheet`로 (지금은 각자 모양)
 - [x] 개인정보처리방침 개정(2026-11-08, 보상 연락처·제휴 문의)을 노션 게시본에도 반영 (2026-11-08 완료)
@@ -413,7 +413,7 @@ update organizations set reject_reason = '사유' where id = (select id from aut
 - [ ] 테스트 1주차·2주차: `docs/DB.md` "포인트 경제 확인" SQL로 설문 목표 달성률·이유별 포인트 보고 `point_rules` 조정 (2026-11-03)
 - [ ] 테스트 2주차: 데이터 탭 공개 기준(`result_min_count`) 5 → 10 올릴지 실제 응답 수 보고 결정. 기준 정리: 0명 = 삭제·다시 고치기 / 1명부터 잠금 / 5명 데이터 탭 공개(개인정보) / 10명 미만 "참고용" / 30명+통과율 90% "신뢰도 높음" (2026-11-10)
 
-- [ ] **11/14 아침 (테스터 들어오기 전)**: 웰컴 미션 미리보기 기록 초기화 — SQL Editor에서 `delete from public.point_ledger where reason in ('mission', 'mission_bonus'); delete from public.mission_claims; delete from public.mission_progress;` (11/12부터 팀원 미리보기로 1~4일차를 열어 둠) (2026-11-12)
+- [x] **11/14 아침 (테스터 들어오기 전)**: 웰컴 미션 미리보기 기록 초기화 — SQL Editor에서 `delete from public.point_ledger where reason in ('mission', 'mission_bonus'); delete from public.mission_claims; delete from public.mission_progress;` (11/12부터 팀원 미리보기로 1~4일차를 열어 둠) (2026-11-12)
 - [ ] **11/17(4일차 "나에 대해" 열림) 전**: 개인정보처리방침에 "나에 대해 알려 주세요" 수집 항목(관심 카테고리·거주·통학 시간·아르바이트·학적, 모두 선택)과 목적(맞춤 설문 추천) 추가 → 노션 게시본 수정 → Play Console 데이터 보안 신고 (2026-11-12)
 - [ ] 위 "임시로 둔 것" 표가 비어 있는지 확인
 - [ ] Supabase Authentication → Users의 테스트 계정 정리

@@ -31,7 +31,7 @@ const COLS = [64 / 358, 179 / 358, 294 / 358];
 
 type Kind = "done" | "today" | "open" | "locked" | "bonus" | "bonusDone";
 
-type Node = { key: string; kind: Kind; x: number; y: number; mission?: Mission; label: string; weekBonus: boolean };
+type Node = { key: string; kind: Kind; x: number; y: number; mission?: Mission; label: string; weekBonus: number | null };
 
 function buildNodes(m: MyMissions, width: number): Node[] {
   const weekBonus = m.bonuses.find((b) => b.code === "bonus_week");
@@ -51,7 +51,7 @@ function buildNodes(m: MyMissions, width: number): Node[] {
         x,
         y,
         label: `+${formatPoints(allBonus?.reward ?? 0)}`,
-        weekBonus: false,
+        weekBonus: null,
       };
     }
     let kind: Kind;
@@ -73,7 +73,7 @@ function buildNodes(m: MyMissions, width: number): Node[] {
       mission,
       label,
       // 7일차 칸 위에 "+50P 보너스" (아직 안 받았을 때)
-      weekBonus: mission.day === 7 && !weekBonus?.done,
+      weekBonus: mission.day === 7 && weekBonus && !weekBonus.done ? weekBonus.reward : null,
     };
   });
 }
@@ -163,7 +163,7 @@ function NodeView({ node: n, onOpen, stamping }: { node: Node; onOpen: (m: Missi
           )}
         </View>
         <Text style={styles.mutedLabel}>{n.label}</Text>
-        {n.weekBonus && <WeekBonus />}
+        {n.weekBonus !== null && <WeekBonus reward={n.weekBonus} />}
       </>
     );
   }
@@ -192,15 +192,15 @@ function NodeView({ node: n, onOpen, stamping }: { node: Node; onOpen: (m: Missi
       <View style={styles.rewardPill}>
         <Text style={styles.rewardText}>{n.label}</Text>
       </View>
-      {n.weekBonus && <WeekBonus />}
+      {n.weekBonus !== null && <WeekBonus reward={n.weekBonus} />}
     </>
   );
 }
 
-function WeekBonus() {
+function WeekBonus({ reward }: { reward: number }) {
   return (
     <View style={styles.weekBonus}>
-      <Text style={styles.weekBonusText}>+50P 보너스</Text>
+      <Text style={styles.weekBonusText}>+{formatPoints(reward)} 보너스</Text>
     </View>
   );
 }
