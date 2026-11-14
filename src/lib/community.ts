@@ -17,7 +17,7 @@ export const KIND_LABELS: Record<PostKind, string> = {
 export const KIND_HINTS: Record<PostKind, string> = {
   balance: "둘 중 하나! 예: 짜장 vs 짬뽕",
   relate: "공감 투표. 예: 시험 전날에만 방 청소하고 싶어진다",
-  pick: "보기 2~4개 중 골라 달라고 하기. 예: 노트북 뭐 살까?",
+  pick: "보기 2~5개 중 골라 달라고 하기. 예: 노트북 뭐 살까?",
   promo: "내가 올린 진행 중인 설문을 소개하고 응답을 부탁하기 (설문 하나에 한 번)",
 };
 

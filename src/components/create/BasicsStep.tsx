@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
+import LabelRow from "@/components/create/LabelRow";
 import Chip from "@/components/ui/Chip";
 import { Text, TextInput } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
@@ -121,29 +122,7 @@ export default function BasicsStep({ draft, categories, tags, suggestions, tagMa
   );
 }
 
-// 칸 이름표 + (거의 다 찼을 때만) 오른쪽 글자 수 (2026-11-12: 칸마다 글자 수 줄이 있으면 어수선해서)
-function LabelRow({ label, optional, length, max }: { label: string; optional?: boolean; length: number; max: number }) {
-  return (
-    <View style={styles.labelRow}>
-      <Text style={styles.label}>
-        {label}
-        {optional && <Text style={styles.labelLight}> (선택)</Text>}
-      </Text>
-      {length >= max * 0.8 && (
-        <Text style={formStyles.hint}>
-          {length} / {max}자
-        </Text>
-      )}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  labelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
   // 카드 상자 없이 칸만 (2026-11-12 시안)
   form: {
     gap: 20,

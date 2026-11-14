@@ -253,7 +253,7 @@
 | `send_feedback(p_category, p_body, p_screen, p_device)` | 의견 보내기 (종류 bug·inconvenience·idea·other, 내용 1~1000자, 화면·기기 정보). 하루 `feedback_daily_max`(10)건 | 로그인한 사람 |
 | `get_today_daily()` | 오늘(한국 시간)의 질문, 내 선택, A·B 수·그룹별 결과(답한 뒤에만), 연속 일수, 댓글 수, 포인트 설정값. 질문이 없으면 null | 로그인한 사람 |
 | `answer_daily(p_choice)` | 오늘의 질문에 a/b로 답하기. 학생은 출석 포인트 + 연속 보너스. 한 질문 한 번 (`already_answered`) | 로그인한 사람 |
-| `create_post(p_kind, p_question, p_options)` | 투표 글 만들기 (질문 100자, 보기 30자·2~4개·중복 불가, 나만 그래?는 보기 고정). 하루 `post_daily_max`개 | 로그인한 사람 |
+| `create_post(p_kind, p_question, p_options)` | 투표 글 만들기 (질문 100자, 보기 30자·골라 줘 2~5개(2026-11-14)·중복 불가, 나만 그래?는 보기 고정). 하루 `post_daily_max`개 | 로그인한 사람 |
 | `vote_post(p_post_id, p_choice)` | 투표 (한 글 한 표). 학생·남의 글이면 `community_vote`P, 커뮤니티 하루 합산 `community_daily_cap`. 투표 `creator_bonus_every`개마다 학생 작성자 `creator_bonus`P | 로그인한 사람 |
 | `get_feed(p_kind, p_sort)` | 숨긴 글 빼고 50개 (popular·latest). 비율은 투표했거나 내 글일 때만 | 로그인한 사람 |
 | `get_post(p_post_id)` | 글 하나 + (투표했거나 내 글이면) 비율과 계열·학년·성별·나이대 그룹 (5명 미만 숨김) | 로그인한 사람 |
