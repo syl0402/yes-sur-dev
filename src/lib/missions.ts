@@ -118,7 +118,8 @@ export const MISSION_LABELS: Record<string, { cat: string; short: string }> = {
   comment_1: { cat: "커뮤니티", short: "댓글\n남기기" },
   survey_create_1: { cat: "설문 등록", short: "내 설문\n올려 보기" },
   survey_3: { cat: "설문 참여", short: "설문 3개\n참여하기" },
-  daily_3: { cat: "오늘의 질문", short: "오늘의 질문\n3번 답하기" },
+  // 2026-11-14 13일차: 오늘의 질문 3번 → 결과 카드 공유
+  share_1: { cat: "공유", short: "결과 카드\n공유하기" },
   feedback_1: { cat: "마이", short: "의견\n보내기" },
 };
 
@@ -132,6 +133,7 @@ export const CATEGORY_ICONS: Record<string, IconName> = {
   "데이터 허브": "fig-poll",
   "설문 등록": "fig-pen",
   마이: "mail",
+  공유: "share-social",
 };
 
 export function missionLabel(m: Mission): { cat: string; short: string } {
@@ -174,7 +176,10 @@ export const MISSION_GUIDES: Record<string, { steps: [string, string, string]; c
   comment_1: { steps: ["커뮤니티 글이나 오늘의 질문을 열어요", "하고 싶은 말을 적어요", "댓글을 달면 미션 완료!"], cta: "댓글 달러 가기" },
   survey_create_1: { steps: ["설문 등록 화면을 열어요", "질문을 만들고 대상을 정해요", "등록하면 미션 완료! (보상이 등록비보다 커요)"], cta: "설문 만들러 가기" },
   survey_3: { steps: ["설문 탭에서 설문을 골라요", "끝까지 성실하게 응답해요", "응답한 설문이 3개가 되면 완료!"], cta: "설문 보러 가기" },
-  daily_3: { steps: ["오늘의 질문에 답해요", "하루에 한 번, 연속이 아니어도 돼요", "모두 3번 답하면 미션 완료!"], cta: "답하러 가기" },
+  share_1: {
+    steps: ["투표 글·월드컵·데이터 결과를 열어요", "오른쪽 위 공유 아이콘이나 [결과 공유]를 눌러요", "[이미지로 공유]를 누르면 미션 완료!"],
+    cta: "공유하러 가기",
+  },
   feedback_1: { steps: ["의견 보내기 화면을 열어요", "불편한 점이나 바라는 점을 적어요", "보내면 미션 완료!"], cta: "의견 보내러 가기" },
 };
 

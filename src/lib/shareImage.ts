@@ -6,15 +6,20 @@ import type { View } from "react-native";
 import { captureRef } from "react-native-view-shot";
 
 import { showNotice } from "@/lib/notice";
+import { supabase } from "@/lib/supabase";
 
 export const SHARE_WIDTH = 1080;
 
 export type ShareShape = "square" | "story";
 
+// 어떤 결과 카드인지 (웰컴 미션 "결과 카드 공유해 보기" 기록용, 서버 log_share)
+export type ShareKind = "hub" | "balance" | "pick" | "worldcup" | "daily";
+
 export async function shareViewAsImage(
   ref: RefObject<ComponentRef<typeof View> | null>,
   shape: ShareShape,
   dialogTitle: string,
+  kind: ShareKind,
 ): Promise<void> {
   if (!ref.current) return;
   try {
@@ -25,6 +30,8 @@ export async function shareViewAsImage(
       width: SHARE_WIDTH,
       height: shape === "story" ? (SHARE_WIDTH * 16) / 9 : SHARE_WIDTH,
     });
+    // 공유 창을 열었다는 기록 (실제로 보냈는지는 앱이 알 수 없다). 실패해도 공유는 그대로
+    supabase.rpc("log_share", { p_kind: kind }).then(() => undefined);
     await Sharing.shareAsync(uri, { mimeType: "image/png", UTI: "public.png", dialogTitle });
   } catch {
     showNotice("이미지를 만들지 못했어요", "잠시 후 다시 시도해 주세요.");

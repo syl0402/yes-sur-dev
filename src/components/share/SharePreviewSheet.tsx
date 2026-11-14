@@ -18,12 +18,14 @@ import BottomSheet from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
-import { type ShareShape, shareViewAsImage } from "@/lib/shareImage";
+import { type ShareKind, type ShareShape, shareViewAsImage } from "@/lib/shareImage";
 
 type ViewRef = Ref<ComponentRef<typeof View>>;
 
 type Props = {
   shape: ShareShape;
+  // 어떤 결과 카드인지 (웰컴 미션 기록용)
+  kind: ShareKind;
   renderCard: (width: number, ref?: ViewRef) => ReactNode;
   onClose: () => void;
 };
@@ -33,6 +35,7 @@ const PREVIEW_WIDTH: Record<ShareShape, number> = { square: 240, story: 172 };
 
 export default function SharePreviewSheet({
   shape,
+  kind,
   renderCard,
   onClose,
 }: Props) {
@@ -42,7 +45,7 @@ export default function SharePreviewSheet({
   const share = async () => {
     if (sharing) return;
     setSharing(true);
-    await shareViewAsImage(ref, shape, "결과 공유");
+    await shareViewAsImage(ref, shape, "결과 공유", kind);
     setSharing(false);
   };
 

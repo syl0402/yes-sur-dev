@@ -50,7 +50,7 @@ export default function ShareSheet({ full, title, host, onClose }: Props) {
 
   const share = async () => {
     setSharing(true);
-    await shareViewAsImage(captureRefView, current, title);
+    await shareViewAsImage(captureRefView, current, title, "hub");
     setSharing(false);
   };
 

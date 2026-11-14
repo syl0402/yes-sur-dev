@@ -259,6 +259,7 @@ export default function PostDetail() {
       {shareOpen && canShare && p.counts && (
         <SharePreviewSheet
           shape="square"
+          kind={isDuel ? "balance" : "pick"}
           onClose={() => setShareOpen(false)}
           renderCard={(width, ref) =>
             isDuel ? (

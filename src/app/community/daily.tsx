@@ -115,6 +115,7 @@ export default function TodayDaily() {
       {shareOpen && canShare && daily && (
         <SharePreviewSheet
           shape="square"
+          kind="daily"
           onClose={() => setShareOpen(false)}
           renderCard={(width, ref) => (
             <ShareBalance

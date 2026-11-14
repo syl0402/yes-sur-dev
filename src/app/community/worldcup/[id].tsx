@@ -299,6 +299,7 @@ export default function WorldcupScreen() {
       {shareOpen && phase === "result" && shareData && (
         <SharePreviewSheet
           shape="story"
+          kind="worldcup"
           onClose={() => setShareOpen(false)}
           renderCard={(width, ref) => (
             <ShareWorldcup ref={ref} width={width} data={shareData} />
