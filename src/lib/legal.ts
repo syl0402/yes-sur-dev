@@ -10,6 +10,8 @@ export const LEGAL_URLS = {
   deletion: "https://vaulted-request-542.notion.site/40907def8cbd8006b238ebc61ed8eaba",
   // 아동 안전 표준 (2026-11-13 게시, Google Play 아동 안전 표준 선언 URL. 앱 화면에는 아직 링크 없음)
   childSafety: "https://vaulted-request-542.notion.site/41607def8cbd80afa788db85dbd3557d",
+  // TODO(임시): 비공개 테스트 테스터 안내서 (원본 docs/테스터-안내서.md) · 정식 출시 때 지우기 · 2026-11-14
+  testerGuide: "https://vaulted-request-542.notion.site/41807def8cbd80bd801ac4173b4d5bfc",
 };
 
 export type LegalDoc = keyof typeof LEGAL_URLS;

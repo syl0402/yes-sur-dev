@@ -22,6 +22,7 @@ import { showConfirm } from "@/lib/confirm";
 import { formatDate, formatPoints, formatShortDate } from "@/lib/format";
 import { type DataRow, type DataTab, fetchMyCommunity, fetchMyDataRows, type MyCommunity } from "@/lib/myActivity";
 import { fetchMySurveys, type MySurvey } from "@/lib/mySurveys";
+import { openLegal } from "@/lib/legal";
 import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
 import { type SavedDraft, deleteDraft, listDrafts } from "@/lib/surveyDraft";
@@ -412,6 +413,8 @@ export default function My() {
                 onPress={() => router.push({ pathname: "/onboarding", params: { again: "1" } })}
               />
             )}
+            {/* TODO(임시): 비공개 테스트 안내서 (노션) · 정식 출시 때 지우기 · 2026-11-14 */}
+            <ListRow icon={myIcons.testerGuide} title="테스터 안내서" onPress={() => openLegal("testerGuide")} />
           </View>
         </Card>
         <Text style={styles.partner}>

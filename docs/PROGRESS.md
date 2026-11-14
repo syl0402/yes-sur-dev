@@ -282,6 +282,7 @@
 | 빈 화면 그림 (이모지) | `src/components/ui/EmptyState.tsx` | 디자인팀 마스코트(옛썰이) PNG를 받으면 그림으로 | 2026-10-31 |
 | 비공개 테스트 안내 (첫 화면 작은 글씨 · 가입 환영 화면 의견 보내기 안내) | `src/app/index.tsx` · `src/app/signup/done.tsx` | 정식 출시 때 지우기 | 2026-11-14 |
 | 친구 초대 비공개 테스트 안내 (테스터 등록돼야 설치) | `src/app/invite.tsx` | 정식 출시 때 지우기 | 2026-11-14 |
+| 테스터 안내서 (마이 → 도움, 노션 링크) | `src/app/(tabs)/my.tsx` · `src/lib/legal.ts` | 정식 출시 때 지우기 | 2026-11-14 |
 | 예시 월드컵 2개 (학식 메뉴 8강, 시험 끝나면 16강) | `supabase/seed/worldcups.sql` | 기획팀이 테스트용 월드컵 목록을 주면 교체 | 2026-11-01 |
 | 탭 아이콘 (Ionicons 기본) | `src/constants/icons.ts` | 디자인팀 아이콘 확정 시 이름만 교체 (직접 그린 아이콘은 `AppIcon.tsx`) | 2026-10-29 |
 | 다크 모드 꺼 둠 (`userInterfaceStyle: "light"`) | `app.json` (JSON이라 주석 불가) | 다크 모드 디자인이 생기면 `"automatic"`으로 | 2026-10-27 |

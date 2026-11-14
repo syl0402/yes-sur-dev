@@ -1,4 +1,4 @@
-// ys-182 웰컴 미션 4일차 나에 대해 알려 주세요 · F-210 (2026-11-12)
+// ys-182 웰컴 미션 2일차 관심사 알려 주기 (2026-11-14 4일차 → 2일차, 이름 변경) · F-210 (2026-11-12)
 // 관심 카테고리(1개 이상) + 생활 정보 4가지(모두 선택, 기본 "응답 안 함"). 저장은 서버 함수로만, 본인만 읽힘
 // 추천에만 쓰고 결과·CSV·다른 사람에게 보이지 않는다
 import { Stack, router, useFocusEffect } from "expo-router";
@@ -116,7 +116,7 @@ export default function AboutMe() {
   if (!categories) {
     return (
       <View style={[styles.screen, styles.center]}>
-        <Stack.Screen options={{ title: "나에 대해 알려 주세요" }} />
+        <Stack.Screen options={{ title: "관심사 알려 주기" }} />
         <ActivityIndicator color={colors.primary} />
       </View>
     );
@@ -124,7 +124,7 @@ export default function AboutMe() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
-      <Stack.Screen options={{ title: "나에 대해 알려 주세요" }} />
+      <Stack.Screen options={{ title: "관심사 알려 주기" }} />
       <View style={styles.notice}>
         <Text style={styles.noticeText}>맞는 설문을 먼저 보여 드리는 데에만 써요. 다른 사람에게 보이거나 설문 결과에 들어가지 않아요.</Text>
       </View>

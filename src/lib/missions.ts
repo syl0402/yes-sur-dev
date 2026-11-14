@@ -109,7 +109,7 @@ export const MISSION_LABELS: Record<string, { cat: string; short: string }> = {
   quiz: { cat: "OX퀴즈", short: "옛썰\n알아보기" },
   daily_1: { cat: "오늘의 질문", short: "오늘의 질문\n답하기" },
   survey_1: { cat: "설문 참여", short: "첫 설문\n참여하기" },
-  about_me: { cat: "프로필", short: "나에 대해\n알려 주세요" },
+  about_me: { cat: "프로필", short: "관심사\n알려 주기" },
   vote_1: { cat: "커뮤니티", short: "투표\n참여하기" },
   data_view_1: { cat: "데이터 허브", short: "설문 결과\n열람하기" },
   survey_2: { cat: "설문 참여", short: "설문 2개\n참여하기" },
@@ -121,6 +121,8 @@ export const MISSION_LABELS: Record<string, { cat: string; short: string }> = {
   // 2026-11-14 13일차: 오늘의 질문 3번 → 결과 카드 공유
   share_1: { cat: "공유", short: "결과 카드\n공유하기" },
   feedback_1: { cat: "마이", short: "의견\n보내기" },
+  // 2026-11-14 14일차: 마지막 날 최종 피드백 설문 (의견 보내기는 7일차로)
+  final_feedback: { cat: "설문 참여", short: "최종 피드백\n설문 응답" },
 };
 
 // 분류별 아이콘 (완료 팝업 "내일 열리는 미션" 상자)
@@ -181,6 +183,10 @@ export const MISSION_GUIDES: Record<string, { steps: [string, string, string]; c
     cta: "공유하러 가기",
   },
   feedback_1: { steps: ["의견 보내기 화면을 열어요", "불편한 점이나 바라는 점을 적어요", "보내면 미션 완료!"], cta: "의견 보내러 가기" },
+  final_feedback: {
+    steps: ["설문 탭에서 [최종 피드백] 설문을 찾아요", "2주 동안 써 본 느낌을 솔직하게 적어요", "제출하면 미션 완료!"],
+    cta: "설문 보러 가기",
+  },
 };
 
 export function missionGuide(m: Mission): { steps: [string, string, string]; cta: string } {

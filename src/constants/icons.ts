@@ -59,8 +59,9 @@ export const myIcons = {
   posts: "pencil-outline",
   partner: "briefcase-outline",
   forward: "chevron-forward",
-  // 2026-11-14 마이 탭 시안: 도움 목록 (사용 안내)
+  // 2026-11-14 마이 탭 시안: 도움 목록 (사용 안내 · 테스터 안내서)
   guide: "book-outline",
+  testerGuide: "clipboard-outline",
 } satisfies Record<string, IconName>;
 
 // 홈 오른쪽 위 ☰ 메뉴 (2026-11-10, 푸망 방식: 앱 이동·서비스 안내)
@@ -99,6 +100,8 @@ export const missionIcons = {
   back: "chevron-back",
   close: "close",
   forward: "chevron-forward",
+  // 미션 판 아래 "저녁 7시 미션 알림 받기" (2026-11-14)
+  bell: "notifications",
 } satisfies Record<string, IconName>;
 
 // 화면 곳곳의 작은 표시 아이콘 (2026-11-10, 기능 이모지 → 선 아이콘)

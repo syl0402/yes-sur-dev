@@ -49,7 +49,8 @@ import {
 } from "@/lib/missions";
 import { showConfirm } from "@/lib/confirm";
 import { showNotice } from "@/lib/notice";
-import { enablePush, markMissionPushAsked, shouldAskMissionPush } from "@/lib/push";
+import { canUseNotifications } from "@/lib/nativeFeatures";
+import { enablePush, markMissionPushAsked, pushPermission, shouldAskMissionPush } from "@/lib/push";
 import { supabase } from "@/lib/supabase";
 
 const CHEER = require("../../../assets/images/characters/cheer.png");
@@ -88,6 +89,26 @@ export default function Missions() {
   const scrollRef = useRef<ScrollViewInstance>(null);
   // 미션 길이 화면(스크롤 내용)에서 시작하는 위치
   const roadY = useRef(0);
+  // 미션 알림이 꺼져 있으면 아래에 "알림 받기" 줄 (폰 허락 전 · 미션 알림 끔 · 2026-11-14 사용자 요청)
+  const [pushOff, setPushOff] = useState(false);
+
+  const checkPush = useCallback(async () => {
+    if (!canUseNotifications) return;
+    const [permission, { data: profile }] = await Promise.all([
+      pushPermission(),
+      supabase.from("profiles").select("notify_mission").maybeSingle(),
+    ]);
+    setPushOff(permission !== "granted" || profile?.notify_mission === false);
+  }, []);
+
+  // [알림 받기]: 미션 알림 켜기 → 폰 허락 (거절했던 폰이면 설정 안내)
+  const turnOnPush = async () => {
+    await supabase.rpc("set_notify_mission", { p_on: true });
+    if (!(await enablePush())) {
+      showNotice("알림을 받으려면 허락이 필요해요", "폰 설정 → 애플리케이션 → 옛썰 → 알림에서 허락해 주세요.");
+    }
+    checkPush();
+  };
 
   // 그 칸으로 부드럽게 스크롤한 뒤 도장 쾅 (칸이 화면 가운데쯤 오게)
   const stampAt = useCallback((code: string, m: MyMissions) => {
@@ -126,7 +147,8 @@ export default function Missions() {
   useFocusEffect(
     useCallback(() => {
       load();
-    }, [load]),
+      checkPush();
+    }, [load, checkPush]),
   );
 
   const close = () => (router.canGoBack() ? router.back() : router.replace("/home"));
@@ -212,6 +234,15 @@ export default function Missions() {
               <Text style={styles.note}>· 미션을 하고 이 화면에 돌아오면 포인트가 자동으로 적립돼요.</Text>
             </View>
 
+            {/* 미션 알림이 꺼져 있을 때만: 저녁 7시 알림 받기 */}
+            {pushOff && (
+              <Pressable onPress={turnOnPush} style={({ pressed }) => [styles.pushRow, pressed && styles.pushRowPressed]}>
+                <AppIcon name={missionIcons.bell} size={18} color={colors.accent} />
+                <Text style={styles.pushText}>저녁 7시 미션 알림 받기</Text>
+                <AppIcon name={missionIcons.forward} size={16} color={colors.onPrimary} />
+              </Pressable>
+            )}
+
             <Pressable onPress={offToday} hitSlop={8} style={styles.offToday}>
               <Text style={styles.offTodayText}>오늘 하루 보지 않기</Text>
             </Pressable>
@@ -262,6 +293,25 @@ function ProgressBar({ pct }: { pct: number }) {
 }
 
 const styles = StyleSheet.create({
+  pushRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    alignSelf: "center",
+    marginTop: spacing.md,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: radius.pill,
+    backgroundColor: colors.onPrimarySoft,
+  },
+  pushRowPressed: {
+    opacity: 0.7,
+  },
+  pushText: {
+    fontSize: fontSize.label,
+    fontWeight: "700",
+    color: colors.onPrimary,
+  },
   screen: {
     flex: 1,
     backgroundColor: colors.primary,
