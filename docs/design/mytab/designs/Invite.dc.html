@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>친구 초대</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5;text-decoration:none}
+input::placeholder{color:#8B93A5}
+</style>
+</helmet>
+<div style="width: 390px; height: 900px; box-sizing: border-box; background: #FCFCFC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; padding-top: 44px; position: relative; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; padding: 0 6px">
+    <a href="Main.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <div style="flex: 1; text-align: center; font-size: 17px; font-weight: 700">친구 초대</div>
+    <div style="width: 44px"></div>
+  </div>
+
+  <div style="padding: 10px 20px 0">
+    <h1 style="margin: 0; font-size: 23px; font-weight: 900; line-height: 1.35">친구 초대하고<br>같이 포인트 받기</h1>
+    <p style="margin: 8px 0 0; font-size: 15px; color: #545E73">친구가 내 코드를 넣으면 나는 <b style="color: #2949B5">300P</b>, 친구는 <b style="color: #2949B5">200P</b></p>
+  </div>
+
+  <div style="margin: 18px 16px 0; background: #3157D5; border-radius: 22px; padding: 20px; color: #FFFFFF; text-align: center">
+    <div style="font-size: 13px; color: #E3E9FF">내 초대 코드</div>
+    <div style="margin-top: 6px; font-size: 34px; font-weight: 900; letter-spacing: 6px">8FLET2</div>
+    <div style="margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+      <button style="height: 46px; border: none; border-radius: 12px; background: rgba(255,255,255,.16); color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 700">코드 복사</button>
+      <button style="height: 46px; border: none; border-radius: 12px; background: #FFFFFF; color: #2949B5; font-family: inherit; font-size: 14px; font-weight: 700">카톡으로 보내기</button>
+    </div>
+  </div>
+
+  <div style="margin: 10px 16px 0; background: #FFFFFF; border: 1px solid #ECEEF3; box-shadow: 0 2px 10px rgba(32,42,64,0.04); border-radius: 18px; display: grid; grid-template-columns: 1fr 1fr; padding: 14px 0; text-align: center">
+    <span style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 18px">0명</b><span style="font-size: 12px; color: #545E73">초대한 친구</span></span>
+    <span style="display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #EFF1F7"><b style="font-size: 18px">0P</b><span style="font-size: 12px; color: #545E73">받은 포인트</span></span>
+  </div>
+
+  <div style="margin: 22px 16px 0; background: #F0F8D5; border-radius: 18px; padding: 16px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <b style="font-size: 15px">친구한테 코드 받았어요</b>
+      <span style="font-size: 12px; font-weight: 700; color: #506D23">5일 남음</span>
+    </div>
+    <div style="margin-top: 4px; font-size: 13px; color: #506D23">가입하고 7일 안에 한 번만 넣을 수 있어요</div>
+    <div style="margin-top: 12px; display: flex; gap: 8px">
+      <label for="code" style="position: absolute; width: 1px; height: 1px; overflow: hidden">친구 초대 코드</label>
+      <input id="code" placeholder="코드 6자리" maxlength="6" style="flex: 1; min-width: 0; height: 48px; box-sizing: border-box; border: 1px solid #D0EB83; border-radius: 12px; background: #FFFFFF; padding: 0 14px; font-size: 16px; font-weight: 700; letter-spacing: 2px; font-family: inherit; outline-color: #3157D5">
+      <button style="height: 48px; padding: 0 18px; border: none; border-radius: 12px; background: #202A40; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 700">받기</button>
+    </div>
+  </div>
+
+  <div style="margin: 18px 20px 0; font-size: 12px; color: #545E73; line-height: 1.7">
+    · 친구가 가입하고 7일 안에 코드를 넣어야 해요<br>
+    · 포인트는 한 달에 10명까지 받을 수 있어요<br>
+    · 내 코드는 내가 넣을 수 없어요
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>내 설문 전체</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5;text-decoration:none}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 1100px; box-sizing: border-box; background: #FCFCFC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; padding-top: 44px; position: relative; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; padding: 0 6px">
+    <a href="Main.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <div style="flex: 1; text-align: center; font-size: 17px; font-weight: 700">내 설문</div>
+    <div style="width: 44px"></div>
+  </div>
+
+  <div style="margin: 8px 16px 0; background: #FFFFFF; border: 1px solid #ECEEF3; box-shadow: 0 2px 10px rgba(32,42,64,0.04); border-radius: 18px; display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 14px 0; text-align: center">
+    <span style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px; color: #3157D5">4</b><span style="font-size: 12px; color: #545E73">운영 중</span></span>
+    <span style="display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #EFF1F7; border-right: 1px solid #EFF1F7"><b style="font-size: 20px">2</b><span style="font-size: 12px; color: #545E73">받은 응답</span></span>
+    <span style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 20px">0</b><span style="font-size: 12px; color: #545E73">결과 열람</span></span>
+  </div>
+
+  <div role="tablist" style="margin: 18px 16px 0; display: flex; border-bottom: 1px solid #E2E5EE">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
+      <button role="tab" onClick="{{t.pick}}" style="flex: 1; height: 46px; border: none; background: transparent; font-family: inherit; font-size: 15px; font-weight: {{t.fw}}; color: {{t.color}}; border-bottom: 3px solid {{t.line}}; margin-bottom: -1px">{{t.label}}</button>
+    </sc-for>
+  </div>
+
+  <div style="margin: 12px 16px 0; display: flex; flex-direction: column; gap: 8px">
+    <sc-for list="{{items}}" as="s" hint-placeholder-count="4">
+      <div style="background: #FFFFFF; border: 1px solid #ECEEF3; box-shadow: 0 2px 10px rgba(32,42,64,0.04); border-radius: 22px; padding: 18px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span style="background: {{s.chipBg}}; color: {{s.chipFg}}; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">{{s.chip}}</span>
+          <span style="flex: 1"></span>
+          <span style="font-size: 12px; color: #545E73">{{s.meta}}</span>
+        </div>
+        <div style="margin-top: 10px; font-size: 18px; font-weight: 900">{{s.title}}</div>
+        <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px">
+          <div style="flex: 1; height: 8px; background: #EFF1F7; border-radius: 999px; overflow: hidden"><div style="width: {{s.p}}%; height: 8px; background: {{s.bar}}; border-radius: 999px"></div></div>
+          <span style="font-size: 13px; font-weight: 700">{{s.n}} / {{s.goal}}명</span>
+        </div>
+        <sc-if value="{{s.hasNote}}" hint-placeholder-val="{{false}}">
+          <div style="margin-top: 10px; background: {{s.noteBg}}; color: {{s.noteFg}}; border-radius: 10px; padding: 8px 10px; font-size: 12px; font-weight: 700">{{s.note}}</div>
+        </sc-if>
+        <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center">
+          <span style="font-size: 12px; color: #545E73">{{s.sub}}</span>
+          <a href="#" style="height: 34px; padding: 0 14px; border-radius: 12px; background: {{s.btnBg}}; color: {{s.btnFg}}; font-size: 13px; font-weight: 700; display: flex; align-items: center">{{s.btn}}</a>
+        </div>
+      </div>
+    </sc-for>
+    <a href="#" style="height: 54px; border-radius: 16px; background: #E3E9FF; color: #3157D5; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700">+ 새 설문 등록</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { tab: 0 }; }
+  renderVals() {
+    var self = this, st = this.state;
+    var ing = [
+      ['adf', 1, 10, 'D-5', '결과 전체 공개'],
+      ['ㅁㅇㄹ', 0, 10, 'D-6', '결과 전체 공개'],
+      ['DAFS', 0, 10, 'D-5', '결과 전체 공개'],
+      ['태그 test', 0, 10, 'D-4', '결과 전체 공개']
+    ].map(function (r) {
+      var zero = r[1] === 0;
+      return { chip: '진행 중', chipBg: '#F0F8D5', chipFg: '#506D23', title: r[0], n: r[1], goal: r[2], p: Math.round(r[1] / r[2] * 100), bar: '#3157D5', meta: r[3],
+        sub: zero ? '아직 응답이 없어요' : r[4], hasNote: false, note: '', noteBg: '', noteFg: '',
+        btn: zero ? '홍보하기 ›' : '결과 보기', btnBg: zero ? 'transparent' : '#3157D5', btnFg: zero ? '#3157D5' : '#FFFFFF' };
+    });
+    var done = [
+      { chip: '마감', chipBg: '#EFF1F7', chipFg: '#545E73', title: '닉네임 테스트', n: 1, goal: 50, p: 2, bar: '#9FB2FF', meta: '11.12 마감',
+        sub: '결과 전체 공개', hasNote: true, note: '데이터 탭 공개 중 · 열람 0회 · 열람마다 +40P', noteBg: '#F1F4FF', noteFg: '#2949B5',
+        btn: '결과 보기', btnBg: '#3157D5', btnFg: '#FFFFFF' },
+      { chip: '마감', chipBg: '#EFF1F7', chipFg: '#545E73', title: '학생테스트1', n: 0, goal: 30, p: 0, bar: '#9FB2FF', meta: '11.2 마감',
+        sub: '응답 없이 마감 · 등록비 30명분 환불됨', hasNote: false, note: '', noteBg: '', noteFg: '',
+        btn: '다시 올리기 ›', btnBg: 'transparent', btnFg: '#3157D5' }
+    ];
+    var tabs = [['진행 중 4', 0], ['마감 2', 1]].map(function (t) {
+      var on = st.tab === t[1];
+      return { label: t[0], fw: on ? 700 : 500, color: on ? '#3157D5' : '#545E73', line: on ? '#3157D5' : 'transparent', pick: function () { self.setState({ tab: t[1] }); } };
+    });
+    return { tabs: tabs, items: st.tab === 0 ? ing : done };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>마이 홈</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5;text-decoration:none}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px;color:#202A40}
+.row + .row{border-top:1px solid #EFF1F7}
+@keyframes k0{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes k1{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes k2{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.f0{animation:k0 .28s ease-out both}.f1{animation:k1 .28s ease-out both}.f2{animation:k2 .28s ease-out both}
+@keyframes fillX{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.fillbar{transform-origin:left;animation:fillX .6s cubic-bezier(.2,.8,.2,1) .15s both}
+@keyframes chipPop{0%{opacity:0;transform:translateY(6px) scale(.8)}60%{opacity:1;transform:translateY(-2px) scale(1.08)}100%{opacity:1;transform:none}}
+.gain{animation:chipPop .4s cubic-bezier(.2,.9,.3,1.3) both}
+.ind{transition:left .3s cubic-bezier(.3,.9,.3,1)}
+.tabbtn{transition:color .2s ease}
+a,button{transition:transform .12s ease}
+a:active,button:active{transform:scale(.97)}
+.cd{background:#FFFFFF;border:1px solid #ECEEF3;border-radius:22px;box-shadow:0 2px 10px rgba(32,42,64,0.04)}
+.lr{display:flex;align-items:center;gap:12px;min-height:68px;padding:0 18px;color:#202A40}
+.lr + .lr{border-top:1px solid #EFF1F7}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 1300px; box-sizing: border-box; background: #FCFCFC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; padding-top: 44px; position: relative; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 20px">
+    <span style="font-size: 24px; font-weight: 900">마이</span>
+    <a href="Profile.dc.html" aria-label="설정" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg></a>
+  </div>
+
+  <a href="Profile.dc.html" style="margin: 4px 20px 0; display: flex; align-items: center; gap: 12px; color: #202A40">
+    <span style="width: 52px; height: 52px; border-radius: 18px; background: #E3E9FF; color: #3157D5; font-size: 22px; font-weight: 900; display: flex; align-items: center; justify-content: center">y</span>
+    <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><b style="font-size: 18px">yessur님</b><span style="font-size: 13px; color: #545E73">중앙대학교 · 사회 계열</span></span>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B93A5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+  </a>
+
+  <div style="margin: 16px 16px 0; background: #3157D5; border-radius: 24px; padding: 22px 22px 20px; color: #FFFFFF; position: relative; overflow: hidden">
+    <div aria-hidden="true" style="position: absolute; right: -60px; bottom: -90px; width: 220px; height: 220px; border-radius: 50%; border: 28px solid rgba(255,255,255,.12)"></div>
+    <div style="position: relative; display: flex; justify-content: space-between; align-items: center">
+      <span style="font-size: 15px; font-weight: 700; color: #E3E9FF">내 포인트</span>
+      <sc-if value="{{gaining}}" hint-placeholder-val="{{false}}"><span class="gain" style="background: #A3EA16; color: #202A40; font-size: 12px; font-weight: 900; padding: 4px 10px; border-radius: 999px">+30P 들어왔어요</span></sc-if>
+      <sc-if value="{{notGaining}}" hint-placeholder-val="{{true}}"><a href="Points.dc.html" style="font-size: 13px; font-weight: 700; color: #E3E9FF">내역 보기 ›</a></sc-if>
+    </div>
+    <a href="Points.dc.html" style="position: relative; display: block; margin-top: 4px; font-size: 38px; font-weight: 900; letter-spacing: -1px; color: #FFFFFF; font-variant-numeric: tabular-nums">{{pts}}P</a>
+    <a href="PointGuide.dc.html" style="position: relative; display: inline-block; margin-top: 10px; font-size: 14px; font-weight: 700; color: #A3EA16">포인트는 어떻게 모으고 쓰나요? ›</a>
+  </div>
+
+  <a href="Invite.dc.html" style="margin: 10px 16px 0; height: 56px; border-radius: 16px; background: #F0F8D5; display: flex; align-items: center; gap: 10px; padding: 0 16px; color: #202A40">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#506D23" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="13" rx="2"></rect><path d="M12 8v13M3 12h18M12 8S10.5 3 8 3a2.5 2.5 0 0 0 0 5h4zm0 0s1.5-5 4-5a2.5 2.5 0 0 1 0 5h-4z"></path></svg>
+    <span style="flex: 1; font-size: 14px"><b>친구 초대하면 300P</b> <span style="color: #506D23">· 친구도 200P</span></span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6F942D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+  </a>
+
+  <div role="tablist" style="position: relative; margin: 24px 16px 0; background: #EFF1F7; border-radius: 18px; padding: 4px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px">
+    <span class="ind" aria-hidden="true" style="position: absolute; top: 4px; left: {{indLeft}}; width: calc((100% - 16px) / 3); height: 42px; border-radius: 12px; background: #FFFFFF; box-shadow: 0 1px 6px rgba(32,42,64,0.10)"></span>
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+      <button role="tab" class="tabbtn" onClick="{{t.pick}}" aria-selected="{{t.sel}}" style="position: relative; height: 42px; border: none; border-radius: 12px; background: transparent; color: {{t.fg}}; font-family: inherit; font-size: 14px; font-weight: 700">{{t.label}}</button>
+    </sc-for>
+  </div>
+  <div style="margin: 14px 16px 0; height: 44px; display: grid; grid-template-columns: {{sumCols}}; align-items: center; text-align: center; font-size: 14px; color: #545E73">
+    <sc-for list="{{sums}}" as="m" hint-placeholder-count="2"><span style="border-left: {{m.line}}; line-height: 22px">{{m.k}} <b style="margin-left: 4px; font-size: 18px; color: #202A40">{{m.v}}</b></span></sc-for>
+  </div>
+
+  <div style="margin: 12px 20px 0; display: flex; justify-content: space-between; align-items: center">
+    <span style="font-size: 16px; font-weight: 900">{{listTitle}}</span>
+    <a href="{{more}}" style="font-size: 14px; font-weight: 700; color: #545E73">전체 보기 ›</a>
+  </div>
+  <div class="{{fadeCls}}" style="margin: 10px 16px 0; min-height: 300px">
+    <sc-if value="{{isSurvey}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <sc-for list="{{surveys}}" as="v" hint-placeholder-count="2">
+          <div class="cd" style="padding: 18px">
+            <div style="display: flex; justify-content: space-between; align-items: center"><span style="background: #F0F8D5; color: #506D23; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px">진행 중</span><span style="font-size: 13px; color: #545E73">등록 {{v.date}}</span></div>
+            <div style="margin-top: 10px; font-size: 18px; font-weight: 900">{{v.title}}</div>
+            <div style="margin-top: 10px; display: flex; justify-content: space-between; font-size: 13px"><span style="color: #545E73">응답 진행률</span><b>{{v.n}} / {{v.goal}}명 · {{v.p}}%</b></div>
+            <div style="margin-top: 8px; height: 8px; background: #EFF1F7; border-radius: 999px; overflow: hidden"><div class="fillbar" style="width: {{v.p}}%; height: 8px; background: #3157D5; border-radius: 999px"></div></div>
+            <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; min-height: 40px">
+              <span style="font-size: 13px; color: #545E73">{{v.sub}}</span>
+              <sc-if value="{{v.hasRes}}" hint-placeholder-val="{{true}}"><a href="#" style="height: 40px; padding: 0 16px; border-radius: 12px; background: #3157D5; color: #FFFFFF; font-size: 14px; font-weight: 700; display: flex; align-items: center">결과 보기</a></sc-if>
+              <sc-if value="{{v.noRes}}" hint-placeholder-val="{{false}}"><a href="#" style="font-size: 14px; font-weight: 700">홍보하기 ›</a></sc-if>
+            </div>
+          </div>
+        </sc-for>
+        <a href="#" style="margin-top: 4px; height: 54px; border-radius: 16px; background: #E3E9FF; color: #3157D5; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700">+ 새 설문 등록</a>
+      </div>
+    </sc-if>
+    <sc-if value="{{isList}}" hint-placeholder-val="{{false}}">
+      <div class="cd" style="overflow: hidden">
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+          <a href="#" class="lr"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><b style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.t}}</b><span style="font-size: 13px; color: #545E73">{{r.m}}</span></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B93A5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></a>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="margin: 22px 20px 8px; font-size: 13px; font-weight: 700; color: #545E73">도움</div>
+  <div style="margin: 0 16px; background: #FFFFFF; border: 1px solid #ECEEF3; box-shadow: 0 2px 10px rgba(32,42,64,0.04); border-radius: 18px; overflow: hidden">
+    <a href="Feedback.dc.html" class="row"><span style="flex: 1; font-size: 15px">의견 보내기</span><span style="font-size: 12px; color: #2949B5; font-weight: 700">답변 1</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B93A5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></a>
+    <a href="#" class="row"><span style="flex: 1; font-size: 15px">사용 안내 다시 보기</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B93A5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></a>
+  </div>
+  <div style="margin: 14px 20px 0; font-size: 13px; color: #545E73">기업·학생회라면 <a href="Partner.dc.html" style="font-weight: 700">제휴·광고 문의</a></div>
+
+  <nav style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; background: #FFFFFF; border-top: 1px solid #EFF1F7; display: grid; grid-template-columns: repeat(5, 1fr); padding-top: 8px; box-sizing: border-box; font-size: 11px; color: #545E73; text-align: center">
+    <span>홈</span><span>설문</span><span>커뮤니티</span><span>데이터</span><span style="color: #3157D5; font-weight: 700">마이</span>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 0, pts: 227, gaining: false };
+    var self = this;
+    setTimeout(function () {
+      self.setState({ gaining: true });
+      var t = setInterval(function () {
+        var n = self.state.pts + 2;
+        if (n >= 257) { n = 257; clearInterval(t); setTimeout(function () { self.setState({ gaining: false }); }, 1800); }
+        self.setState({ pts: n });
+      }, 35);
+    }, 700);
+  }
+  renderVals() {
+    var self = this, st = this.state;
+    var S = [['adf', '11.9', 1, 10, '결과 공개 · 전체 공개'], ['태그 test', '11.7', 0, 10, '아직 응답이 없어요']].map(function (v) {
+      return { title: v[0], date: v[1], n: v[2], goal: v[3], p: Math.round(v[2] / v[3] * 100), sub: v[4], hasRes: v[2] > 0, noRes: v[2] === 0 };
+    });
+    var T = [
+      { label: '내 설문', sums: [['운영 중', '4개'], ['받은 응답', '2명']], more: 'MySurveys.dc.html', listTitle: '진행 중인 설문' },
+      { label: '내 데이터', sums: [['응답', '14'], ['스크랩', '3'], ['열람', '6']], more: 'MyData.dc.html', listTitle: '최근 본 데이터',
+        rows: [['[예시] 캠퍼스 카페 이용 습관', '응답함 · 11.12 마감 · 결과 공개됨'], ['[예시] 대학생 스터디 방식', '스크랩 · 응답 63명 · 100P'], ['[예시] 대학생 아르바이트 경험', '열람함 · 11.10']] },
+      { label: '커뮤니티', sums: [['글', '4'], ['댓글', '7'], ['참여', '23']], more: 'MyPosts.dc.html', listTitle: '최근 활동',
+        rows: [['테스트질문', '내 밸런스 · 6명 참여 · 새 댓글 1'], ['통학, 어느 파야?', '참여 · 광역버스파 58%로 앞서는 중'], ['노트북 뭐 살까?', '내 댓글 · "테스트" · 11.2']] }
+    ];
+    var cur = T[st.tab];
+    return {
+      pts: st.pts, gaining: st.gaining, notGaining: !st.gaining, fadeCls: 'f' + st.tab,
+      indLeft: 'calc(4px + ((100% - 16px) / 3 + 4px) * ' + st.tab + ')',
+      tabs: T.map(function (t, i) { var on = st.tab === i; return { label: t.label, sel: on ? 'true' : 'false', fg: on ? '#3157D5' : '#545E73', pick: function () { self.setState({ tab: i }); } }; }),
+      sums: cur.sums.map(function (m, i) { return { k: m[0], v: m[1], line: i ? '1px solid #E2E5EE' : 'none' }; }),
+      sumCols: cur.sums.length === 2 ? '1fr 1fr' : '1fr 1fr 1fr',
+      isSurvey: st.tab === 0, isList: st.tab !== 0, surveys: S,
+      rows: (cur.rows || []).map(function (r) { return { t: r[0], m: r[1] }; }), more: cur.more, listTitle: cur.listTitle
+    };
+  }
+}
+</script>
+</body>
+</html>

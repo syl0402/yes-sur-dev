@@ -1,5 +1,6 @@
-// 마이 탭 "내 데이터": [응답한 | 스크랩 | 열람한] 결과를 한 곳에 (2026-11-09 개인 피드백 14번)
-// 새 서버 함수 없음: get_hub_list(내가 응답한 것·스크랩 번호로 거름) · get_my_bookmarks · get_my_views. 모두 본인 것만
+// "내 데이터": [응답한 | 스크랩 | 열람한] 결과를 한 곳에 (2026-11-09 개인 피드백 14번)
+// 2026-11-14 마이 탭 시안 ⑤: 전용 화면(my-data)으로. 탭마다 안내 한 줄 · 줄은 칩 없이 "카테고리 · 마감 · 응답 수" + 오른쪽 "결과 보기"
+// 새 서버 함수 없음 (fetchMyDataRows: get_hub_list · get_my_bookmarks · get_my_views). 모두 본인 것만
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, StyleSheet } from "react-native";
@@ -7,26 +8,12 @@ import { ActivityIndicator, StyleSheet } from "react-native";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import ListRow, { rowsCard } from "@/components/ui/ListRow";
+import { Text } from "@/components/ui/Text";
 import TextTabs from "@/components/ui/TextTabs";
-import { colors, spacing } from "@/constants/theme";
-import { formatPoints, formatShortDate } from "@/lib/format";
-import type { HubItem } from "@/lib/hub";
-import { supabase } from "@/lib/supabase";
+import { colors, fontSize, spacing } from "@/constants/theme";
+import { type DataRow, type DataTab, fetchMyDataRows } from "@/lib/myActivity";
 
-type Tab = "answered" | "saved" | "viewed";
-
-// get_my_views 한 줄 (내가 열람한 결과)
-type MyView = {
-  survey_id: number;
-  title: string;
-  viewed_at: string;
-  paid: number;
-};
-
-// 목록 한 줄: 제목 + 회색 설명 (누르면 결과 화면)
-type Row = { id: number; title: string; sub: string };
-
-const EMPTY: Record<Tab, { title: string; message: string; emoji: string }> = {
+const EMPTY: Record<DataTab, { title: string; message: string; emoji: string }> = {
   answered: {
     title: "아직 볼 수 있는 결과가 없어요",
     message: "내가 응답한 설문이 마감되고 결과가 공개되면 여기에 보여요.",
@@ -36,35 +23,21 @@ const EMPTY: Record<Tab, { title: string; message: string; emoji: string }> = {
   viewed: { title: "열람한 결과가 없어요", message: "데이터 탭에서 다른 설문 결과를 볼 수 있어요.", emoji: "📊" },
 };
 
+// 탭마다 안내 한 줄
+const HINT: Record<DataTab, string> = {
+  answered: "내가 응답한 설문 중 결과가 공개된 것이에요.",
+  saved: "결과 화면에서 책갈피를 누른 것이에요.",
+  viewed: "데이터 탭에서 열람한 결과예요. 다시 볼 때는 포인트가 들지 않아요.",
+};
+
 export default function MyDataPanel() {
-  const [tab, setTab] = useState<Tab>("answered");
-  const [rows, setRows] = useState<Record<Tab, Row[]> | null>(null);
+  const [tab, setTab] = useState<DataTab>("answered");
+  const [rows, setRows] = useState<Record<DataTab, DataRow[]> | null>(null);
 
   // 결과 화면에서 스크랩을 풀고 돌아오면 바로 빠지게 매번 새로 불러온다
   useFocusEffect(
     useCallback(() => {
-      Promise.all([
-        supabase.rpc("get_hub_list", { p_category: null, p_sort: "latest" }),
-        supabase.rpc("get_my_bookmarks"),
-        supabase.rpc("get_my_views"),
-      ]).then(([hub, marks, views]) => {
-        const items = (hub.data as HubItem[] | null) ?? [];
-        const saved = (marks.data as number[] | null) ?? [];
-        const toRow = (i: HubItem): Row => ({
-          id: i.id,
-          title: i.title,
-          sub: `${formatShortDate(i.ended_at)} 마감 · 응답 ${i.response_count}명`,
-        });
-        setRows({
-          answered: items.filter((i) => i.answered).map(toRow),
-          saved: items.filter((i) => saved.includes(i.id)).map(toRow),
-          viewed: ((views.data as MyView[] | null) ?? []).map((v) => ({
-            id: v.survey_id,
-            title: v.title,
-            sub: `${formatShortDate(v.viewed_at)} 열람 · ${v.paid > 0 ? formatPoints(v.paid) : "무료"}`,
-          })),
-        });
-      });
+      fetchMyDataRows().then(setRows);
     }, []),
   );
 
@@ -83,6 +56,7 @@ export default function MyDataPanel() {
         onChange={setTab}
         fill
       />
+      <Text style={styles.hint}>{HINT[tab]}</Text>
       {shown.length === 0 ? (
         <EmptyState {...EMPTY[tab]} />
       ) : (
@@ -93,7 +67,8 @@ export default function MyDataPanel() {
               first={i === 0}
               title={r.title}
               sub={r.sub}
-              titleLines={2}
+              value="결과 보기"
+              valueTone="primary"
               onPress={() => router.push({ pathname: "/data/[id]", params: { id: String(r.id) } })}
             />
           ))}
@@ -106,5 +81,9 @@ export default function MyDataPanel() {
 const styles = StyleSheet.create({
   loading: {
     marginTop: spacing.lg,
+  },
+  hint: {
+    fontSize: fontSize.small,
+    color: colors.iconStrong,
   },
 });

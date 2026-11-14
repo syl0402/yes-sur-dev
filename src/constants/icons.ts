@@ -58,6 +58,8 @@ export const myIcons = {
   posts: "pencil-outline",
   partner: "briefcase-outline",
   forward: "chevron-forward",
+  // 2026-11-14 마이 탭 시안: 도움 목록 (사용 안내)
+  guide: "book-outline",
 } satisfies Record<string, IconName>;
 
 // 홈 오른쪽 위 ☰ 메뉴 (2026-11-10, 푸망 방식: 앱 이동·서비스 안내)

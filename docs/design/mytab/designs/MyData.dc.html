@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>내 데이터</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5;text-decoration:none}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 1000px; box-sizing: border-box; background: #FCFCFC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; padding-top: 44px; position: relative; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; padding: 0 6px">
+    <a href="Main.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <div style="flex: 1; text-align: center; font-size: 17px; font-weight: 700">내 데이터</div>
+    <div style="width: 44px"></div>
+  </div>
+
+  <div role="tablist" style="margin: 4px 16px 0; display: flex; border-bottom: 1px solid #E2E5EE">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+      <button role="tab" onClick="{{t.pick}}" style="flex: 1; height: 46px; border: none; background: transparent; font-family: inherit; font-size: 15px; font-weight: {{t.fw}}; color: {{t.color}}; border-bottom: 3px solid {{t.line}}; margin-bottom: -1px">{{t.label}}</button>
+    </sc-for>
+  </div>
+
+  <div style="margin: 12px 20px 0; font-size: 13px; color: #545E73">{{hint}}</div>
+
+  <div style="margin: 10px 16px 0; background: #FFFFFF; border: 1px solid #ECEEF3; box-shadow: 0 2px 10px rgba(32,42,64,0.04); border-radius: 18px; padding: 0 16px">
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+      <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 74px; border-top: {{r.line}}; color: #202A40">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.title}}</span>
+          <span style="font-size: 13px; color: #545E73">{{r.meta}}</span>
+        </span>
+        <sc-if value="{{r.hot}}" hint-placeholder-val="{{false}}"><span style="flex-shrink: 0; font-size: 13px; font-weight: 700; color: #3157D5">{{r.st}}</span></sc-if><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B93A5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+      </a>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { tab: 0 }; }
+  renderVals() {
+    var self = this, st = this.state;
+    var open = ['결과 보기', '#E3E9FF', '#2949B5'], wait = ['결과 공개 전', '#EFF1F7', '#545E73'], ing = ['진행 중', '#F0F8D5', '#506D23'];
+    var D = [
+      { hint: '내가 답한 설문이에요. 결과가 공개되면 여기서 바로 볼 수 있어요.', rows: [
+        ['생활', '[예시] 캠퍼스 카페 이용 습관', '11.12 마감 · 응답 2명', open],
+        ['학업', '[예시] 시험 기간, 어디서 공부해요?', '11.12 마감 · 응답 1명', open],
+        ['생활', '[예시] 오늘 아침, 뭐 먹었어요?', '11.12 마감 · 응답 3명', wait],
+        ['진로', '[예시] 첫 직장, 무엇을 보고 고를래요?', '11.12 마감 · 응답 1명', open],
+        ['문화', '[예시] 요즘 즐겨 보는 콘텐츠', 'D-2 · 응답 3명', ing],
+        ['연애', '[예시] 대학생 연애, 요즘은 어때요?', 'D-4 · 응답 3명', ing]
+      ] },
+      { hint: '나중에 보려고 담아 둔 데이터예요.', rows: [
+        ['학업', '[예시] 대학생 스터디 방식', '응답 63명 · 100P', ['열어 보기', '#3157D5', '#FFFFFF']],
+        ['생활', '[예시] 자취생 식습관', '응답 41명 · 100P', ['열어 보기', '#3157D5', '#FFFFFF']],
+        ['소비', '[예시] 한 달 카페 지출', '응답 28명 · 무료', ['무료로 보기', '#E3E9FF', '#2949B5']]
+      ] },
+      { hint: '한 번 연 데이터는 계속 볼 수 있어요.', rows: [
+        ['학업', '[예시] 대학생 아르바이트 경험', '11.10 열람', open],
+        ['생활', '보상 test', '11.9 열람', open],
+        ['학업', '대학생 스터디', '11.9 열람', open]
+      ] }
+    ][st.tab];
+    var M = { '결과 보기': '결과 공개됨', '결과 공개 전': '결과 공개 전', '진행 중': '진행 중', '열어 보기': '', '무료로 보기': '', };
+    var rows = D.rows.map(function (r, i) { var m = M[r[3][0]]; return { title: r[1], meta: r[0] + ' · ' + r[2] + (m ? ' · ' + m : ''), st: r[3][0] === '결과 보기' ? '결과 보기' : '', hot: r[3][0] === '결과 보기', line: i ? '1px solid #EFF1F7' : 'none' }; });
+    var tabs = [['응답한 14', 0], ['스크랩 3', 1], ['열람한 6', 2]].map(function (t) {
+      var on = st.tab === t[1];
+      return { label: t[0], fw: on ? 700 : 500, color: on ? '#3157D5' : '#545E73', line: on ? '#3157D5' : 'transparent', pick: function () { self.setState({ tab: t[1] }); } };
+    });
+    return { tabs: tabs, rows: rows, hint: D.hint };
+  }
+}
+</script>
+</body>
+</html>

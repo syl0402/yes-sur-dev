@@ -1,59 +1,43 @@
-// ys-150 마일리지 지갑 · F-701 (2026-10-31 디자인: 프로필 · 포인트 카드 · 탭 전환 [내 설문 | 포인트 내역 | 내 데이터], 2026-11-09 열람한 결과 → 내 데이터)
-import { type Href, router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+// ys-150 마이 홈 · F-701 (2026-10-31 디자인, 2026-11-14 마이 탭 시안 ①)
+// 프로필 → 포인트 카드(기존 그대로) → 친구 초대 배너 → [내 설문 | 내 데이터 | 커뮤니티] → 요약 숫자 → 최근 목록 + 전체 보기 → 도움
+// 단체는 포인트·데이터·커뮤니티 없이 내 설문만
+import { type Href, router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import Animated, { FadeInUp } from "react-native-reanimated";
 
 import AppIcon from "@/components/AppIcon";
-import { listCardStyles as list } from "@/components/listCardStyles";
-import LedgerList from "@/components/LedgerList";
-import MyDataPanel from "@/components/MyDataPanel";
-import Badge from "@/components/ui/Badge";
+import MySurveyCard from "@/components/my/MySurveyCard";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import ListRow from "@/components/ui/ListRow";
-import EmptyState from "@/components/ui/EmptyState";
-import ProgressBar from "@/components/ui/ProgressBar";
-import { Text } from "@/components/ui/Text";
 import Segmented from "@/components/ui/Segmented";
-import TextTabs from "@/components/ui/TextTabs";
-import { type IconName, myIcons, uiIcons } from "@/constants/icons";
+import { Text } from "@/components/ui/Text";
+import { myIcons, uiIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { type AdminCounts, fetchAdminCounts, totalPending } from "@/lib/admin";
+import { KIND_LABELS } from "@/lib/community";
 import { showConfirm } from "@/lib/confirm";
 import { formatDate, formatPoints, formatShortDate } from "@/lib/format";
-import type { HubItem } from "@/lib/hub";
-import { fetchLedger, type LedgerItem } from "@/lib/ledger";
+import { type DataRow, type DataTab, fetchMyCommunity, fetchMyDataRows, type MyCommunity } from "@/lib/myActivity";
+import { fetchMySurveys, type MySurvey } from "@/lib/mySurveys";
+import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
-import { type ResultVisibility, type SavedDraft, VISIBILITY_LABELS, deleteDraft, listDrafts } from "@/lib/surveyDraft";
+import { type SavedDraft, deleteDraft, listDrafts } from "@/lib/surveyDraft";
 
-// 내 정보 화면 (account/index.tsx). 개발 서버가 경로 목록을 늦게 갱신해 타입 오류가 나는 일이 있어 Href로 고정
+// 개발 서버가 경로 목록을 늦게 갱신해 타입 오류가 나는 일이 있어 Href로 고정
 const ACCOUNT_HREF = "/account" as Href;
-// 운영자 화면 (admin/index.tsx). 같은 이유로 Href로 고정
 const ADMIN_HREF = "/admin" as Href;
-// 내가 쓴 글 (my-posts.tsx, 2026-11-10). 같은 이유로 Href로 고정
 const MY_POSTS_HREF = "/my-posts" as Href;
-
-// 포인트 내역 전체 화면 (points-history.tsx, 2026-11-10). 같은 이유로 Href로 고정
+const MY_SURVEYS_HREF = "/my-surveys" as Href;
+const MY_DATA_HREF = "/my-data" as Href;
 const POINTS_HISTORY_HREF = "/points-history" as Href;
 
-// 마이 탭에서는 최근 몇 개만 (전체는 전용 화면에서)
-const LEDGER_PREVIEW = 10;
+// 마이 홈에서 보여 줄 개수 (전체는 "전체 보기")
+const PREVIEW_SURVEYS = 2;
+const PREVIEW_ROWS = 3;
 
-type Tab = "surveys" | "ledger" | "data";
-
-type MySurvey = {
-  id: number;
-  title: string;
-  responseCount: number;
-  target: number;
-  closed: boolean;
-  // 신고로 숨겨짐(운영자 확인 중) 또는 운영자가 삭제
-  moderated: boolean;
-  // 데이터 탭에 공개된 결과면 열람 수, 아니면 null (2026-11-09 개인 피드백 12번)
-  hubViews: number | null;
-  createdAt: string;
-  visibility: ResultVisibility;
-};
+type Tab = "surveys" | "data" | "community";
 
 type MyData = {
   userId: string;
@@ -61,91 +45,144 @@ type MyData = {
   // 학생인데 성별·출생연도가 비어 있음 (기능 추가 전 가입) → 한 번만 입력
   needsDemographics: boolean;
   name: string;
+  // "중앙대학교 · 사회 계열" (단체는 "단체 계정")
+  sub: string;
   balance: number;
-  ledger: LedgerItem[];
   surveys: MySurvey[];
   // 이 폰에 임시저장한 설문 (서버에는 없음)
   drafts: SavedDraft[];
   // 운영자 계정이면 처리 대기 건수, 아니면 null
   admin: AdminCounts | null;
+  // 친구 초대 보상 (point_rules)
+  invite: { inviter: number; invitee: number } | null;
+  // 운영자가 답한 내 의견 수
+  answered: number;
 };
 
-// 내가 올린 설문 (최신순) + 데이터 탭에 공개됐는지 (데이터 탭과 같은 get_hub_list에서 mine인 것)
-async function fetchMySurveys(userId: string): Promise<MySurvey[]> {
-  if (!userId) return [];
-  const [{ data }, { data: hub }] = await Promise.all([
-    supabase
-      .from("surveys")
-      .select("id, title, response_count, target_responses, status, closes_at, moderation, created_at, result_visibility")
-      .eq("owner_id", userId)
-      .order("created_at", { ascending: false }),
-    supabase.rpc("get_hub_list", { p_category: null, p_sort: "latest" }),
-  ]);
-  const hubViews = new Map(((hub as HubItem[] | null) ?? []).filter((h) => h.mine).map((h) => [h.id, h.view_count]));
-  const now = Date.now();
-  return (data ?? []).map((s) => ({
-    id: s.id,
-    title: s.title,
-    responseCount: s.response_count,
-    target: s.target_responses,
-    closed: s.status !== "open" || (s.closes_at !== null && new Date(s.closes_at).getTime() <= now),
-    moderated: s.moderation !== "visible",
-    createdAt: s.created_at,
-    visibility: s.result_visibility,
-    hubViews: hubViews.get(s.id) ?? null,
-  }));
+function first<T>(raw: unknown): T | null {
+  return ((Array.isArray(raw) ? raw[0] : raw) as T | null) ?? null;
 }
 
-// 내 정보·잔액·포인트 내역·내 설문·임시저장 (모두 본인 것만 읽힌다)
+// 내 정보·잔액·내 설문·임시저장 (모두 본인 것만 읽힌다)
 async function fetchMy(): Promise<MyData> {
   const { data: auth } = await supabase.auth.getUser();
   const userId = auth.user?.id ?? "";
 
-  const [{ data: profile }, { data: org }, { data: balance }, ledger, surveys, admin] = await Promise.all([
-    supabase.from("profiles").select("nickname, account_type, gender, birth_year").maybeSingle(),
+  const [{ data: profile }, { data: org }, { data: balance }, surveys, admin, rules, feedback] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("nickname, account_type, gender, birth_year, universities(name), major_fields(category_name)")
+      .maybeSingle(),
     supabase.from("organizations").select("name").maybeSingle(),
     supabase.rpc("get_my_balance"),
-    fetchLedger({ limit: LEDGER_PREVIEW }),
     fetchMySurveys(userId),
     fetchAdminCounts(),
+    fetchRules(["invite_reward_inviter", "invite_reward_invitee"]),
+    supabase.from("feedback").select("id", { count: "exact", head: true }).neq("status", "pending"),
   ]);
 
   const isOrg = profile?.account_type === "org";
+  const school = first<{ name: string }>(profile?.universities)?.name ?? "";
+  const major = first<{ category_name: string }>(profile?.major_fields)?.category_name ?? "";
 
   return {
     userId,
     isOrg,
     needsDemographics: !isOrg && (profile?.gender == null || profile?.birth_year == null),
     name: org?.name ?? profile?.nickname ?? "",
+    sub: isOrg ? "단체 계정" : [school, major && `${major} 계열`].filter(Boolean).join(" · ") || "내 정보 · 계정 설정",
     balance: typeof balance === "number" ? balance : 0,
-    ledger,
     surveys,
     drafts: userId ? listDrafts(userId) : [],
     admin,
+    invite:
+      rules.invite_reward_inviter !== undefined && rules.invite_reward_invitee !== undefined
+        ? { inviter: rules.invite_reward_inviter, invitee: rules.invite_reward_invitee }
+        : null,
+    answered: feedback.count ?? 0,
   };
 }
 
-// 포인트 기록의 설문 번호: "12" 또는 "12:34"(열람 수익) → 12. 개발용 기록("dev-…")·웰컴은 null
+// 최근 목록 한 줄 (내 데이터 · 커뮤니티)
+type Row = { key: string; title: string; sub: string; at: string; onPress?: () => void };
+
+// 최근 본 데이터: 열람 → 응답 → 스크랩 순으로 모아 겹치는 설문은 하나만
+function recentData(rows: Record<DataTab, DataRow[]>): Row[] {
+  const label: Record<DataTab, string> = { viewed: "열람함", answered: "응답함", saved: "스크랩" };
+  const seen = new Set<number>();
+  const out: Row[] = [];
+  for (const tab of ["viewed", "answered", "saved"] as DataTab[]) {
+    for (const r of rows[tab]) {
+      if (seen.has(r.id)) continue;
+      seen.add(r.id);
+      out.push({
+        key: `${tab}-${r.id}`,
+        title: r.title,
+        sub: `${label[tab]} · ${r.sub}`,
+        at: r.at,
+        onPress: () => router.push({ pathname: "/data/[id]", params: { id: String(r.id) } }),
+      });
+    }
+  }
+  return out.slice(0, PREVIEW_ROWS);
+}
+
+// 최근 활동: 내 글 · 참여 · 내 댓글을 시간순으로
+function recentCommunity(c: MyCommunity): Row[] {
+  const openPost = (id: number) => () => router.push({ pathname: "/community/[id]", params: { id: String(id) } });
+  const openCup = (id: number) => () => router.push({ pathname: "/community/worldcup/[id]", params: { id: String(id) } });
+  const rows: Row[] = [
+    ...c.posts
+      .filter((p) => p.moderation === "visible")
+      .map((p) => ({
+        key: `p-${p.id}`,
+        title: p.question,
+        sub: `내 ${KIND_LABELS[p.kind]} · ${p.votes}명 참여 · 댓글 ${p.comment_count}`,
+        at: p.created_at,
+        onPress: openPost(p.id),
+      })),
+    ...c.votes.map((v) => ({
+      key: `v-${v.type}-${v.id}`,
+      title: v.title,
+      sub: `참여${v.choice ? ` · ${v.choice}` : ""}`,
+      at: v.created_at,
+      onPress: v.type === "post" ? openPost(v.id) : v.type === "worldcup" ? openCup(v.id) : undefined,
+    })),
+    ...c.comments
+      .filter((m) => m.moderation === "visible")
+      .map((m) => ({
+        key: `c-${m.id}`,
+        title: `“${m.body}”`,
+        sub: `내 댓글 · ${m.target_title ?? ""} · ${formatShortDate(m.created_at)}`,
+        at: m.created_at,
+        onPress:
+          m.target_type === "post"
+            ? openPost(m.target_id)
+            : m.target_type === "worldcup"
+              ? openCup(m.target_id)
+              : m.today
+                ? () => router.push("/community/daily")
+                : undefined,
+      })),
+  ];
+  return rows.sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, PREVIEW_ROWS);
+}
+
 export default function My() {
   const [data, setData] = useState<MyData | null>(null);
+  const [dataRows, setDataRows] = useState<Record<DataTab, DataRow[]> | null>(null);
+  const [community, setCommunity] = useState<MyCommunity | null>(null);
   const [tab, setTab] = useState<Tab>("surveys");
-  // 다른 화면에서 특정 탭으로 열기 (예: 홈 포인트 카드 → ?tab=ledger). 한 번 반영하고 주소에서 지운다 (다음에 또 열 수 있게)
-  const params = useLocalSearchParams<{ tab?: Tab }>();
-  const [seenTab, setSeenTab] = useState<string | undefined>(undefined);
-  if (params.tab !== seenTab) {
-    setSeenTab(params.tab);
-    if (params.tab === "surveys" || params.tab === "ledger" || params.tab === "data") setTab(params.tab);
-  }
-  useEffect(() => {
-    if (params.tab) router.setParams({ tab: undefined });
-  }, [params.tab]);
-  // 내 설문: 진행 중 / 마감 (2026-11-10, 쌓인 설문 정리)
-  const [surveyFilter, setSurveyFilter] = useState<"open" | "closed">("open");
 
-  // 탭에 돌아올 때마다 새로 불러온다 (응답 후 내역이 바로 보이게)
+  // 탭에 돌아올 때마다 새로 불러온다 (응답 후 숫자가 바로 바뀌게)
   useFocusEffect(
     useCallback(() => {
-      fetchMy().then(setData);
+      fetchMy().then((d) => {
+        setData(d);
+        if (d.isOrg) return;
+        fetchMyDataRows().then(setDataRows);
+        fetchMyCommunity().then(setCommunity);
+      });
     }, []),
   );
 
@@ -171,29 +208,37 @@ export default function My() {
     );
   }
 
-  // 단체는 포인트·열람이 없어서 탭 전환 없이 내 설문만. 열람한 결과는 "내 데이터" 탭(응답한·스크랩·열람한)으로 (2026-11-09)
-  const tabs: { value: Tab; label: string }[] = data.isOrg
-    ? []
-    : [
-        { value: "surveys", label: "내 설문" },
-        { value: "ledger", label: "포인트 내역" },
-        { value: "data", label: "내 데이터" },
-      ];
   const current: Tab = data.isOrg ? "surveys" : tab;
-
+  const openSurveys = data.surveys.filter((s) => !s.closed);
   const openCount = data.surveys.filter((s) => !s.closed && !s.moderated).length;
   const totalResponses = data.surveys.reduce((sum, s) => sum + s.responseCount, 0);
-  // 검토 중인 설문은 마감 전이면 진행 중 칸에 둔다
-  const openSurveys = data.surveys.filter((s) => !s.closed);
-  const closedSurveys = data.surveys.filter((s) => s.closed);
-  const shownSurveys = surveyFilter === "open" ? openSurveys : closedSurveys;
+
+  // 탭마다: 요약 숫자 · 목록 제목 · 전체 보기
+  const sums: { label: string; value: string }[] =
+    current === "surveys"
+      ? [
+          { label: "운영 중", value: `${openCount}개` },
+          { label: "받은 응답", value: `${totalResponses}명` },
+        ]
+      : current === "data"
+        ? [
+            { label: "응답", value: dataRows ? String(dataRows.answered.length) : "-" },
+            { label: "스크랩", value: dataRows ? String(dataRows.saved.length) : "-" },
+            { label: "열람", value: dataRows ? String(dataRows.viewed.length) : "-" },
+          ]
+        : [
+            { label: "글", value: community ? String(community.posts.length) : "-" },
+            { label: "댓글", value: community ? String(community.comments.length) : "-" },
+            { label: "참여", value: community ? String(community.votes.length) : "-" },
+          ];
+  const listTitle = current === "surveys" ? "진행 중인 설문" : current === "data" ? "최근 본 데이터" : "최근 활동";
+  const moreHref = current === "surveys" ? MY_SURVEYS_HREF : current === "data" ? MY_DATA_HREF : MY_POSTS_HREF;
+
+  const rows =
+    current === "data" ? (dataRows ? recentData(dataRows) : null) : current === "community" ? (community ? recentCommunity(community) : null) : null;
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={styles.container}
-    >
+    <ScrollView style={styles.screen} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
       {/* 운영자 계정에만: 처리 대기 건수 → 운영자 화면 */}
       {data.admin && (
         <Card onPress={() => router.push(ADMIN_HREF)} style={styles.adminCard}>
@@ -207,212 +252,172 @@ export default function My() {
         </Card>
       )}
 
-      {/* 프로필 · 포인트 · 바로가기 · 탭 (2026-11-10 디자인 정리: 피그마 C안 + A안 + 기존 포인트 카드) */}
-      <View style={styles.section}>
-        {/* 이름을 누르면 내 정보 (회원정보·비밀번호 변경·로그아웃) */}
-        <Pressable onPress={() => router.push(ACCOUNT_HREF)} style={styles.profile}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{data.name.slice(0, 1) || "옛"}</Text>
-          </View>
-          <View style={styles.profileMain}>
-            <Text style={styles.name}>{data.name ? `${data.name}님` : "내 정보"}</Text>
-            <Text style={styles.muted}>내 정보 · 계정 설정</Text>
-            {data.needsDemographics && (
-              <View style={styles.iconLine}>
-                <AppIcon name={uiIcons.alert} size={14} color={colors.primary} />
-                <Text style={styles.warn}>성별·출생연도를 입력해 주세요</Text>
-              </View>
-            )}
-          </View>
-          <AppIcon name={myIcons.forward} size={20} color={colors.textSubtle} />
-        </Pressable>
+      {/* 프로필: 누르면 내 정보 */}
+      <Pressable onPress={() => router.push(ACCOUNT_HREF)} style={styles.profile}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{data.name.slice(0, 1) || "옛"}</Text>
+        </View>
+        <View style={styles.profileMain}>
+          <Text style={styles.name}>{data.name ? `${data.name}님` : "내 정보"}</Text>
+          <Text style={styles.muted}>{data.sub}</Text>
+          {data.needsDemographics && (
+            <View style={styles.iconLine}>
+              <AppIcon name={uiIcons.alert} size={14} color={colors.primary} />
+              <Text style={styles.warn}>성별·출생연도를 입력해 주세요</Text>
+            </View>
+          )}
+        </View>
+        <AppIcon name={myIcons.forward} size={20} color={colors.textSubtle} />
+      </Pressable>
 
-        {/* 내 포인트 (단체는 포인트를 쓰지 않음) */}
-        {!data.isOrg && (
-          <View style={styles.pointCard}>
-            <View style={styles.pointRing} />
+      {/* 내 포인트 (기존 카드 그대로, 단체는 포인트를 쓰지 않음) */}
+      {!data.isOrg && (
+        <View style={styles.pointCard}>
+          <View style={styles.pointRing} />
+          {/* 오른쪽 위 "내역 보기 ›" → 포인트 내역 (2026-11-14 시안) */}
+          <View style={styles.pointHead}>
             <Text style={styles.pointLabel}>내 포인트</Text>
-            <Text style={styles.pointValue}>{formatPoints(data.balance)}</Text>
-            <Pressable onPress={() => router.push("/points")} hitSlop={8}>
-              <Text style={styles.pointLink}>포인트는 어떻게 모으고 쓰나요? ›</Text>
+            <Pressable onPress={() => router.push(POINTS_HISTORY_HREF)} hitSlop={10}>
+              <Text style={styles.pointHistory}>내역 보기 ›</Text>
             </Pressable>
           </View>
-        )}
+          <Text style={styles.pointValue}>{formatPoints(data.balance)}</Text>
+          <Pressable onPress={() => router.push("/points")} hitSlop={8}>
+            <Text style={styles.pointLink}>포인트는 어떻게 모으고 쓰나요? ›</Text>
+          </Pressable>
+        </View>
+      )}
 
-        {/* 바로가기 아이콘 한 줄: 의견 보내기 · 친구 초대(학생) · 내가 쓴 글 · 제휴 문의 */}
-        <View style={styles.shortcuts}>
-          <Shortcut
-            icon={myIcons.feedback}
-           
-            label="의견 보내기"
-            onPress={() => router.push({ pathname: "/feedback", params: { from: "마이 탭" } })}
-          />
-          {!data.isOrg && <Shortcut icon={myIcons.invite} label="친구 초대" onPress={() => router.push("/invite")} />}
-          <Shortcut icon={myIcons.posts} label="내가 쓴 글" onPress={() => router.push(MY_POSTS_HREF)} />
-          <Shortcut icon={myIcons.partner} label="제휴 문의" onPress={() => router.push("/partnership")} />
+      {/* 친구 초대 배너 (보상은 point_rules) */}
+      {!data.isOrg && data.invite && (
+        <Pressable onPress={() => router.push("/invite")} style={({ pressed }) => [styles.invite, pressed && styles.pressed]}>
+          <AppIcon name={myIcons.invite} size={20} color={colors.onAccentSoft} />
+          <Text style={styles.inviteText}>
+            <Text style={styles.inviteStrong}>친구 초대하면 {formatPoints(data.invite.inviter)}</Text>
+            <Text style={styles.inviteSub}> · 친구도 {formatPoints(data.invite.invitee)}</Text>
+          </Text>
+          <AppIcon name={myIcons.forward} size={18} color={colors.onAccentSoft} />
+        </Pressable>
+      )}
+
+      {/* 카테고리 탭 (단체는 내 설문만) */}
+      {data.isOrg ? (
+        <Text style={styles.sectionTitle}>내 설문 관리</Text>
+      ) : (
+        <Segmented
+          options={[
+            { value: "surveys", label: "내 설문" },
+            { value: "data", label: "내 데이터" },
+            { value: "community", label: "커뮤니티" },
+          ]}
+          value={current}
+          onChange={setTab}
+        />
+      )}
+
+      {/* 탭을 바꾸면 아래 내용이 살짝 올라오며 나타남 */}
+      <Animated.View key={current} entering={FadeInUp.duration(300)} style={styles.tabBody}>
+        {/* 요약 숫자 한 줄 (칸 사이 세로선) */}
+        <View style={styles.sums}>
+          {sums.map((m, i) => (
+            <View key={m.label} style={[styles.sum, i > 0 && styles.sumLine]}>
+              <Text style={styles.sumLabel}>{m.label}</Text>
+              <Text style={styles.sumValue}>{m.value}</Text>
+            </View>
+          ))}
         </View>
 
-        {tabs.length > 0 ? (
-          <Segmented options={tabs} value={current} onChange={setTab} />
-        ) : (
-          <Text style={styles.sectionTitle}>내 설문 관리</Text>
+        <View style={styles.listHead}>
+          <Text style={styles.listTitle}>{listTitle}</Text>
+          <Pressable onPress={() => router.push(moreHref)} hitSlop={8}>
+            <Text style={styles.more}>전체 보기 ›</Text>
+          </Pressable>
+        </View>
+
+        {current === "surveys" && (
+          <>
+            {/* 임시저장함: 이 폰에만 있고, 있을 때만 보인다 */}
+            {data.drafts.length > 0 && (
+              <Card>
+                <Text style={styles.cardTitle}>임시저장한 설문</Text>
+                <View>
+                  {data.drafts.map((d, i) => (
+                    <ListRow
+                      key={d.id}
+                      first={i === 0}
+                      title={d.draft.title.trim() || "제목 없는 설문"}
+                      sub={`${formatDate(d.savedAt)} 저장 · 문항 ${d.draft.questions.length}개`}
+                      onPress={() => router.push({ pathname: "/create", params: { draft: d.id } })}
+                      right={
+                        <Pressable onPress={() => removeDraft(d)} hitSlop={8}>
+                          <Text style={styles.deleteText}>삭제</Text>
+                        </Pressable>
+                      }
+                    />
+                  ))}
+                </View>
+                <Text style={styles.muted}>임시저장은 이 폰에만 있어요.</Text>
+              </Card>
+            )}
+            {openSurveys.length === 0 ? (
+              <Text style={styles.empty}>
+                {data.surveys.length === 0 ? "아직 올린 설문이 없어요. 궁금한 걸 대학생들에게 물어보세요." : "진행 중인 설문이 없어요."}
+              </Text>
+            ) : (
+              openSurveys.slice(0, PREVIEW_SURVEYS).map((s) => <MySurveyCard key={s.id} survey={s} />)
+            )}
+            <Button title="+ 새 설문 등록" variant="soft" onPress={() => router.push("/create")} />
+          </>
         )}
 
-      {current === "surveys" && (
-        <>
-          {/* 운영 중 · 받은 응답: 연파랑 한 줄 */}
-          <View style={styles.stats}>
-            <View style={styles.statHalf}>
-              <Text style={styles.statLabel}>운영 중</Text>
-              <Text style={styles.statValue}>{openCount}개</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statHalf}>
-              <Text style={styles.statLabel}>받은 응답</Text>
-              <Text style={styles.statValue}>{totalResponses}명</Text>
-            </View>
-          </View>
-
-          {/* 임시저장함: 이 폰에만 있고, 있을 때만 보인다 */}
-          {data.drafts.length > 0 && (
+        {current !== "surveys" &&
+          (rows === null ? (
+            <ActivityIndicator color={colors.primary} />
+          ) : rows.length === 0 ? (
+            <Text style={styles.empty}>
+              {current === "data" ? "아직 본 데이터가 없어요. 데이터 탭에서 다른 설문 결과를 볼 수 있어요." : "아직 커뮤니티 활동이 없어요."}
+            </Text>
+          ) : (
             <Card>
-              <Text style={styles.cardTitle}>임시저장한 설문</Text>
               <View>
-                {data.drafts.map((d, i) => (
-                  <ListRow
-                    key={d.id}
-                    first={i === 0}
-                    title={d.draft.title.trim() || "제목 없는 설문"}
-                    sub={`${formatDate(d.savedAt)} 저장 · 문항 ${d.draft.questions.length}개`}
-                    onPress={() => router.push({ pathname: "/create", params: { draft: d.id } })}
-                    right={
-                      <Pressable onPress={() => removeDraft(d)} hitSlop={8}>
-                        <Text style={styles.deleteText}>삭제</Text>
-                      </Pressable>
-                    }
-                  />
+                {rows.map((r, i) => (
+                  <ListRow key={r.key} first={i === 0} title={r.title} sub={r.sub} onPress={r.onPress} />
                 ))}
               </View>
-              <Text style={styles.muted}>임시저장은 이 폰에만 있어요.</Text>
             </Card>
-          )}
+          ))}
+      </Animated.View>
 
-          {data.surveys.length === 0 ? (
-            <EmptyState title="아직 올린 설문이 없어요" message="궁금한 걸 대학생들에게 물어보세요." emoji="📣" />
-          ) : (
-            <>
-              <TextTabs
-                options={[
-                  { value: "open", label: `진행 중 ${openSurveys.length}` },
-                  { value: "closed", label: `마감 ${closedSurveys.length}` },
-                ]}
-                value={surveyFilter}
-                onChange={setSurveyFilter}
-                fill
+      {/* 도움 */}
+      <View style={styles.help}>
+        <Text style={styles.helpTitle}>도움</Text>
+        <Card>
+          <View>
+            <ListRow
+              first
+              icon={myIcons.feedback}
+              title="의견 보내기"
+              value={data.answered > 0 ? `답변 ${data.answered}` : undefined}
+              valueTone="primary"
+              onPress={() => router.push({ pathname: "/feedback", params: { from: "마이 탭" } })}
+            />
+            {!data.isOrg && (
+              <ListRow
+                icon={myIcons.guide}
+                title="사용 안내 다시 보기"
+                onPress={() => router.push({ pathname: "/onboarding", params: { again: "1" } })}
               />
-              {shownSurveys.length === 0 ? (
-                <Text style={styles.muted}>
-                  {surveyFilter === "open" ? "진행 중인 설문이 없어요." : "마감된 설문이 없어요."}
-                </Text>
-              ) : (
-                shownSurveys.map((s) => <MySurveyCard key={s.id} survey={s} />)
-              )}
-            </>
-          )}
-
-          <Button title="+ 새 설문 등록" variant="soft" onPress={() => router.push("/create")} />
-        </>
-      )}
-
-      {current === "ledger" &&
-        (data.ledger.length === 0 ? (
-          <EmptyState title="아직 포인트 내역이 없어요" message="설문에 답하면 여기에 쌓여요." emoji="🪙" />
-        ) : (
-          // 최근 내역만 날짜별로 + 전체 내역 화면으로 (2026-11-10: 마이 탭이 길어지지 않게)
-          <>
-            <LedgerList items={data.ledger} />
-            <Button title="전체 내역 보기" variant="soft" onPress={() => router.push(POINTS_HISTORY_HREF)} />
-          </>
-        ))}
-
-      {/* 응답한·스크랩·열람한 결과를 한 곳에 (2026-11-09) */}
-      {current === "data" && <MyDataPanel />}
-      </View>
-    </ScrollView>
-  );
-}
-
-// 바로가기 하나: 회색 둥근 네모 안 파란 아이콘 + 아래 이름
-function Shortcut({ icon, label, onPress }: { icon: IconName; label: string; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.shortcut, pressed && styles.pressed]}>
-      <View style={styles.shortcutIcon}>
-        <AppIcon name={icon} size={22} color={colors.primary} />
-      </View>
-      <Text style={styles.shortcutLabel}>{label}</Text>
-    </Pressable>
-  );
-}
-
-// 내가 올린 설문 한 개: 상태 뱃지 · 등록일 · 제목 · 응답 진행률 · 결과 공개 · [결과 보기]
-function MySurveyCard({ survey: s }: { survey: MySurvey }) {
-  const pct = s.target > 0 ? Math.min(100, Math.round((s.responseCount / s.target) * 100)) : 0;
-  // 설문·데이터 탭 카드와 같은 파스텔 표시 (진행 중 = 연두, 마감 = 회색, 검토 중 = 빨강)
-  const status = s.moderated
-    ? { label: "검토 중", tone: "danger" as const }
-    : s.closed
-      ? { label: "마감", tone: "muted" as const }
-      : { label: "진행 중", tone: "lime" as const };
-
-  return (
-    <Card onPress={() => router.push({ pathname: "/survey/[id]", params: { id: String(s.id) } })} style={list.card}>
-      <View style={list.head}>
-        <View style={list.top}>
-          <Badge label={status.label} tone={status.tone} />
-          <Text style={list.sub}>등록 {formatShortDate(s.createdAt)}</Text>
-        </View>
-        <Text style={list.title} numberOfLines={2}>
-          {s.title}
+            )}
+          </View>
+        </Card>
+        <Text style={styles.partner}>
+          기업·학생회라면{" "}
+          <Text style={styles.partnerLink} onPress={() => router.push("/partnership")}>
+            제휴·광고 문의
+          </Text>
         </Text>
       </View>
-
-      <View style={styles.progress}>
-        <View style={list.top}>
-          <Text style={list.sub}>응답 진행률</Text>
-          <Text style={styles.progressNum}>
-            {s.responseCount} / {s.target}명 · {pct}%
-          </Text>
-        </View>
-        <ProgressBar value={pct / 100} height={6} />
-      </View>
-
-      {/* 데이터 탭에 공개된 결과: 남들이 얼마나 봤는지 + 데이터 탭 화면으로 (결과 보기는 계속 등록자 화면) */}
-      {s.hubViews !== null && (
-        <Pressable
-          style={styles.hubRow}
-          onPress={() => router.push({ pathname: "/data/[id]", params: { id: String(s.id) } })}
-          hitSlop={6}
-        >
-          <View style={styles.iconLine}>
-            <AppIcon name={uiIcons.chart} size={16} color={colors.primary} />
-            <Text style={styles.hubText}>데이터 탭 공개 중 · 열람 {s.hubViews}회</Text>
-          </View>
-          <Text style={styles.hubLink}>데이터 탭에서 보기 ›</Text>
-        </Pressable>
-      )}
-
-      {/* 아래: 결과 공개 범위 · 오른쪽 파란 알약 (목록 카드의 포인트 알약과 같은 모양) */}
-      <View style={styles.cardBottom}>
-        <Text style={list.sub}>결과 공개 · {VISIBILITY_LABELS[s.visibility]}</Text>
-        <Pressable
-          style={({ pressed }) => [list.pill, pressed && styles.pressed]}
-          onPress={() => router.push({ pathname: "/survey/results", params: { id: String(s.id) } })}
-          hitSlop={6}
-        >
-          <Text style={list.pillText}>결과 보기</Text>
-        </Pressable>
-      </View>
-    </Card>
+    </ScrollView>
   );
 }
 
@@ -428,11 +433,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    paddingBottom: spacing.xl,
-  },
-  section: {
     padding: spacing.md,
     gap: spacing.md,
+    paddingBottom: spacing.xl,
   },
   adminCard: {
     borderColor: colors.primary,
@@ -480,6 +483,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     color: colors.textMuted,
   },
+  // 포인트 카드: 기존 그대로 (2026-11-14 사용자 요청)
   pointCard: {
     padding: spacing.lg,
     gap: spacing.xs,
@@ -503,6 +507,16 @@ const styles = StyleSheet.create({
     color: colors.onPrimary,
     opacity: 0.9,
   },
+  pointHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  pointHistory: {
+    fontSize: fontSize.small,
+    fontWeight: "700",
+    color: colors.primarySoft,
+  },
   pointValue: {
     fontSize: fontSize.hero,
     fontWeight: "800",
@@ -514,27 +528,26 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.accent,
   },
-  shortcuts: {
+  // 친구 초대 배너 (연연두)
+  invite: {
     flexDirection: "row",
-    paddingVertical: spacing.xs,
+    alignItems: "center",
+    gap: 10,
+    height: 56,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.lg,
+    backgroundColor: colors.accentSoft,
   },
-  shortcut: {
+  inviteText: {
     flex: 1,
-    alignItems: "center",
-    gap: 6,
-  },
-  shortcutIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceMuted,
-  },
-  shortcutLabel: {
-    fontSize: fontSize.caption,
-    fontWeight: "500",
+    fontSize: fontSize.label,
     color: colors.text,
+  },
+  inviteStrong: {
+    fontWeight: "700",
+  },
+  inviteSub: {
+    color: colors.onAccentSoft,
   },
   pressed: {
     opacity: 0.7,
@@ -544,33 +557,55 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.text,
   },
-  stats: {
+  tabBody: {
+    gap: spacing.md,
+  },
+  // 요약 숫자: 바탕 없이, 칸 사이 회색 세로선
+  sums: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    borderRadius: radius.md,
-    backgroundColor: colors.primarySoft,
+    height: 44,
   },
-  statHalf: {
+  sum: {
     flex: 1,
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "baseline",
     justifyContent: "center",
-    gap: 8,
+    gap: 6,
   },
-  statLabel: {
+  sumLine: {
+    borderLeftWidth: 1,
+    borderLeftColor: colors.border,
+  },
+  sumLabel: {
+    fontSize: fontSize.label,
+    color: colors.iconStrong,
+  },
+  sumValue: {
+    fontSize: fontSize.subtitle,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  listHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  listTitle: {
+    fontSize: fontSize.body,
+    fontWeight: "800",
+    color: colors.text,
+  },
+  more: {
+    fontSize: fontSize.label,
+    fontWeight: "700",
+    color: colors.iconStrong,
+  },
+  empty: {
+    paddingVertical: spacing.md,
     fontSize: fontSize.small,
     color: colors.textMuted,
-  },
-  statValue: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: colors.primary,
-  },
-  statDivider: {
-    width: 1,
-    height: 14,
-    backgroundColor: colors.primaryMuted,
+    textAlign: "center",
   },
   cardTitle: {
     fontSize: fontSize.body,
@@ -581,46 +616,28 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     color: colors.danger,
   },
-  progress: {
-    gap: spacing.sm,
-  },
-  progressNum: {
-    fontSize: fontSize.caption,
-    fontWeight: "600",
-    color: colors.cardTitle,
-  },
-  // 아이콘 + 글자 한 줄
   iconLine: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
     flexShrink: 1,
   },
-  hubRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  help: {
     gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.primarySoft,
+    marginTop: spacing.sm,
   },
-  hubText: {
-    flexShrink: 1,
-    fontSize: fontSize.small,
-    fontWeight: "600",
-    color: colors.text,
-  },
-  hubLink: {
+  helpTitle: {
     fontSize: fontSize.small,
     fontWeight: "700",
-    color: colors.primary,
+    color: colors.iconStrong,
   },
-  cardBottom: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.sm,
+  partner: {
+    marginTop: spacing.xs,
+    fontSize: fontSize.small,
+    color: colors.iconStrong,
+  },
+  partnerLink: {
+    fontWeight: "700",
+    color: colors.text,
   },
 });

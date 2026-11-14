@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>내 커뮤니티 활동</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5;text-decoration:none}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 1150px; box-sizing: border-box; background: #FCFCFC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; padding-top: 44px; position: relative; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; padding: 0 6px">
+    <a href="Main.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <div style="flex: 1; text-align: center; font-size: 17px; font-weight: 700">내 커뮤니티 활동</div>
+    <div style="width: 44px"></div>
+  </div>
+
+  <div style="margin: 4px 16px 0; background: #FFFFFF; border: 1px solid #ECEEF3; box-shadow: 0 2px 10px rgba(32,42,64,0.04); border-radius: 18px; display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 14px 0; text-align: center">
+    <span style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 18px">23</b><span style="font-size: 12px; color: #545E73">참여</span></span>
+    <span style="display: flex; flex-direction: column; gap: 2px; border-left: 1px solid #EFF1F7; border-right: 1px solid #EFF1F7"><b style="font-size: 18px">12</b><span style="font-size: 12px; color: #545E73">오늘의 질문 연속</span></span>
+    <span style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 18px; color: #2949B5">+46P</b><span style="font-size: 12px; color: #545E73">커뮤니티로 받은</span></span>
+  </div>
+
+  <div role="tablist" style="margin: 14px 16px 0; display: flex; border-bottom: 1px solid #E2E5EE">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+      <button role="tab" onClick="{{t.pick}}" style="flex: 1; height: 46px; border: none; background: transparent; font-family: inherit; font-size: 15px; font-weight: {{t.fw}}; color: {{t.color}}; border-bottom: 3px solid {{t.line}}; margin-bottom: -1px">{{t.label}}</button>
+    </sc-for>
+  </div>
+  <div style="margin: 10px 20px 0; font-size: 12px; color: #545E73">익명으로 쓴 글·댓글도 여기서는 나에게만 보여요.</div>
+
+  <sc-if value="{{isPosts}}" hint-placeholder-val="{{true}}">
+    <div style="margin: 10px 16px 0; display: flex; flex-direction: column; gap: 8px">
+      <sc-for list="{{posts}}" as="p" hint-placeholder-count="4">
+        <a href="#" style="background: #FFFFFF; border: 1px solid #ECEEF3; box-shadow: 0 2px 10px rgba(32,42,64,0.04); border-radius: 18px; padding: 14px 16px; color: #202A40; display: flex; flex-direction: column; gap: 8px">
+          <span style="display: flex; align-items: center; gap: 6px"><span style="background: {{p.bg}}; color: {{p.fg}}; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">{{p.type}}</span><span style="font-size: 12px; color: #545E73">{{p.date}}</span></span>
+          <b style="font-size: 15px">{{p.title}}</b>
+          <sc-if value="{{p.hasBar}}" hint-placeholder-val="{{false}}">
+            <span style="display: flex; height: 28px; border-radius: 8px; overflow: hidden; font-size: 12px; font-weight: 700">
+              <span style="width: {{p.a}}%; background: #E3E9FF; color: #2949B5; display: flex; align-items: center; padding: 0 8px">{{p.la}} {{p.a}}%</span>
+              <span style="flex: 1; background: #F0F8D5; color: #506D23; display: flex; align-items: center; justify-content: flex-end; padding: 0 8px">{{p.b}}% {{p.lb}}</span>
+            </span>
+          </sc-if>
+          <span style="font-size: 12px; color: #545E73">{{p.stat}}</span>
+        </a>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isList}}" hint-placeholder-val="{{false}}">
+    <div style="margin: 10px 16px 0; background: #FFFFFF; border: 1px solid #ECEEF3; box-shadow: 0 2px 10px rgba(32,42,64,0.04); border-radius: 18px; padding: 0 16px">
+      <sc-for list="{{list}}" as="c" hint-placeholder-count="6">
+        <a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 66px; border-top: {{c.line}}; color: #202A40">
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.main}}</span>
+            <span style="font-size: 12px; color: #545E73; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.sub}}</span>
+          </span>
+          <sc-if value="{{c.hasTag}}" hint-placeholder-val="{{false}}"><span style="flex-shrink: 0; background: {{c.tagBg}}; color: {{c.tagFg}}; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px">{{c.tag}}</span></sc-if>
+        </a>
+      </sc-for>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1150}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { tab: 0 }; }
+  renderVals() {
+    var self = this, st = this.state;
+    var BAL = ['#E3E9FF', '#2949B5'], PRO = ['#F0F8D5', '#506D23'];
+    var posts = [
+      { type: '밸런스', c: BAL, title: '테스트질문', date: '10.30', stat: '6명 참여 · 댓글 4', bar: [67, '짜장', '짬뽕'] },
+      { type: '밸런스', c: BAL, title: 'ㅌ', date: '11.10', stat: '아직 참여 없음 · 댓글 3', bar: null },
+      { type: '설문 홍보', c: PRO, title: '설문홍보', date: '11.9', stat: '설문으로 들어온 응답 0명 · 댓글 0', bar: null },
+      { type: '설문 홍보', c: PRO, title: '테스트', date: '11.2', stat: '설문으로 들어온 응답 0명 · 댓글 0', bar: null }
+    ].map(function (p) {
+      return { type: p.type, bg: p.c[0], fg: p.c[1], title: p.title, date: p.date, stat: p.stat, hasBar: !!p.bar,
+        a: p.bar ? p.bar[0] : 0, b: p.bar ? 100 - p.bar[0] : 0, la: p.bar ? p.bar[1] : '', lb: p.bar ? p.bar[2] : '' };
+    });
+    var cm = [
+      ['ㅣ', '밸런스 · 테스트질문 · 11.9'], ['ㅎㅎ', '밸런스 · 테스트질문 · 11.7'], ['테스트', '골라 줘 · 노트북 뭐 살까? · 11.2'],
+      ['치킨', '월드컵 · 시험 끝나면 제일 먼저 하고 싶은 것 · 11.1'], ['댓글', '오늘의 질문 · 강의실 자리는? · 10.31'],
+      ['Dd', '오늘의 질문 · 오늘 아침밥, 먹었어요? · 10.30'], ['삼성 ㄱㄱㄱ', '골라 줘 · 노트북 뭐 살까? · 10.30']
+    ].map(function (c) { return { main: c[0], sub: c[1], hasTag: false }; });
+    var part = [
+      ['통학, 어느 파야?', '밸런스 · 11.12', '광역버스파', BAL], ['시험 끝나면 제일 먼저 하고 싶은 것', '월드컵 · 11.1', '내 1위 치킨', ['#FEF6E7', '#93370D']],
+      ['시험 전날 청소 나만 그래?', '나만 그래? · 11.10', '나도 그래', ['#EFF1F7', '#374158']], ['노트북 뭐 살까?', '골라 줘 · 11.2', '맥북 에어', ['#EFF1F7', '#374158']],
+      ['아침 알람은?', '오늘의 질문 · 11.12', '여러 번 끔', BAL]
+    ].map(function (c) { return { main: c[0], sub: c[1], hasTag: true, tag: c[2], tagBg: c[3][0], tagFg: c[3][1] }; });
+    var L = st.tab === 1 ? cm : part;
+    L = L.map(function (c, i) { c.line = i ? '1px solid #EFF1F7' : 'none'; return c; });
+    var tabs = [['글 4', 0], ['댓글 7', 1], ['참여 23', 2]].map(function (t) {
+      var on = st.tab === t[1];
+      return { label: t[0], fw: on ? 700 : 500, color: on ? '#3157D5' : '#545E73', line: on ? '#3157D5' : 'transparent', pick: function () { self.setState({ tab: t[1] }); } };
+    });
+    return { tabs: tabs, isPosts: st.tab === 0, isList: st.tab !== 0, posts: posts, list: L };
+  }
+}
+</script>
+</body>
+</html>

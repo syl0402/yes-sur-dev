@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>제휴·광고 문의</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3157D5;text-decoration:none}
+input::placeholder,textarea::placeholder{color:#8B93A5}
+.in{width:100%;height:52px;box-sizing:border-box;border:1px solid #E2E5EE;border-radius:14px;background:#FFFFFF;padding:0 16px;font-size:15px;font-family:inherit;outline-color:#3157D5}
+.lb{display:block;margin:14px 0 6px;font-size:13px;font-weight:700;color:#374158}
+</style>
+</helmet>
+<div style="width: 390px; height: 1300px; box-sizing: border-box; background: #FCFCFC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; padding-top: 44px; position: relative; overflow: hidden">
+
+  <div style="height: 56px; display: flex; align-items: center; padding: 0 6px">
+    <a href="Main.dc.html" aria-label="뒤로" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <div style="flex: 1; text-align: center; font-size: 17px; font-weight: 700">제휴·광고 문의</div>
+    <div style="width: 44px"></div>
+  </div>
+
+  <div style="padding: 6px 20px 0">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 900">옛썰과 함께해요</h1>
+    <p style="margin: 6px 0 0; font-size: 14px; color: #545E73; line-height: 1.5">학교 메일로 인증된 대학생에게 설문·이벤트·브랜드를 알릴 수 있어요. 남겨 주시면 빠르게 연락드릴게요.</p>
+  </div>
+
+  <div style="margin: 18px 20px 8px; font-size: 14px; font-weight: 700">어떤 곳인가요?</div>
+  <div style="margin: 0 20px; display: flex; flex-wrap: wrap; gap: 8px">
+    <sc-for list="{{who}}" as="w" hint-placeholder-count="4">
+      <button onClick="{{w.pick}}" aria-pressed="{{w.on}}" style="height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid {{w.bd}}; background: {{w.bg}}; color: {{w.fg}}; font-family: inherit; font-size: 14px; font-weight: 700">{{w.label}}</button>
+    </sc-for>
+  </div>
+
+  <div style="margin: 18px 20px 8px; font-size: 14px; font-weight: 700">무엇을 하고 싶나요? <span style="font-weight: 400; color: #545E73; font-size: 12px">여러 개 가능</span></div>
+  <div style="margin: 0 20px; display: flex; flex-wrap: wrap; gap: 8px">
+    <button aria-pressed="true" style="height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #C7D2FF; background: #E3E9FF; color: #2949B5; font-family: inherit; font-size: 14px; font-weight: 700">설문 의뢰</button>
+    <button aria-pressed="false" style="height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #E2E5EE; background: #FFFFFF; color: #374158; font-family: inherit; font-size: 14px; font-weight: 700">광고·배너</button>
+    <button aria-pressed="false" style="height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #E2E5EE; background: #FFFFFF; color: #374158; font-family: inherit; font-size: 14px; font-weight: 700">이벤트 제휴</button>
+  </div>
+
+  <div style="margin: 10px 16px 0; background: #FFFFFF; border: 1px solid #ECEEF3; box-shadow: 0 2px 10px rgba(32,42,64,0.04); border-radius: 20px; padding: 4px 16px 16px">
+    <label class="lb" for="p1">{{orgLabel}}</label><input id="p1" class="in" placeholder="{{orgPh}}">
+    <label class="lb" for="p2">담당자 성함</label><input id="p2" class="in" placeholder="홍길동">
+    <label class="lb" for="p3">연락받을 이메일</label><input id="p3" class="in" placeholder="name@company.com">
+    <label class="lb" for="p4">휴대폰 번호 <span style="font-weight: 400; color: #545E73">(선택)</span></label><input id="p4" class="in" placeholder="010-0000-0000">
+    <label class="lb" for="p5">문의 내용</label>
+    <textarea id="p5" placeholder="예) 12월에 대학생 대상 설문 이벤트를 하고 싶어요. 대상은 수도권 대학생 300명 정도예요." style="width: 100%; height: 120px; box-sizing: border-box; border: 1px solid #E2E5EE; border-radius: 14px; background: #FFFFFF; padding: 14px 16px; font-size: 15px; font-family: inherit; resize: none; outline-color: #3157D5"></textarea>
+  </div>
+
+  <div style="margin: 14px 20px 0; display: flex; align-items: flex-start; gap: 10px">
+    <input id="agree" type="checkbox" style="width: 22px; height: 22px; margin: 0; accent-color: #3157D5">
+    <label for="agree" style="flex: 1; font-size: 14px; line-height: 1.5">[필수] 개인정보 수집 동의<br><span style="font-size: 12px; color: #545E73">문의에 답하는 데만 써요. 보관 기간은 전문에서 볼 수 있어요</span></label>
+    <a href="#" style="font-size: 12px; color: #545E73; text-decoration: underline; padding-top: 2px">전문</a>
+  </div>
+
+  <div style="margin: 16px 16px 0"><button disabled style="width: 100%; height: 54px; border: none; border-radius: 16px; background: #EFF1F7; color: #545E73; font-family: inherit; font-size: 15px; font-weight: 700">문의 보내기</button></div>
+
+  <div style="margin: 24px 20px 8px; font-size: 14px; font-weight: 700">내가 보낸 문의</div>
+  <div style="margin: 0 16px; background: #FFFFFF; border: 1px solid #ECEEF3; box-shadow: 0 2px 10px rgba(32,42,64,0.04); border-radius: 16px; padding: 0 16px">
+    <div style="display: flex; align-items: center; min-height: 56px; gap: 10px"><span style="flex: 1; font-size: 14px">adf <span style="color: #545E73; font-size: 12px">· 11.07</span></span><span style="background: #EFF1F7; color: #545E73; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 999px">확인 중</span></div>
+    <div style="display: flex; align-items: center; min-height: 56px; gap: 10px; border-top: 1px solid #EFF1F7"><span style="flex: 1; font-size: 14px">제휴서비스 test <span style="color: #545E73; font-size: 12px">· 11.07</span></span><span style="background: #EFF1F7; color: #545E73; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 999px">확인 중</span></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { w: 0 }; }
+  renderVals() {
+    var self = this, st = this.state;
+    var W = [['기업·브랜드', '회사·브랜드 이름', '예: 옛썰커피'], ['광고 대행사', '광고주 브랜드 이름', '대행사는 광고주 이름을 적어 주세요'], ['학생회·동아리', '학교 · 단체 이름', '예: 중앙대 경영학과 학생회'], ['기타', '소속', '자유롭게 적어 주세요']];
+    return {
+      orgLabel: W[st.w][1], orgPh: W[st.w][2],
+      who: W.map(function (w, i) {
+        var on = st.w === i;
+        return { label: w[0], on: on ? 'true' : 'false', bg: on ? '#3157D5' : '#FFFFFF', fg: on ? '#FFFFFF' : '#374158', bd: on ? '#3157D5' : '#E2E5EE', pick: function () { self.setState({ w: i }); } };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>
