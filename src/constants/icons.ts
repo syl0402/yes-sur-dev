@@ -154,3 +154,12 @@ export const worldcupIcons = {
   trophy: "trophy",
   undo: "arrow-undo",
 } satisfies Record<string, IconName>;
+
+// 댓글 (2026-11-14 커뮤니티 시안): 더보기 · 보내기 · 답글 그만 · 카드 아랫줄 참여 수 · 댓글 수
+export const commentIcons = {
+  more: "ellipsis-horizontal",
+  send: "arrow-up",
+  close: "close",
+  people: "people-outline",
+  chat: "chatbubble-outline",
+} satisfies Record<string, IconName>;

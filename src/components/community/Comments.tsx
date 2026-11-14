@@ -1,131 +1,27 @@
-import { router } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+// 댓글 목록 (커뮤니티 글 · 오늘의 질문 · 월드컵), 2026-11-03 개편 · 2026-11-14 커뮤니티 시안 반영
+// 이름은 서버가 정한다 (익명1 · 익명(글쓴이) · 닉네임). 답글은 한 단계 (왼쪽 세로줄로 들여쓰기)
+// 한 댓글: [BEST] 이름 [고른 편] ⋯ / 본문 / 시간 · 좋아요 n · 답글 달기
+// 입력칸은 화면 맨 아래 고정(CommentComposer). 상태는 useCommentThread가 들고 있다
 import { Pressable, StyleSheet, View } from "react-native";
 
-import AnonToggle from "@/components/community/AnonToggle";
+import AppIcon from "@/components/AppIcon";
 import LinkedText from "@/components/LinkedText";
 import Badge from "@/components/ui/Badge";
-import { Text, TextInput } from "@/components/ui/Text";
+import { Text } from "@/components/ui/Text";
+import { commentIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
-import { type Comment, COMMENT_MAX, type CommentTarget, fetchCanAnonymous } from "@/lib/community";
-import { showActions, showConfirm } from "@/lib/confirm";
-import { errorMessage } from "@/lib/errors";
+import type { CommentThread } from "@/hooks/useCommentThread";
+import type { Comment } from "@/lib/community";
 import { formatCommentTime } from "@/lib/format";
-import { showNotice } from "@/lib/notice";
-import { supabase } from "@/lib/supabase";
 
-type Loaded = { best: Comment[]; all: Comment[] };
-
-// 댓글 목록 + 입력칸 (커뮤니티 글 · 오늘의 질문 · 월드컵), 2026-11-03 개편
-// 이름은 서버가 정한다 (익명1 · 익명(글쓴이) · 닉네임). 답글은 한 단계. 👍 공감. BEST는 공감이 기준 이상일 때만
-// sides: 투표 글의 보기 이름. 주면 댓글마다 쓴 사람이 고른 편을 작은 배지로 (2026-11-14 커뮤니티 시안)
-export default function Comments({
-  type,
-  id,
-  onChanged,
-  sides,
-}: {
-  type: CommentTarget;
-  id: number;
-  onChanged?: () => void;
+type Props = {
+  thread: CommentThread;
+  // 투표 글의 보기 이름. 주면 댓글마다 쓴 사람이 고른 편 배지 (2026-11-14)
   sides?: string[];
-}) {
-  const [list, setList] = useState<Loaded | null>(null);
-  const [text, setText] = useState("");
-  const [sending, setSending] = useState(false);
-  const [anonymous, setAnonymous] = useState(true);
-  // 익명으로 쓸 수 있는 사람(학생)만 체크가 보인다
-  const [canAnon, setCanAnon] = useState(false);
-  // 답글 입력칸이 열린 댓글
-  const [replyTo, setReplyTo] = useState<number | null>(null);
-  const [replyText, setReplyText] = useState("");
+};
 
-  const load = useCallback(() => {
-    supabase
-      .rpc("get_comments", { p_type: type, p_id: id })
-      .then(({ data }) => setList((data as Loaded | null) ?? { best: [], all: [] }));
-  }, [type, id]);
-
-  useEffect(load, [load]);
-  useEffect(() => {
-    fetchCanAnonymous().then(setCanAnon);
-  }, []);
-
-  // 댓글·답글 보내기 (성공하면 true)
-  const post = async (body: string, parentId: number | null) => {
-    if (!body.trim() || sending) return false;
-    setSending(true);
-    const { error } = await supabase.rpc("create_comment", {
-      p_type: type,
-      p_id: id,
-      p_body: body.trim(),
-      p_parent_id: parentId ?? undefined,
-      p_anonymous: anonymous,
-    });
-    setSending(false);
-    if (error) {
-      showNotice("댓글을 달지 못했어요", errorMessage(error));
-      load();
-      return false;
-    }
-    load();
-    onChanged?.();
-    return true;
-  };
-
-  const send = async () => {
-    if (await post(text, null)) setText("");
-  };
-
-  const sendReply = async (parentId: number) => {
-    if (await post(replyText, parentId)) {
-      setReplyText("");
-      setReplyTo(null);
-    }
-  };
-
-  const like = async (c: Comment) => {
-    const { error } = await supabase.rpc("like_comment", { p_comment_id: c.id });
-    if (error) showNotice("공감하지 못했어요", errorMessage(error));
-    load();
-  };
-
-  const more = (c: Comment) =>
-    showActions(
-      "댓글",
-      c.mine
-        ? [
-            {
-              label: "삭제",
-              destructive: true,
-              onPress: () =>
-                showConfirm({
-                  title: "댓글을 지울까요?",
-                  message: "",
-                  okLabel: "삭제",
-                  cancelLabel: "취소",
-                  destructive: true,
-                  onOk: async () => {
-                    const { error } = await supabase.rpc("delete_comment", { p_comment_id: c.id });
-                    if (error) showNotice("지우지 못했어요", errorMessage(error));
-                    load();
-                    onChanged?.();
-                  },
-                }),
-            },
-          ]
-        : [
-            {
-              label: "신고",
-              onPress: () => router.push({ pathname: "/report", params: { type: "comment", id: String(c.id) } }),
-            },
-          ],
-    );
-
-  const openReply = (c: Comment) => {
-    setReplyTo(replyTo === c.id ? null : c.id);
-    setReplyText("");
-  };
+export default function Comments({ thread, sides }: Props) {
+  const { list, like, more, replyTo, setReplyTo } = thread;
 
   // 댓글 한 줄 (원댓글·답글·BEST 공통)
   const row = (c: Comment, opts: { best?: boolean; reply?: boolean } = {}) => {
@@ -141,36 +37,30 @@ export default function Comments({
             {c.author}
             {c.mine ? " (나)" : ""}
           </Text>
-          {sides && c.side != null && sides[c.side] !== undefined && (
-            <Badge
-              label={sides[c.side].length > 8 ? `${sides[c.side].slice(0, 8)}…` : sides[c.side]}
-              tone={sides.length === 2 ? (c.side === 0 ? "blue" : "lime") : "muted"}
-              size="sm"
-            />
-          )}
-          {/* 오른쪽 작은 버튼 묶음: 답글 · 공감 · 더보기 */}
-          <View style={styles.actions}>
-            {canReply && (
-              <Pressable onPress={() => openReply(c)} hitSlop={6} accessibilityLabel="답글">
-                <Text style={styles.action}>답글</Text>
-              </Pressable>
-            )}
-            {!c.mine && (
-              <Pressable onPress={() => like(c)} hitSlop={6} accessibilityLabel="공감">
-                <Text style={[styles.action, c.liked && styles.actionOn]}>👍</Text>
-              </Pressable>
-            )}
-            <Pressable onPress={() => more(c)} hitSlop={6} accessibilityLabel="더보기">
-              <Text style={styles.action}>⋯</Text>
-            </Pressable>
-          </View>
+          {sides && c.side != null && sides[c.side] !== undefined && <SideBadge sides={sides} side={c.side} />}
+          <View style={styles.spacer} />
+          <Pressable onPress={() => more(c)} hitSlop={10} accessibilityLabel="댓글 메뉴">
+            <AppIcon name={commentIcons.more} size={16} color={colors.textSubtle} />
+          </Pressable>
         </View>
         <LinkedText style={styles.body} selectable>
           {c.body}
         </LinkedText>
+        {/* 아래 한 줄: 시간 · 좋아요 · 답글 달기 */}
         <View style={styles.foot}>
-          <Text style={styles.date}>{formatCommentTime(c.created_at)}</Text>
-          {c.likes > 0 && <Text style={[styles.likes, c.liked && styles.likesOn]}>👍 {c.likes}</Text>}
+          <Text style={styles.footText}>{formatCommentTime(c.created_at)}</Text>
+          {c.mine ? (
+            c.likes > 0 && <Text style={styles.footText}>좋아요 {c.likes}</Text>
+          ) : (
+            <Pressable onPress={() => like(c)} hitSlop={6} accessibilityLabel="좋아요">
+              <Text style={[styles.footText, c.liked && styles.liked]}>좋아요{c.likes > 0 ? ` ${c.likes}` : ""}</Text>
+            </Pressable>
+          )}
+          {canReply && (
+            <Pressable onPress={() => setReplyTo(replyTo?.id === c.id ? null : c)} hitSlop={6}>
+              <Text style={[styles.footText, replyTo?.id === c.id && styles.liked]}>답글 달기</Text>
+            </Pressable>
+          )}
         </View>
       </View>
     );
@@ -182,21 +72,6 @@ export default function Comments({
   return (
     <View style={styles.box}>
       <Text style={styles.title}>댓글 {list ? count : ""}</Text>
-
-      <View style={styles.inputRow}>
-        {canAnon && <AnonToggle value={anonymous} onChange={setAnonymous} />}
-        <TextInput
-          style={styles.input}
-          value={text}
-          onChangeText={setText}
-          placeholder="댓글을 남겨 주세요"
-          maxLength={COMMENT_MAX}
-          multiline
-        />
-        <Pressable onPress={send} disabled={!text.trim() || sending} hitSlop={8}>
-          <Text style={[styles.send, (!text.trim() || sending) && styles.sendOff]}>등록</Text>
-        </Pressable>
-      </View>
 
       {list && list.best.length > 0 && (
         <View style={styles.bestBox}>
@@ -212,34 +87,30 @@ export default function Comments({
         list?.all.map((c) => (
           <View key={c.id} style={styles.thread}>
             {row(c)}
-            {(c.replies ?? []).map((r) => (
-              <View key={r.id} style={styles.replyRow}>
-                <Text style={styles.arrow}>↳</Text>
-                <View style={styles.replyBox}>{row(r, { reply: true })}</View>
-              </View>
-            ))}
-            {replyTo === c.id && (
-              <View style={styles.replyRow}>
-                <Text style={styles.arrow}>↳</Text>
-                <View style={[styles.inputRow, styles.replyInput]}>
-                  <TextInput
-                    style={styles.input}
-                    value={replyText}
-                    onChangeText={setReplyText}
-                    placeholder="답글을 남겨 주세요"
-                    maxLength={COMMENT_MAX}
-                    multiline
-                    autoFocus
-                  />
-                  <Pressable onPress={() => sendReply(c.id)} disabled={!replyText.trim() || sending} hitSlop={8}>
-                    <Text style={[styles.send, (!replyText.trim() || sending) && styles.sendOff]}>등록</Text>
-                  </Pressable>
-                </View>
+            {(c.replies ?? []).length > 0 && (
+              <View style={styles.replies}>
+                {(c.replies ?? []).map((r) => (
+                  <View key={r.id}>{row(r, { reply: true })}</View>
+                ))}
               </View>
             )}
           </View>
         ))
       )}
+    </View>
+  );
+}
+
+// 고른 편 배지: "○○파". 두 편 글은 첫 번째 편 파랑 · 두 번째 편 라임, 보기가 여러 개면 회색 (2026-11-14)
+function SideBadge({ sides, side }: { sides: string[]; side: number }) {
+  const name = sides[side];
+  const short = name.length > 8 ? `${name.slice(0, 8)}…` : name;
+  const duel = sides.length === 2;
+  const tone = !duel ? styles.sideMuted : side === 0 ? styles.sideA : styles.sideB;
+  const text = !duel ? styles.sideMutedText : side === 0 ? styles.sideAText : styles.sideBText;
+  return (
+    <View style={[styles.side, tone]}>
+      <Text style={[styles.sideText, text]}>{duel ? `${short}파` : short}</Text>
     </View>
   );
 }
@@ -250,33 +121,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: fontSize.body,
-    fontWeight: "700",
+    fontWeight: "800",
     color: colors.text,
-  },
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  input: {
-    flex: 1,
-    fontSize: fontSize.body,
-    color: colors.text,
-    maxHeight: 100,
-  },
-  send: {
-    fontSize: fontSize.body,
-    fontWeight: "700",
-    color: colors.primary,
-  },
-  sendOff: {
-    color: colors.textMuted,
   },
   bestBox: {
     paddingHorizontal: spacing.md,
@@ -285,10 +131,9 @@ const styles = StyleSheet.create({
   },
   // 원댓글 + 답글 묶음, 아래 구분선
   thread: {
-    gap: spacing.xs,
     paddingBottom: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.surfaceMuted,
   },
   row: {
     paddingVertical: spacing.sm,
@@ -297,78 +142,77 @@ const styles = StyleSheet.create({
   head: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    gap: 6,
   },
   author: {
-    flex: 1,
-    fontSize: fontSize.small,
+    flexShrink: 1,
+    fontSize: fontSize.label,
     fontWeight: "700",
     color: colors.text,
   },
   writer: {
     color: colors.primary,
   },
-  actions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
+  spacer: {
+    flex: 1,
+  },
+  side: {
+    paddingHorizontal: 7,
     paddingVertical: 2,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.sm,
+    borderRadius: radius.pill,
+  },
+  sideText: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  sideA: {
+    backgroundColor: colors.primarySoft,
+  },
+  sideAText: {
+    color: colors.primaryStrong,
+  },
+  sideB: {
+    backgroundColor: colors.accentSoft,
+  },
+  sideBText: {
+    color: colors.onAccentSoft,
+  },
+  sideMuted: {
     backgroundColor: colors.surfaceMuted,
   },
-  action: {
-    fontSize: fontSize.caption,
-    fontWeight: "600",
-    color: colors.textMuted,
-  },
-  actionOn: {
-    color: colors.hot,
+  sideMutedText: {
+    color: colors.textStrong,
   },
   body: {
     fontSize: fontSize.body,
+    lineHeight: 23,
     color: colors.text,
   },
   foot: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    gap: 14,
+    marginTop: 2,
   },
-  date: {
+  footText: {
     fontSize: fontSize.caption,
-    color: colors.textSubtle,
+    color: colors.iconStrong,
   },
-  likes: {
-    fontSize: fontSize.caption,
-    color: colors.textMuted,
-  },
-  likesOn: {
-    color: colors.hot,
+  liked: {
+    color: colors.primary,
     fontWeight: "700",
+  },
+  // 답글: 왼쪽 세로줄 들여쓰기
+  replies: {
+    marginLeft: 12,
+    paddingLeft: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.border,
   },
   deleted: {
     paddingVertical: spacing.sm,
     fontSize: fontSize.small,
     color: colors.textSubtle,
-  },
-  replyRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: spacing.xs,
-  },
-  arrow: {
-    paddingTop: spacing.sm,
-    fontSize: fontSize.body,
-    color: colors.textSubtle,
-  },
-  replyBox: {
-    flex: 1,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceMuted,
-  },
-  replyInput: {
-    flex: 1,
   },
   empty: {
     fontSize: fontSize.small,

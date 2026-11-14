@@ -58,7 +58,7 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 의견 보내기: `src/app/feedback.tsx`(ys-170, `?from=화면 이름`). 마이 탭 이름 아래 한 줄 + 내 정보 메뉴. 기기 정보는 `Platform` · `expo-device` · `expo-constants`. 답변은 운영자가 Table Editor에서
 - 오늘의 질문: 홈 맨 위 `DailyCard` (`src/components/DailyCard.tsx`) → `get_today_daily` / `answer_daily`. 질문 예약은 `supabase/seed/daily_questions.sql` 또는 Table Editor → `daily_questions` (날짜 하나에 질문 하나)
 - 커뮤니티 (2026-10-30 밸런스 탭 → 커뮤니티 탭): 피드 `src/app/(tabs)/community.tsx`, 글 `community/[id].tsx`, 만들기 `community/new.tsx`, 카드 `PostCard` (`src/components/community/`). 타입·라벨 `src/lib/community.ts`. `sortGroups`는 그룹 모양과 상관없이 씀 (`src/lib/hub.ts`)
-- 커뮤니티 댓글: `Comments` (`src/components/community/Comments.tsx`, `type` = post·daily·worldcup). 2026-11-03: 익명 체크 `AnonToggle`(학생만, `fetchCanAnonymous`), 답글 한 단계(댓글의 [답글] → 그 아래 입력칸), 👍 공감, BEST 뱃지, 시간 `formatDateTime`(11/01 20:37). 글 만들기에도 `AnonToggle`. 글 ⋯ 메뉴는 `showActions` (`src/lib/confirm.ts`). 본문 수정 `community/edit.tsx`. 신고 화면은 `?type=post|comment&id=` 또는 예전 `?survey=`
+- 커뮤니티 댓글: `Comments` (`src/components/community/Comments.tsx`, `type` = post·daily·worldcup). 2026-11-03: 익명 체크 `AnonToggle`(학생만, `fetchCanAnonymous`), 답글 한 단계(2026-11-14부터 "답글 달기" → 아래 고정 입력칸이 답글 모드), 👍 공감, BEST 뱃지, 시간 `formatDateTime`(11/01 20:37). 글 만들기에도 `AnonToggle`. 글 ⋯ 메뉴는 `showActions` (`src/lib/confirm.ts`). 본문 수정 `community/edit.tsx`. 신고 화면은 `?type=post|comment&id=` 또는 예전 `?survey=`
 - 오늘의 질문 상세: 홈 `DailyCard`를 누르면 `community/daily.tsx` (같은 카드 + 그룹별 + 댓글 `type=daily`, 오늘 것만. 2026-10-30 지난 질문 목록은 없앰). 닉네임 바꾸기 `account/nickname.tsx` (내 정보 → 학생만)
 - 설문 홍보·계열 대항전: 홍보글은 `PostCard` 안 `PromoBox`(설문 요약 + 응답하러 가기), 만들기 화면 종류 "설문 홍보"(`create_promo`). 대항전은 피드 위 `SchoolRankingCard` (2026-11-02 학교 대항전으로 교체, `get_school_ranking`)
 - 월드컵 (2026-11-01): `WorldcupCard` ('월드컵' 탭 목록 한 줄, `hot`이면 🔥 HOT 뱃지), 화면 `community/worldcup/[id].tsx`, 대진 계산은 `src/lib/worldcup.ts`(`startBracket`·`pick`). 첫 판만 서버 저장
@@ -72,6 +72,16 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 학교: 가입 화면 `signup/email.tsx`는 `universities` + `university_domains`(주소 여러 개면 칩으로 고르기, 6개 이상이면 검색칸). 학교 추가·수정은 `supabase/seed/universities.sql`
 - 포인트 안내: `src/app/points.tsx` (모으기·쓰기·규칙, 숫자는 모두 `fetchRules`로 point_rules). 마이 탭 포인트 상자·내 정보·첫 사용 안내에서 링크
 - 테스트할 때 응답자가 적으면 `dev_tools.sql` 10번(최소 응답 수 1)으로. 출시 전 5로 되돌리기
+
+### 커뮤니티 시안 부품 (2026-11-14)
+- `useCommentThread(type, id, onChanged?)` (`src/hooks/useCommentThread.ts`): 댓글 목록·보내기·익명·답글 대상·공감·⋯ 메뉴 상태. `Comments`(목록)와 `CommentComposer`(화면 맨 아래 고정 입력칸)에 같은 `thread`를 넘긴다. 화면은 `<View flex1><ScrollView>…<Comments thread/></ScrollView><CommentComposer thread/></View>`
+- `Comments` `sides`: 투표 글 보기 이름 → 댓글마다 고른 편 배지("○○파", 첫 편 파랑·둘째 편 라임). 서버 `get_comments`의 `side`(내가 투표했거나 내 글일 때만)
+- `TugBar` (`src/components/community/TugBar.tsx`): 밸런스 줄다리기 막대. md 피드 56px · lg 상세 72px. 투표 전 연한 색 반반 + 바로 투표
+- `CardFooter` (`src/components/community/CardFooter.tsx`): 커뮤니티 카드 아랫줄 (구분선 + 사람·말풍선 아이콘, 숫자 굵게, 오른쪽 설명)
+- `GroupCompare` · `DimChips` · `FocusChips` (`src/components/results/GroupCompare.tsx`): 묶음별 비교 막대 (데이터 허브 나눠 보기 · 커뮤니티 그룹별로 보기 공용)
+- `LabelRow` (`src/components/create/LabelRow.tsx`): 칸 이름 + 80% 넘으면 글자 수
+- 월드컵 `src/components/worldcup/`: `MatchView`(대결·되돌리기) · `RoundBreak`(라운드 중간) · `WinView`(우승) · `ResultView`(시상대·순위·그룹별 1위)
+- `GrowBar` `delay`: 여러 막대를 차례로 채울 때
 
 ### `formatHost` (`src/lib/surveys.ts`, 2026-10-30)
 설문 작성자 표시: 인증된 단체는 `"경영학과 학생회 ✓"`, 학생 설문은 `"개인"`. 설문을 읽을 때 `host_name, host_verified`를 같이 select 한다.

@@ -2,21 +2,28 @@
 // 2026-11-14 커뮤니티 시안 ⑤⑥③: 파랑/라임 대결 카드 · 고르면 0.4초 뒤 다음 대결 · 되돌리기 · 라운드 중간 화면 ·
 // 우승(꽃가루·마스코트) · 결과(시상대·전체 순위·그룹별 1위)
 import { Stack, useLocalSearchParams } from "expo-router";
-import { type ComponentRef, useCallback, useEffect, useRef, useState } from "react";
+import {
+  type ComponentRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
+import CommentComposer from "@/components/community/CommentComposer";
 import Comments from "@/components/community/Comments";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
-import SectionHeader from "@/components/ui/SectionHeader";
 import { Text } from "@/components/ui/Text";
 import MatchView from "@/components/worldcup/MatchView";
 import ResultView from "@/components/worldcup/ResultView";
 import RoundBreak from "@/components/worldcup/RoundBreak";
 import WinView from "@/components/worldcup/WinView";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
+import { useCommentThread } from "@/hooks/useCommentThread";
 import { errorMessage } from "@/lib/errors";
 import { showNotice } from "@/lib/notice";
 import { fetchRules } from "@/lib/rules";
@@ -50,27 +57,35 @@ export default function WorldcupScreen() {
   // 그룹별 1위를 보여 줄 최소 인원 (point_rules low_response_warning)
   const [groupMin, setGroupMin] = useState(10);
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
+  // 댓글 (결과 화면에서만 목록 + 아래 고정 입력칸)
+  const thread = useCommentThread("worldcup", Number(id));
 
   const loadResult = useCallback(async () => {
-    const { data } = await supabase.rpc("get_worldcup_result", { p_id: Number(id) });
+    const { data } = await supabase.rpc("get_worldcup_result", {
+      p_id: Number(id),
+    });
     setResult((data as WorldcupResult | null) ?? null);
   }, [id]);
 
   useEffect(() => {
-    fetchRules(["low_response_warning"]).then((r) => setGroupMin(r.low_response_warning ?? 10));
-    supabase.rpc("get_worldcup", { p_id: Number(id) }).then(({ data, error }) => {
-      if (error || !data) {
-        setCup(null);
-        return;
-      }
-      const w = data as Worldcup;
-      setCup(w);
-      // 이미 한 사람은 결과부터 (다시 하기는 결과 화면에서)
-      if (w.played) {
-        setPhase("result");
-        loadResult();
-      }
-    });
+    fetchRules(["low_response_warning"]).then((r) =>
+      setGroupMin(r.low_response_warning ?? 10),
+    );
+    supabase
+      .rpc("get_worldcup", { p_id: Number(id) })
+      .then(({ data, error }) => {
+        if (error || !data) {
+          setCup(null);
+          return;
+        }
+        const w = data as Worldcup;
+        setCup(w);
+        // 이미 한 사람은 결과부터 (다시 하기는 결과 화면에서)
+        if (w.played) {
+          setPhase("result");
+          loadResult();
+        }
+      });
   }, [id, loadResult]);
 
   // 화면이 바뀌면 맨 위로
@@ -121,7 +136,10 @@ export default function WorldcupScreen() {
     setPhase("win");
     // 첫 판만 저장·포인트. 다시 하기는 저장하지 않는다 (금액은 서버가 정함)
     if (!cup.played) {
-      const { data, error } = await supabase.rpc("submit_worldcup", { p_id: cup.id, p_matches: next.matches });
+      const { data, error } = await supabase.rpc("submit_worldcup", {
+        p_id: cup.id,
+        p_matches: next.matches,
+      });
       if (error && error.message !== "already_played") {
         showNotice("결과를 저장하지 못했어요", errorMessage(error));
         return;
@@ -142,72 +160,95 @@ export default function WorldcupScreen() {
   };
 
   return (
-    <ScrollView
-      ref={scroll}
-      style={styles.screen}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={styles.container}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Stack.Screen options={{ title: phase === "result" ? "월드컵 결과" : "월드컵" }} />
-
-      {phase === "intro" && (
-        <Card style={styles.introCard}>
-          <Badge label={roundLabel(cup.size)} tone="accent" />
-          <Text style={styles.title}>{cup.title}</Text>
-          {cup.description ? <Text style={styles.description}>{cup.description}</Text> : null}
-          <Text style={styles.muted}>
-            둘 중 하나를 {cup.size - 1}번 고르면 우승이 정해져요.
-            {cup.played ? "\n이미 참여했어요. 다시 하면 결과에 들어가지 않아요." : ""}
-          </Text>
-          <Button title="시작하기" onPress={start} />
-        </Card>
-      )}
-
-      {phase === "play" && bracket && (
-        <MatchView bracket={bracket} onPick={choose} onUndo={history.length > 0 ? undo : undefined} />
-      )}
-
-      {phase === "break" && bracket && (
-        <RoundBreak from={lastRound} winners={bracket.round} onStart={() => setPhase("play")} onUndo={undo} />
-      )}
-
-      {phase === "win" && champion && (
-        <WinView
-          champion={champion}
-          title={cup.title}
-          size={cup.size}
-          result={result}
-          reward={reward}
-          onRanking={() => setPhase("result")}
-          onReplay={start}
+    <View style={styles.screen}>
+      <ScrollView
+        ref={scroll}
+        style={styles.screen}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Stack.Screen
+          options={{ title: phase === "result" ? "월드컵 결과" : "월드컵" }}
         />
-      )}
 
-      {phase === "result" && (
-        <>
-          <View style={styles.head}>
-            <View style={styles.headBadge}>
-              <Text style={styles.headBadgeText}>
-                {roundLabel(cup.size)}
-                {result ? ` · ${result.plays}명 참여` : ""}
+        {phase === "intro" && (
+          <Card style={styles.introCard}>
+            <Badge label={roundLabel(cup.size)} tone="accent" />
+            <Text style={styles.title}>{cup.title}</Text>
+            {cup.description ? (
+              <Text style={styles.description}>{cup.description}</Text>
+            ) : null}
+            <Text style={styles.muted}>
+              둘 중 하나를 {cup.size - 1}번 고르면 우승이 정해져요.
+              {cup.played
+                ? "\n이미 참여했어요. 다시 하면 결과에 들어가지 않아요."
+                : ""}
+            </Text>
+            <Button title="시작하기" onPress={start} />
+          </Card>
+        )}
+
+        {phase === "play" && bracket && (
+          <MatchView
+            bracket={bracket}
+            onPick={choose}
+            onUndo={history.length > 0 ? undo : undefined}
+          />
+        )}
+
+        {phase === "break" && bracket && (
+          <RoundBreak
+            from={lastRound}
+            winners={bracket.round}
+            onStart={() => setPhase("play")}
+            onUndo={undo}
+          />
+        )}
+
+        {phase === "win" && champion && (
+          <WinView
+            champion={champion}
+            title={cup.title}
+            size={cup.size}
+            result={result}
+            reward={reward}
+            onRanking={() => setPhase("result")}
+            onReplay={start}
+          />
+        )}
+
+        {phase === "result" && (
+          <>
+            <View style={styles.head}>
+              <View style={styles.headBadge}>
+                <Text style={styles.headBadgeText}>
+                  {roundLabel(cup.size)}
+                  {result ? ` · ${result.plays}명 참여` : ""}
+                </Text>
+              </View>
+              <Text style={styles.title}>{cup.title}</Text>
+            </View>
+
+            {result ? (
+              <ResultView result={result} groupMin={groupMin} />
+            ) : (
+              <ActivityIndicator color={colors.primary} />
+            )}
+
+            <View style={styles.replay}>
+              <Button title="다시 하기" variant="outline" onPress={start} />
+              <Text style={styles.replayNote}>
+                다시 하기는 결과에 반영되지 않아요
               </Text>
             </View>
-            <Text style={styles.title}>{cup.title}</Text>
-          </View>
 
-          {result ? <ResultView result={result} groupMin={groupMin} /> : <ActivityIndicator color={colors.primary} />}
-
-          <View style={styles.replay}>
-            <Button title="다시 하기" variant="outline" onPress={start} />
-            <Text style={styles.replayNote}>다시 하기는 결과에 반영되지 않아요</Text>
-          </View>
-
-          <SectionHeader title="댓글" />
-          <Comments type="worldcup" id={cup.id} />
-        </>
-      )}
-    </ScrollView>
+            <Comments thread={thread} />
+          </>
+        )}
+      </ScrollView>
+      {phase === "result" && <CommentComposer thread={thread} />}
+    </View>
   );
 }
 

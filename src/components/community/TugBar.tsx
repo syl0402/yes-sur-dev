@@ -176,7 +176,7 @@ export default function TugBar({ labels, counts, votes, myChoice, onVote, disabl
         </View>
       ) : (
         caption && (
-          <Text style={styles.caption} numberOfLines={1}>
+          <Text style={[styles.caption, shown && styles.captionLead]} numberOfLines={1}>
             {caption}
           </Text>
         )
@@ -320,8 +320,15 @@ const styles = StyleSheet.create({
   },
   captionLg: {
     flexShrink: 1,
-    fontWeight: "800",
-    color: colors.primary,
+    fontSize: fontSize.small,
+    fontWeight: "700",
+    color: colors.primaryStrong,
+  },
+  // 투표 후 "○○파가 n%p 앞서는 중": 막대 바로 아래 굵은 파랑 (2026-11-14 디자인 피드백)
+  captionLead: {
+    fontSize: fontSize.small,
+    fontWeight: "700",
+    color: colors.primaryStrong,
   },
   caption: {
     fontSize: fontSize.caption,

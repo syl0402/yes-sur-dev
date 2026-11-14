@@ -3,6 +3,7 @@ import { StyleSheet, View } from "react-native";
 
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import CardFooter from "@/components/community/CardFooter";
 import { listCardStyles } from "@/components/listCardStyles";
 import Card from "@/components/ui/Card";
 import GrowBar from "@/components/ui/GrowBar";
@@ -57,15 +58,13 @@ export default function WorldcupCard({ item: w, hot }: { item: WorldcupItem; hot
         </View>
       )}
 
-      <Text style={styles.footer}>
-        {top.length > 0 ? "우승 비율 · " : ""}
-        {w.plays}명 참여{w.comment_count ? ` · 댓글 ${w.comment_count}` : ""}
-      </Text>
       <Button
         title={w.played ? "결과 보기" : top.length > 0 ? `내 1위는 다를까? 해보기 (약 ${minutes}분)` : `해보기 (약 ${minutes}분)`}
         variant="soft"
         onPress={open}
       />
+      {/* 아래: 구분선 + 참여·댓글 수 · 오른쪽 끝 막대 설명 */}
+      <CardFooter votes={w.plays} comments={w.comment_count ?? 0} note={top.length > 0 ? "막대는 우승 비율" : undefined} />
     </Card>
   );
 }
@@ -154,9 +153,5 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     fontWeight: "700",
     color: colors.textStrong,
-  },
-  footer: {
-    fontSize: fontSize.caption,
-    color: colors.textMuted,
   },
 });

@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { ZoomIn, useReducedMotion } from "react-native-reanimated";
 
 import AppIcon from "@/components/AppIcon";
+import CardFooter from "@/components/community/CardFooter";
 import TugBar from "@/components/community/TugBar";
 import LinkedText from "@/components/LinkedText";
 import { listCardStyles } from "@/components/listCardStyles";
@@ -110,12 +111,8 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
       {post.mine && post.my_choice === null && counts && <Text style={styles.meta}>내 글이라 결과를 먼저 볼 수 있어요.</Text>}
       {earned !== null && earned > 0 && <Text style={styles.earned}>+{formatPoints(earned)} 받았어요</Text>}
 
-      {/* 아래: 참여·댓글 수 */}
-      {post.kind !== "promo" && (
-        <Text style={styles.footer}>
-          {post.votes}명{post.comment_count > 0 ? ` · 댓글 ${post.comment_count}` : ""}
-        </Text>
-      )}
+      {/* 아래: 구분선 + 참여·댓글 수 (설문 홍보는 댓글만) */}
+      <CardFooter votes={post.kind === "promo" ? undefined : post.votes} comments={post.comment_count} />
     </Pressable>
   );
 }
@@ -269,10 +266,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.label,
     lineHeight: 21,
     color: colors.textStrong,
-  },
-  footer: {
-    fontSize: fontSize.caption,
-    color: colors.textMuted,
   },
   earned: {
     fontSize: fontSize.small,

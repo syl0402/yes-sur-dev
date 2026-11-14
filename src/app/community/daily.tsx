@@ -3,12 +3,14 @@ import { Stack } from "expo-router";
 import { useCallback, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
+import CommentComposer from "@/components/community/CommentComposer";
 import Comments from "@/components/community/Comments";
 import Chips from "@/components/create/Chips";
 import DailyCard, { type Daily } from "@/components/DailyCard";
 import { Bar, percent } from "@/components/results/QuestionResult";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
+import { useCommentThread } from "@/hooks/useCommentThread";
 import { GROUP_DIMS, type GroupDim, sortGroups } from "@/lib/hub";
 
 export default function TodayDaily() {
@@ -18,51 +20,69 @@ export default function TodayDaily() {
 
   // DailyCard가 불러올 때마다 (답한 뒤 포함) 받아서 그룹별 결과를 그린다
   const onLoaded = useCallback((d: Daily | null) => setDaily(d), []);
+  // 댓글 (목록 + 아래 고정 입력칸)
+  const thread = useCommentThread("daily", daily?.id ?? null);
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={styles.container}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Stack.Screen options={{ title: "오늘의 질문" }} />
+    <View style={styles.screen}>
+      <ScrollView
+        style={styles.screen}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Stack.Screen options={{ title: "오늘의 질문" }} />
 
-      <DailyCard onLoaded={onLoaded} />
+        <DailyCard onLoaded={onLoaded} />
 
-      {daily === null && <Text style={styles.muted}>오늘은 질문이 없어요. 내일 다시 와 주세요!</Text>}
+        {daily === null && (
+          <Text style={styles.muted}>
+            오늘은 질문이 없어요. 내일 다시 와 주세요!
+          </Text>
+        )}
 
-      {daily && daily.groups && (
-        <View style={styles.box}>
-          <Text style={styles.boxTitle}>그룹별로 보기</Text>
-          <Chips options={GROUP_DIMS} selected={dim} onSelect={setDim} />
-          {sortGroups(dim, daily.groups[dim]).map((g) =>
-            g.hidden || !g.counts ? (
-              <Text key={g.label} style={styles.muted}>
-                {g.label}: 5명 미만이라 숨겼어요
-              </Text>
-            ) : (
-              <View key={g.label} style={styles.group}>
-                <Text style={styles.groupTitle}>
-                  {g.label} ({g.n}명)
+        {daily && daily.groups && (
+          <View style={styles.box}>
+            <Text style={styles.boxTitle}>그룹별로 보기</Text>
+            <Chips options={GROUP_DIMS} selected={dim} onSelect={setDim} />
+            {sortGroups(dim, daily.groups[dim]).map((g) =>
+              g.hidden || !g.counts ? (
+                <Text key={g.label} style={styles.muted}>
+                  {g.label}: 5명 미만이라 숨겼어요
                 </Text>
-                {[daily.option_a, daily.option_b].map((label, i) => {
-                  const counts = g.counts ?? [];
-                  const total = counts.reduce((a, b) => a + b, 0);
-                  return <Bar key={i} label={label} count={counts[i] ?? 0} pct={percent(counts[i] ?? 0, total)} />;
-                })}
-              </View>
-            ),
-          )}
-        </View>
-      )}
+              ) : (
+                <View key={g.label} style={styles.group}>
+                  <Text style={styles.groupTitle}>
+                    {g.label} ({g.n}명)
+                  </Text>
+                  {[daily.option_a, daily.option_b].map((label, i) => {
+                    const counts = g.counts ?? [];
+                    const total = counts.reduce((a, b) => a + b, 0);
+                    return (
+                      <Bar
+                        key={i}
+                        label={label}
+                        count={counts[i] ?? 0}
+                        pct={percent(counts[i] ?? 0, total)}
+                      />
+                    );
+                  })}
+                </View>
+              ),
+            )}
+          </View>
+        )}
 
-      {daily && !daily.my_choice && (
-        <Text style={styles.muted}>답하면 계열·학년·성별·나이대별 결과를 볼 수 있어요.</Text>
-      )}
+        {daily && !daily.my_choice && (
+          <Text style={styles.muted}>
+            답하면 계열·학년·성별·나이대별 결과를 볼 수 있어요.
+          </Text>
+        )}
 
-      {daily && <Comments type="daily" id={daily.id} />}
-    </ScrollView>
+        {daily && <Comments thread={thread} />}
+      </ScrollView>
+      {daily && <CommentComposer thread={thread} />}
+    </View>
   );
 }
 
