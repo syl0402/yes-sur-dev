@@ -1,9 +1,11 @@
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { Platform } from "react-native";
 
 import AppDialog from "@/components/ui/AppDialog";
+import HeaderBack from "@/components/ui/HeaderBack";
 import { colors, fontFamily } from "@/constants/theme";
 import { usePush } from "@/hooks/usePush";
 import { initSentry, wrapWithSentry } from "@/lib/sentry";
@@ -58,6 +60,13 @@ function RootLayout() {
           contentStyle: { backgroundColor: colors.background },
           // 뒤로 버튼은 화살표만 (이전 화면 이름이 "(tabs)" 같은 폴더 이름으로 나오지 않게)
           headerBackButtonDisplayMode: "minimal",
+          // 제목은 가운데 (2026-11-14 온보딩 시안)
+          headerTitleAlign: "center",
+          // 뒤로 버튼 모양을 '<' 흰 원형 버튼으로 통일. 아이폰은 기본 버튼이 이미 '<' (유리 원)이라 그대로 둔다
+          ...(Platform.OS !== "ios" && {
+            headerLeft: ({ canGoBack }: { canGoBack?: boolean }) =>
+              canGoBack ? <HeaderBack onPress={() => router.back()} /> : null,
+          }),
         }}
       >
         {/* 하단 탭은 각 탭이 제목줄을 가지므로 바깥 제목줄은 숨긴다 */}

@@ -1,4 +1,7 @@
 // ys-002 가입 완료 · F-105 단체 승인 대기 (대기 / 거절 / 승인)
+// 2026-11-14 온보딩 시안: 학사모 캐릭터 · "승인 신청을 받았어요" · 단체 이름 + 상태 "확인 중" 카드
+// (시안의 [둘러보기]는 승인 전 단체가 다른 화면에 들어갈 수 없어 "결과 다시 확인하기"로 둔다. 승인 알림 메일도 아직 없어 문구에서 뺐다)
+import { Image } from "expo-image";
 import { router, Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
@@ -7,6 +10,8 @@ import PrimaryButton from "@/components/PrimaryButton";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
+
+const STUDY = require("../../../assets/images/characters/study.png");
 
 type Status = "pending" | "approved" | "rejected";
 
@@ -75,14 +80,26 @@ export default function SignupPending() {
           </>
         ) : (
           <>
-            <Text style={styles.heading}>승인을 기다리고 있어요</Text>
-            <Text style={styles.message}>
-              <Text style={styles.strong}>{orgName}</Text> 신청을 받았어요.
-            </Text>
+            {/* 학사모 캐릭터 (연파랑 원) */}
+            <View style={styles.circle}>
+              <Image source={STUDY} style={styles.mascot} contentFit="contain" accessibilityLabel="옛썰 캐릭터" />
+            </View>
+            <Text style={styles.heading}>승인 신청을 받았어요</Text>
             <Text style={styles.guide}>
-              운영자가 증빙 링크를 확인한 뒤 승인해요. 앱을 다시 열거나 아래 버튼으로 결과를 확인할 수
-              있어요.
+              운영자가 단체 정보를 확인하고 있어요.{"\n"}앱을 다시 열거나 아래 버튼으로 결과를 확인할 수 있어요.
             </Text>
+            <View style={styles.infoCard}>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>단체 이름</Text>
+                <Text style={styles.infoValue}>{orgName}</Text>
+              </View>
+              <View style={[styles.infoRow, styles.infoRowLine]}>
+                <Text style={styles.infoLabel}>상태</Text>
+                <View style={styles.statusBadge}>
+                  <Text style={styles.statusText}>확인 중</Text>
+                </View>
+              </View>
+            </View>
           </>
         )}
       </View>
@@ -124,9 +141,64 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   heading: {
-    fontSize: fontSize.title,
+    fontSize: 25,
+    lineHeight: 34,
+    fontWeight: "800",
+    color: colors.text,
+  },
+  circle: {
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primaryFaint,
+  },
+  mascot: {
+    width: 150,
+    height: 150,
+  },
+  infoCard: {
+    alignSelf: "stretch",
+    marginTop: spacing.sm,
+    paddingVertical: 6,
+    paddingHorizontal: 18,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  infoRow: {
+    minHeight: 46,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  infoRowLine: {
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceMuted,
+  },
+  infoLabel: {
+    fontSize: 15,
+    color: colors.iconStrong,
+  },
+  infoValue: {
+    flexShrink: 1,
+    fontSize: 15,
     fontWeight: "700",
     color: colors.text,
+  },
+  statusBadge: {
+    paddingVertical: 3,
+    paddingHorizontal: 10,
+    borderRadius: radius.pill,
+    backgroundColor: colors.warningSoft,
+  },
+  statusText: {
+    fontSize: fontSize.small,
+    fontWeight: "700",
+    color: colors.warning,
   },
   message: {
     fontSize: fontSize.body,
@@ -138,8 +210,9 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   guide: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
+    fontSize: 15,
+    lineHeight: 23,
+    color: colors.iconStrong,
     textAlign: "center",
   },
   reasonBox: {

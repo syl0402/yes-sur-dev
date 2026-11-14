@@ -46,7 +46,8 @@ export const passwordIcons = {
 
 // 화면 위쪽 뒤로 가기·나가기 (2026-11-03, "나가기" 글자 대신 화살표로 통일)
 export const headerIcons = {
-  back: "arrow-back",
+  // '<' 하나로 통일 (2026-11-14 온보딩 시안)
+  back: "chevron-back",
   // 설문 응답 나가기 X (2026-11-12 설문 흐름 시안)
   close: "close",
 } satisfies Record<string, IconName>;
@@ -170,4 +171,14 @@ export const commentIcons = {
 export const feedbackIcons = {
   image: "image-outline",
   remove: "close",
+} satisfies Record<string, IconName>;
+
+// 가입 후 사용 안내 그림 (2026-11-14 온보딩 시안)
+export const guideIcons = {
+  forward: "chevron-forward",
+  unlock: "lock-open",
+  heart: "heart-outline",
+  heartOn: "heart",
+  close: "close",
+  bell: "notifications",
 } satisfies Record<string, IconName>;

@@ -19,6 +19,7 @@ import { supabase } from "@/lib/supabase";
 type Account = {
   name: string;
   isOrg: boolean;
+  isDemo: boolean;
   // 학생인데 성별·출생연도가 비어 있음 (기능 추가 전 가입) → 한 번만 입력
   needsDemographics: boolean;
   // 회원정보 (보기만. 고치려면 문의)
@@ -39,13 +40,14 @@ async function fetchAccount(): Promise<Account> {
     supabase
       .from("profiles")
       .select(
-        "nickname, account_type, gender, birth_year, admission_year, degree_type, notify_daily, notify_mission, universities(name), major_fields(category_name, name)",
+        "nickname, account_type, gender, birth_year, admission_year, degree_type, notify_daily, notify_mission, universities(name, is_demo), major_fields(category_name, name)",
       )
       .maybeSingle(),
     supabase.from("organizations").select("name, kind").maybeSingle(),
   ]);
 
-  const school = first<{ name: string }>(profile?.universities)?.name ?? "";
+  const uni = first<{ name: string; is_demo?: boolean }>(profile?.universities);
+  const school = uni?.name ?? "";
   const major = first<{ category_name: string; name: string }>(profile?.major_fields);
   const isOrg = profile?.account_type === "org";
 
@@ -68,6 +70,8 @@ async function fetchAccount(): Promise<Account> {
   return {
     name: org?.name ?? profile?.nickname ?? "",
     isOrg,
+    // 체험 계정 (학교 메일 없는 테스터용 "옛썰 체험" 학교, 2026-11-14)
+    isDemo: uni?.is_demo === true,
     needsDemographics: !isOrg && (profile?.gender == null || profile?.birth_year == null),
     info,
     notifyDaily: profile?.notify_daily ?? true,
@@ -139,7 +143,12 @@ export default function AccountHome() {
           {account.info.find((r) => r.label === "학교")?.value ? (
             <View style={styles.schoolLine}>
               <Text style={styles.profileSub}>{account.info.find((r) => r.label === "학교")?.value}</Text>
-              {!account.isOrg && <Badge label="✓ 학교 메일 인증" tone="lime" size="sm" />}
+              {!account.isOrg &&
+                (account.isDemo ? (
+                  <Badge label="체험 계정" tone="muted" size="sm" />
+                ) : (
+                  <Badge label="✓ 학교 메일 인증" tone="lime" size="sm" />
+                ))}
             </View>
           ) : null}
         </View>

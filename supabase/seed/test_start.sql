@@ -17,6 +17,8 @@ update public.point_rules
 delete from public.point_ledger where reason in ('mission', 'mission_bonus');
 delete from public.mission_claims;
 delete from public.mission_progress;
+-- 개발 중 공유해 본 기록 (13일차 "결과 카드 공유" 미션이 미리 완료되지 않게, 2026-11-14)
+delete from public.share_logs;
 -- profile_extras(나에 대해 답)는 남긴다
 
 select value as mission_launch_date from public.point_rules where key = 'mission_launch_date';

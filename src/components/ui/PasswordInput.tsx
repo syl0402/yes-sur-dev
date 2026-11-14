@@ -1,6 +1,7 @@
 // 비밀번호 입력칸: 오른쪽 눈 버튼으로 보기 ↔ 가리기 (2026-11-02)
+// 2026-11-14: 안드로이드에서 빈 칸일 때 안내 글자(placeholder)가 벌어져 보여서, 비어 있으면 가리기를 끈다
 import { useState } from "react";
-import { Pressable, StyleSheet, type TextInputProps, View } from "react-native";
+import { Platform, Pressable, StyleSheet, type TextInputProps, View } from "react-native";
 
 import AppIcon from "@/components/AppIcon";
 import { TextInput } from "@/components/ui/Text";
@@ -11,7 +12,11 @@ export default function PasswordInput({ style, ...rest }: Omit<TextInputProps, "
   const [shown, setShown] = useState(false);
   return (
     <View style={styles.wrap}>
-      <TextInput {...rest} style={[style, styles.input]} secureTextEntry={!shown} />
+      <TextInput
+        {...rest}
+        style={[style, styles.input]}
+        secureTextEntry={!shown && (Platform.OS !== "android" || (rest.value ?? "").length > 0)}
+      />
       <Pressable
         onPress={() => setShown(!shown)}
         style={styles.eye}

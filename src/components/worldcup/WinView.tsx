@@ -2,20 +2,11 @@
 // 아래 카드: "n%가 나랑 같은 걸 우승으로 골랐어요" + 지금 순위 상위 3개 (우승 비율)
 // 버튼: 전체 랭킹 보기 / 다시 하기. 동작 줄이기 설정이면 꽃가루·점프·나타나기 모두 끔
 import { Image } from "expo-image";
-import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import Animated, {
-  Easing,
-  FadeInDown,
-  ZoomIn,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withDelay,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 
 import Button from "@/components/ui/Button";
+import Confetti from "@/components/ui/Confetti";
 import GrowBar from "@/components/ui/GrowBar";
 import Hop from "@/components/ui/Hop";
 import { Text } from "@/components/ui/Text";
@@ -24,17 +15,6 @@ import { formatPoints } from "@/lib/format";
 import { type Candidate, type WorldcupResult, roundLabel } from "@/lib/worldcup";
 
 const CHEER = require("../../../assets/images/characters/cheer.png");
-
-// 꽃가루 조각: 가로 위치(%) · 색 · 늦게 시작(ms)
-const CONFETTI = [
-  { left: 12, color: colors.accent, delay: 100 },
-  { left: 26, color: colors.primary, delay: 300 },
-  { left: 40, color: colors.primaryMuted, delay: 200 },
-  { left: 55, color: colors.accent, delay: 0 },
-  { left: 68, color: colors.primary, delay: 150 },
-  { left: 80, color: colors.primaryMuted, delay: 350 },
-  { left: 90, color: colors.accent, delay: 250 },
-];
 
 type Props = {
   champion: Candidate;
@@ -49,19 +29,12 @@ type Props = {
 };
 
 export default function WinView({ champion, title, size, result, reward, onRanking, onReplay }: Props) {
-  const reduce = useReducedMotion();
   const same = result?.ranking.find((r) => r.id === champion.id)?.win_rate ?? null;
   const top = result?.ranking.slice(0, 3) ?? [];
 
   return (
     <View style={styles.wrap}>
-      {!reduce && (
-        <View style={styles.confetti} pointerEvents="none">
-          {CONFETTI.map((c, i) => (
-            <Piece key={i} {...c} />
-          ))}
-        </View>
-      )}
+      <Confetti />
 
       <Animated.View entering={ZoomIn.duration(300)} style={styles.chip}>
         <Text style={styles.chipText}>나의 우승</Text>
@@ -119,38 +92,11 @@ export default function WinView({ champion, title, size, result, reward, onRanki
   );
 }
 
-// 꽃가루 한 조각: 위에서 떨어지며 돌다가 사라진다 (1.4초)
-function Piece({ left, color, delay }: { left: number; color: string; delay: number }) {
-  const t = useSharedValue(0);
-  useEffect(() => {
-    t.value = withDelay(delay, withTiming(1, { duration: 1400, easing: Easing.out(Easing.quad) }));
-  }, [delay, t]);
-  const style = useAnimatedStyle(() => ({
-    opacity: 1 - t.value,
-    transform: [{ translateY: t.value * 220 }, { rotate: `${t.value * 300}deg` }],
-  }));
-  return <Animated.View style={[styles.piece, { left: `${left}%`, backgroundColor: color }, style]} />;
-}
-
 const styles = StyleSheet.create({
   wrap: {
     alignItems: "center",
     gap: spacing.sm,
     paddingTop: spacing.sm,
-  },
-  confetti: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    height: 300,
-  },
-  piece: {
-    position: "absolute",
-    top: 10,
-    width: 10,
-    height: 10,
-    borderRadius: 2,
   },
   chip: {
     paddingVertical: 5,

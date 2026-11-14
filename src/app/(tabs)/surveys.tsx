@@ -13,6 +13,7 @@ import { Text, TextInput } from "@/components/ui/Text";
 import TextTabs from "@/components/ui/TextTabs";
 import { uiIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
+import TabTip from "@/components/onboarding/TabTip";
 import { supabase } from "@/lib/supabase";
 import { addTag, decodeTags, encodeTags, formatTag, matchesTags, type Tag } from "@/lib/tags";
 import {
@@ -122,6 +123,8 @@ export default function Surveys() {
 
   return (
     <View style={styles.screen}>
+      {/* 처음 열 때 한 번 말풍선 (2026-11-14 온보딩 시안 ⑩) */}
+      <TabTip tab="surveys" />
       <ScrollView
         keyboardShouldPersistTaps="handled"
         style={styles.screen}

@@ -8,6 +8,7 @@ import Animated, { FadeInUp } from "react-native-reanimated";
 
 import AppIcon from "@/components/AppIcon";
 import MySurveyCard from "@/components/my/MySurveyCard";
+import TabTip from "@/components/onboarding/TabTip";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import ListRow from "@/components/ui/ListRow";
@@ -239,6 +240,9 @@ export default function My() {
 
   return (
     <ScrollView style={styles.screen} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
+      {/* 처음 열 때 한 번 말풍선 (2026-11-14 온보딩 시안 ⑩) */}
+      <TabTip tab="my" />
+
       {/* 운영자 계정에만: 처리 대기 건수 → 운영자 화면 */}
       {data.admin && (
         <Card onPress={() => router.push(ADMIN_HREF)} style={styles.adminCard}>

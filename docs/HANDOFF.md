@@ -83,6 +83,14 @@ Supabase 연결. 화면에서는 `import { supabase } from "@/lib/supabase";`로
 - 월드컵 `src/components/worldcup/`: `MatchView`(대결·되돌리기) · `RoundBreak`(라운드 중간) · `WinView`(우승) · `ResultView`(시상대·순위·그룹별 1위)
 - `GrowBar` `delay`: 여러 막대를 차례로 채울 때
 
+### 온보딩 시안 부품 (2026-11-14)
+- 흐름: 첫 화면(`index`) → `signup/type` → `terms` → `email` → `verify` → `profile`(비밀번호·닉네임·초대 코드) → `about`(나에 대해 · complete_signup · redeem_invite) → `onboarding?from=signup`(4장) → `signup/done`(환영 · 웰컴 미션 1일차) → 홈
+- `src/components/onboarding/`: `ChatTeaser`(첫 화면 대화) · `CodeBoxes`(인증번호 칸) · `signupStyles`(가입 화면 공통 모양) · `GuideSlides`(사용 안내 그림 4개) · `TabTip`(탭 처음 열 때 말풍선, data·community·my) · `NotifySheet`(첫 응답 완료 때 알림 허용)
+- `Confetti` (`src/components/ui/Confetti.tsx`): 꽃가루 (월드컵 우승 · 가입 환영)
+- `fetchWelcomePoints` (`src/lib/rules.ts`, 서버 `get_welcome_points`): 로그인 전에도 읽는 가입 선물 금액
+- `HeaderBack`: '<' 하나로 통일. 안드로이드·웹은 앱 전체 뒤로 버튼이 이것 (흰 원형, `app/_layout.tsx`), 아이폰은 기본 버튼
+- 인증번호 자릿수 `CODE_LENGTH`(verify.tsx)는 Supabase Email OTP Length와 같아야 한다 (지금 8)
+
 ### 마이 탭 시안 부품 (2026-11-14)
 - `fetchMySurveys` · `MySurvey` (`src/lib/mySurveys.ts`): 내가 올린 설문 + 데이터 탭 열람 수. `MySurveyCard` (`src/components/my/MySurveyCard.tsx`): 응답 0명이면 "홍보하기 ›"
 - `fetchMyDataRows` · `fetchMyCommunity` (`src/lib/myActivity.ts`): 내 데이터(응답·스크랩·열람) / 내 글·댓글·참여(`get_my_participation`)

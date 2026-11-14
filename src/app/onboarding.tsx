@@ -1,215 +1,179 @@
-// ys-003 첫 사용 안내 · F-106 (학생만, 3장. 가입 직후·업데이트 후 처음 한 번, 내 정보에서 다시 보기)
+// ys-003 사용 안내 · F-106 (2026-11-14 온보딩 시안 ⑧: 4장 · 장마다 움직이는 그림 · 장마다 들어오는 방식이 다름)
+// from=signup: 가입 직후 (위 오른쪽 "건너뛰기", 마지막 "시작하기" → 환영 화면)
+// again=1: 마이 › 사용 안내 다시 보기 (위 오른쪽 X, 마지막 "확인" → 돌아감)
+// 그 밖(업데이트 후 처음 한 번 등): 끝나면 홈으로
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import { type ComponentRef, useEffect, useRef, useState } from "react";
-import {
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { type ReactNode, useEffect, useState } from "react";
+import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
+import Animated, { FadeIn, FadeInDown, FadeInUp, SlideInRight, ZoomIn, useReducedMotion } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { CommunityArt, MySurveyArt, PointsArt, ResultsArt } from "@/components/onboarding/GuideSlides";
 import PrimaryButton from "@/components/PrimaryButton";
+import AppIcon from "@/components/AppIcon";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, spacing } from "@/constants/theme";
+import { guideIcons } from "@/constants/icons";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
 import { markOnboardingSeen } from "@/lib/onboarding";
 import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
 
-// TODO(임시): 이모지 + 글자 · 디자인 시안(11/7)이 오면 그림으로 교체 · docs/PROGRESS.md
-type Slide = { emoji: string; title: string; body: string };
+type Slide = { title: string; body: string; art: ReactNode };
+
+// 장마다 들어오는 방식: 1 아래에서 올라옴 · 2 오른쪽에서 밀려옴 · 3 작게 시작해 커짐 · 4 살짝 떠오름
+const ENTER = [FadeInDown.duration(450), SlideInRight.duration(450), ZoomIn.duration(450), FadeInUp.duration(500)];
 
 export default function Onboarding() {
-  // again=1: 내 정보에서 다시 보기 (끝나면 뒤로)
-  const { again } = useLocalSearchParams<{ again?: string }>();
+  const { again, from } = useLocalSearchParams<{ again?: string; from?: string }>();
+  const isAgain = again === "1";
+  const isSignup = from === "signup";
+  const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  const reduce = useReducedMotion();
   const [page, setPage] = useState(0);
-  const pager = useRef<ComponentRef<typeof ScrollView>>(null);
-  const { width } = useWindowDimensions();
   const [r, setR] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    fetchRules(["reward_1q", "reward_gte15", "daily_reward", "price_1q", "price_gte15", "cost_data_view"]).then(setR);
+    fetchRules(["reward_1q", "reward_gte15", "daily_reward"]).then(setR);
   }, []);
 
   const p = (key: string) => (r[key] !== undefined ? formatPoints(r[key]) : "");
 
   const slides: Slide[] = [
     {
-      emoji: "📝",
-      title: "답하고 포인트 모으기",
-      body:
-        `설문에 응답하면 길이에 따라\n${p("reward_1q")}~${p("reward_gte15")}를 받아요.\n\n` +
-        `홈의 오늘의 질문은 매일 답하면 ${p("daily_reward")}씩,\n연속 출석 보너스도 있어요.`,
+      title: "답하면\n포인트가 쌓여요",
+      body: `설문 하나에 ${p("reward_1q")}~${p("reward_gte15")}, 오늘의 질문은 매일 ${p("daily_reward")}예요`,
+      art: <PointsArt />,
     },
+    { title: "모은 포인트로\n내 설문을 올려요", body: "학교 메일로 인증된 대학생들이 답해요", art: <MySurveyArt /> },
     {
-      emoji: "📣",
-      title: "내 설문 올리기",
-      body:
-        `모은 포인트로 설문을 올리면\n학교 메일로 인증된 대학생들이 응답해요.\n\n` +
-        `등록비는 응답 1명당\n${p("price_1q")}~${p("price_gte15")} × 목표 인원이에요.`,
+      title: "다른 설문 결과도\n볼 수 있어요",
+      body: "데이터 탭에서 계열·학년별로 나눠 보고, 첫 결과 보기는 무료예요",
+      art: <ResultsArt />,
     },
-    {
-      emoji: "📊",
-      title: "결과 보고 같이 놀기",
-      body:
-        `데이터 탭에서 다른 설문 결과를 계열·학년·성별로\n나눠 볼 수 있어요. (${p("cost_data_view")}, 첫 1회 무료)\n\n` +
-        `커뮤니티에서는 밸런스 게임·투표·댓글,\n이번 주 학교 대항전까지!`,
-    },
+    { title: "커뮤니티에서\n같이 놀아요", body: "밸런스 게임, 골라 줘, 월드컵까지", art: <CommunityArt /> },
   ];
+  const last = page === slides.length - 1;
 
   const finish = async () => {
     const { data } = await supabase.auth.getUser();
     if (data.user) markOnboardingSeen(data.user.id);
-    if (again === "1") {
+    if (isAgain) {
       router.back();
       return;
     }
-    router.replace("/");
+    // 가입 직후: 환영 화면 (가입 선물 · 웰컴 미션 1일차)
+    router.replace(isSignup ? "/signup/done" : "/");
   };
 
-  const last = page === slides.length - 1;
-
-  // [다음]: 옆 장으로 넘긴다 (스와이프와 같은 움직임)
-  const next = () => pager.current?.scrollTo({ x: width * (page + 1), animated: true });
-
-  // 스와이프가 멈추면 지금 장을 맞춘다 (점·버튼 글자)
-  const onSwiped = (e: NativeSyntheticEvent<NativeScrollEvent>) =>
-    setPage(Math.round(e.nativeEvent.contentOffset.x / width));
+  const next = () => (last ? finish() : setPage(page + 1));
+  // 그림 칸 높이 (시안 약 420, 작은 폰은 화면의 52%까지)
+  const artH = Math.min(420, height * 0.52);
 
   return (
-    <View style={styles.screen}>
-      <Stack.Screen options={{ headerShown: false, gestureEnabled: again === "1" }} />
+    <View style={[styles.screen, { paddingTop: insets.top + spacing.sm, paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
+      <Stack.Screen options={{ headerShown: false, gestureEnabled: isAgain }} />
 
-      <Pressable style={styles.skip} onPress={finish} hitSlop={12}>
-        <Text style={styles.skipText}>{last ? "" : "건너뛰기"}</Text>
-      </Pressable>
+      {/* 위: n / 4 · 오른쪽 건너뛰기(가입 직후) 또는 X(다시 보기) */}
+      <View style={styles.top}>
+        <Text style={styles.count}>
+          {page + 1} / {slides.length}
+        </Text>
+        {isAgain ? (
+          <Pressable onPress={finish} hitSlop={12} accessibilityLabel="닫기">
+            <AppIcon name={guideIcons.close} size={26} color={colors.text} />
+          </Pressable>
+        ) : !last ? (
+          <Pressable onPress={finish} hitSlop={12}>
+            <Text style={styles.skip}>건너뛰기</Text>
+          </Pressable>
+        ) : (
+          <View />
+        )}
+      </View>
 
-      {/* 한 장씩 옆으로 넘기기 */}
-      <ScrollView
-        ref={pager}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={onSwiped}
-        style={styles.pager}
-        contentContainerStyle={styles.pagerContent}
-      >
-        {slides.map((s) => (
-          <View key={s.title} style={[styles.center, { width }]}>
-            <View style={styles.emojiCircle}>
-              <Text style={styles.emoji}>{s.emoji}</Text>
-            </View>
-            <Text style={styles.title}>{s.title}</Text>
-            {/* 문단(빈 줄로 나눔) 사이는 반 줄만 띄운다 (2026-11-07) */}
-            <View style={styles.paragraphs}>
-              {s.body.split("\n\n").map((p) => (
-                <Text key={p} style={styles.body}>
-                  {p}
-                </Text>
-              ))}
-            </View>
-          </View>
-        ))}
-      </ScrollView>
+      {/* 장이 바뀔 때마다 그림이 새로 그려지며 움직임이 처음부터 */}
+      <Animated.View key={page} entering={reduce ? undefined : ENTER[page]} style={styles.slide}>
+        <View style={[styles.art, { height: artH }]}>{slides[page].art}</View>
+        <Animated.View entering={reduce ? undefined : FadeIn.delay(200).duration(400)} style={styles.texts}>
+          <Text style={styles.title}>{slides[page].title}</Text>
+          <Text style={styles.body}>{slides[page].body}</Text>
+        </Animated.View>
+      </Animated.View>
 
       <View style={styles.footer}>
+        {/* 점: 지금 장은 길게 */}
         <View style={styles.dots}>
           {slides.map((_, i) => (
             <View key={i} style={[styles.dot, i === page && styles.dotOn]} />
           ))}
         </View>
-        <PrimaryButton title={last ? "시작하기" : "다음"} onPress={last ? finish : next} />
-        <Pressable onPress={() => router.push("/points")} hitSlop={8}>
-          <Text style={styles.link}>포인트 안내 자세히 보기</Text>
-        </Pressable>
+        <PrimaryButton title={last ? (isAgain ? "확인" : "시작하기") : "다음"} onPress={next} />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // 장마다 화면 폭 전체를 써야 넘길 때 딱 맞으니, 좌우 여백은 각 부분에 따로 준다
   screen: {
     flex: 1,
-    paddingTop: 64,
+    paddingHorizontal: spacing.lg,
     backgroundColor: colors.background,
   },
-  skip: {
-    alignSelf: "flex-end",
-    minHeight: 24,
-    paddingHorizontal: spacing.lg,
-  },
-  skipText: {
-    fontSize: fontSize.body,
-    color: colors.textMuted,
-  },
-  pagerContent: {
+  top: {
+    height: 44,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
   },
-  pager: {
+  count: {
+    fontSize: fontSize.label,
+    fontWeight: "700",
+    color: colors.iconStrong,
+  },
+  skip: {
+    fontSize: fontSize.label,
+    fontWeight: "600",
+    color: colors.iconStrong,
+  },
+  slide: {
     flex: 1,
   },
-  center: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
+  art: {
+    overflow: "visible",
   },
-  emojiCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.primarySoft,
-    marginBottom: spacing.md,
-  },
-  emoji: {
-    fontSize: 72,
+  texts: {
+    marginTop: spacing.lg,
+    gap: spacing.sm,
   },
   title: {
-    fontSize: fontSize.title,
+    fontSize: 26,
+    lineHeight: 35,
     fontWeight: "800",
     color: colors.text,
-    textAlign: "center",
-  },
-  // 줄 높이(24)의 반
-  paragraphs: {
-    gap: 12,
   },
   body: {
-    fontSize: fontSize.body,
-    color: colors.text,
-    textAlign: "center",
-    lineHeight: 24,
+    fontSize: 15,
+    lineHeight: 22,
+    color: colors.iconStrong,
   },
   footer: {
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.lg,
+    gap: spacing.lg,
   },
   dots: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: spacing.sm,
+    gap: 6,
   },
   dot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
+    borderRadius: radius.pill,
     backgroundColor: colors.border,
   },
   dotOn: {
-    width: 20,
+    width: 22,
     backgroundColor: colors.primary,
-  },
-  link: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
-    textAlign: "center",
-    textDecorationLine: "underline",
   },
 });

@@ -10,6 +10,7 @@ import AppIcon from "@/components/AppIcon";
 import RewardContactForm from "@/components/RewardContactForm";
 import SurveyRowCard from "@/components/SurveyRowCard";
 import BottomBar from "@/components/ui/BottomBar";
+import NotifySheet from "@/components/onboarding/NotifySheet";
 import BottomSheet from "@/components/ui/BottomSheet";
 import Button from "@/components/ui/Button";
 import Hop from "@/components/ui/Hop";
@@ -18,6 +19,7 @@ import { uiIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
 import { fetchSurveyReward } from "@/lib/rewards";
+import { markPushAsked, shouldAskPush } from "@/lib/push";
 import { supabase } from "@/lib/supabase";
 import { type SurveyCard, fetchOpenSurveys, sortSurveys } from "@/lib/surveys";
 
@@ -46,6 +48,8 @@ export default function SurveyDone() {
   const [visibility, setVisibility] = useState<"public" | "campus" | "private" | null>(null);
   // 이어서 하기 좋은 설문 (지금 참여할 수 있는 것 중 추천순 2개)
   const [next, setNext] = useState<SurveyCard[]>([]);
+  // 알림 허용 시트 (첫 응답 완료 때 한 번, 2026-11-14 온보딩 시안 ⑪)
+  const [notifyOpen, setNotifyOpen] = useState(false);
 
   const surveyId = Number(id);
   const earned = Number(reward ?? 0);
@@ -69,6 +73,22 @@ export default function SurveyDone() {
       ),
     );
   }, [surveyId]);
+
+  // 아직 알림을 정하지 않은 폰이면 1.2초 뒤 한 번만 묻는다 (응답 실패 화면에서는 묻지 않음)
+  useEffect(() => {
+    if (failed) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    shouldAskPush().then((ask) => {
+      if (!ask) return;
+      timer = setTimeout(() => {
+        markPushAsked();
+        setNotifyOpen(true);
+      }, 1200);
+    });
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [failed]);
 
   // 쌓인 설문 화면을 모두 닫고 탭으로
   const goTab = (tab: "/surveys" | "/home") => {
@@ -203,6 +223,8 @@ export default function SurveyDone() {
           </>
         )}
       </BottomBar>
+
+      {notifyOpen && !sheetOpen && <NotifySheet onClose={() => setNotifyOpen(false)} />}
 
       {sheetOpen && rewardNote && (
         <ContactSheet

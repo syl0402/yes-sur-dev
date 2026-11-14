@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>가입 후 사용 안내</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{text-decoration:none;color:#3157D5}
+input::placeholder{color:#8B93A5}
+.lb{display:block;margin:20px 0 8px;font-size:14px;color:#545E73}
+.in{width:100%;height:56px;box-sizing:border-box;border:1px solid #E2E5EE;border-radius:16px;background:#FFFFFF;padding:0 18px;font-size:16px;font-family:inherit;color:#202A40;outline-color:#3157D5}
+.opt{height:52px;border:1px solid #E2E5EE;border-radius:16px;background:#FFFFFF;font-family:inherit;font-size:16px;color:#202A40}
+.on{border:2px solid #3157D5;background:#F1F4FF;color:#2949B5;font-weight:700}
+.chip{height:44px;padding:0 18px;border:1px solid #E2E5EE;border-radius:999px;background:#FFFFFF;font-family:inherit;font-size:15px;color:#202A40}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.up1{animation:up .45s ease-out .05s both}.up2{animation:up .45s ease-out .15s both}.up3{animation:up .45s ease-out .25s both}
+input::placeholder{color:#8B93A5}
+.lb{display:block;margin:20px 0 8px;font-size:14px;color:#545E73}
+.in{width:100%;height:56px;box-sizing:border-box;border:1px solid #E2E5EE;border-radius:16px;background:#FFFFFF;padding:0 18px;font-size:16px;font-family:inherit;color:#202A40;outline-color:#3157D5}
+.opt{height:52px;border:1px solid #E2E5EE;border-radius:16px;background:#FFFFFF;font-family:inherit;font-size:16px;color:#202A40}
+.on{border:2px solid #3157D5;background:#F1F4FF;color:#2949B5;font-weight:700}
+.chip{height:44px;padding:0 18px;border:1px solid #E2E5EE;border-radius:999px;background:#FFFFFF;font-family:inherit;font-size:15px;color:#202A40}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.up1{animation:up .45s ease-out .05s both}.up2{animation:up .45s ease-out .15s both}.up3{animation:up .45s ease-out .25s both}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.t1{animation:up .45s ease-out .05s both}.t2{animation:up .45s ease-out .18s both}
+@keyframes pop{0%{opacity:0;transform:translateY(14px) scale(.85)}70%{opacity:1;transform:translateY(0) scale(1.04)}100%{opacity:1;transform:none}}
+.b1{animation:pop .45s cubic-bezier(.2,.9,.3,1.3) .2s both}.b2{animation:pop .45s cubic-bezier(.2,.9,.3,1.3) .9s both}.b3{animation:pop .45s cubic-bezier(.2,.9,.3,1.3) 1.6s both}
+@keyframes fillX{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.fill{transform-origin:left;animation:fillX 1s cubic-bezier(.2,.8,.2,1) 1.1s both}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.fl{animation:fl 3.4s ease-in-out infinite}
+@keyframes arc{from{transform:translateY(-100%)}to{transform:none}}
+.arc{animation:arc .45s cubic-bezier(.2,.8,.2,1) both}
+@keyframes deal1{from{opacity:0;transform:translateY(40px) rotate(0)}to{opacity:1;transform:rotate(-9deg)}}
+@keyframes deal2{from{opacity:0;transform:translateY(40px) rotate(0)}to{opacity:1;transform:rotate(7deg)}}
+@keyframes deal3{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:rotate(-1deg)}}
+.k1{animation:deal1 .5s cubic-bezier(.34,1.3,.64,1) .05s both}.k2{animation:deal2 .5s cubic-bezier(.34,1.3,.64,1) .15s both}.k3{animation:deal3 .5s cubic-bezier(.34,1.3,.64,1) .28s both}
+.qc{position:absolute;left:50%;margin-left:-135px;width:270px;height:200px;border-radius:26px;box-sizing:border-box;padding:22px}
+.pt{animation:pop .45s cubic-bezier(.2,.9,.3,1.3) .8s both}
+.qi{display:flex;align-items:center;gap:10px;background:#FFFFFF;border:1px solid #ECEEF3;border-radius:18px;padding:12px 14px;box-shadow:0 4px 12px rgba(32,42,64,.04)}
+.tg{font-size:11px;font-weight:900;padding:3px 8px;border-radius:999px;flex-shrink:0}
+.qt{flex:1;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qn{font-size:12px;font-weight:900;flex-shrink:0}
+@media (prefers-reduced-motion: reduce){*{animation:none !important}}
+@keyframes slideL{from{transform:translateX(-100%)}to{transform:none}}
+@keyframes slideR{from{transform:translateX(100%)}to{transform:none}}
+.vL{animation:slideL .5s cubic-bezier(.2,.8,.2,1) both}.vR{animation:slideR .5s cubic-bezier(.2,.8,.2,1) .1s both}
+@keyframes vs{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-30deg)}70%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.vs{animation:vs .5s cubic-bezier(.2,.9,.3,1.3) .5s both}
+@keyframes tilt{from{opacity:0;transform:translateY(30px) rotate(0)}to{opacity:1;transform:rotate(-4deg)}}
+.tilt{animation:tilt .55s cubic-bezier(.2,.8,.2,1) both}
+@keyframes noti{0%{opacity:0;transform:translateY(-16px)}12%{opacity:1;transform:none}80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-8px)}}
+.nt1{animation:noti 1.8s ease-out .9s both}.nt2{animation:noti 1.8s ease-out 2.6s both}
+@keyframes cardin{from{opacity:0;transform:translateY(30px) scale(.94)}to{opacity:1;transform:none}}
+.idc{animation:cardin .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes stamp{0%{opacity:0;transform:scale(1.8) rotate(-20deg)}70%{opacity:1;transform:scale(.95) rotate(-8deg)}100%{opacity:1;transform:rotate(-8deg)}}
+.stp{animation:stamp .45s cubic-bezier(.2,.9,.3,1.3) 1.2s both}
+@keyframes ring{from{stroke-dashoffset:302}}
+.ring{animation:ring 1.2s cubic-bezier(.2,.8,.2,1) .3s both}
+.ring2{animation:ring 1.2s cubic-bezier(.2,.8,.2,1) .5s both}
+@keyframes unlock{0%{opacity:0;transform:translateY(10px) rotate(0)}60%{opacity:1;transform:rotate(-4deg)}100%{opacity:1;transform:rotate(-4deg)}}
+.ul{animation:unlock .5s cubic-bezier(.2,.9,.3,1.3) 1.5s both}
+@keyframes drop{0%{opacity:0;transform:translateY(-60px) scale(.8)}40%{opacity:1;transform:translateY(0) scale(1)}75%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(40px) scale(.6)}}
+.dp1{animation:drop 1s ease-in .3s both}.dp2{animation:drop 1s ease-in 1.1s both}.dp3{animation:drop 1s ease-in 1.9s both}
+@keyframes gauge{0%{width:12%}35%{width:14%}55%{width:24%}80%{width:31%}100%{width:31%}}
+.gg{animation:gauge 2.8s ease-out .3s both}
+@keyframes gather{from{opacity:0;transform:translate(var(--x),var(--y)) scale(.6)}to{opacity:1;transform:none}}
+.ga{animation:gather .6s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tabmv{0%,30%{transform:translateX(0)}36%,63%{transform:translateX(64px)}69%,96%{transform:translateX(128px)}100%{transform:translateX(0)}}
+.tp{animation:tabmv 7.5s ease-in-out infinite}
+@keyframes w1{0%,30%{width:73%}36%,63%{width:81%}69%,96%{width:52%}100%{width:73%}}
+@keyframes w2{0%,30%{width:58%}36%,63%{width:44%}69%,96%{width:66%}100%{width:58%}}
+@keyframes w3{0%,30%{width:41%}36%,63%{width:29%}69%,96%{width:57%}100%{width:41%}}
+.w1{animation:w1 7.5s ease-in-out infinite}.w2{animation:w2 7.5s ease-in-out infinite}.w3{animation:w3 7.5s ease-in-out infinite}
+@keyframes win{0%,40%{background:#FFFFFF;color:#202A40}60%,100%{background:#3157D5;color:#FFFFFF}}
+.win{animation:win 2.4s ease-out .4s both}
+@keyframes lose{0%,40%{opacity:1}60%,100%{opacity:.35}}
+.lose{animation:lose 2.4s ease-out .4s both}
+@keyframes line{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.ln{transform-origin:left;animation:line .5s ease-out 1.4s both}
+@keyframes crown{0%,70%{opacity:0;transform:translateY(8px) scale(.6)}100%{opacity:1;transform:none}}
+.cr{animation:crown 2.6s cubic-bezier(.2,.9,.3,1.3) .4s both}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+@keyframes print{from{transform:translateY(-100%)}to{transform:none}}
+.prn{animation:print 1.6s cubic-bezier(.3,.7,.3,1) .2s both}
+@keyframes type{from{width:0}}
+.typ{overflow:hidden;white-space:nowrap;animation:type 1s steps(9) .3s both}
+.typ2{overflow:hidden;white-space:nowrap;animation:type .6s steps(2) .3s both}
+@keyframes blink{50%{opacity:0}}
+.cur{animation:blink .8s steps(1) infinite}
+@keyframes press{0%,100%{transform:none}50%{transform:scale(.94)}}
+.prs{animation:press .3s ease 2.5s both}
+.prs1{animation:press .3s ease .8s both}
+@keyframes chosen{to{background:#3157D5;color:#FFFFFF;border-color:#3157D5}}
+.chs{animation:chosen .2s ease .9s both}
+@keyframes swipe{to{transform:translateX(-140%) rotate(-14deg);opacity:0}}
+.swp{animation:swipe .5s ease-in 1.3s both}
+@keyframes coin{0%{opacity:0;transform:none}15%{opacity:1;transform:translateY(-10px)}100%{opacity:0;transform:translate(110px,-190px) scale(.6)}}
+.cn{animation:coin 1s ease-in 1.2s both}
+@keyframes ndrop{from{opacity:0;transform:translateY(-24px) scale(.96)}to{opacity:1;transform:none}}
+.nd1{animation:ndrop .4s ease-out .3s both}.nd2{animation:ndrop .4s ease-out 1s both}.nd3{animation:ndrop .4s ease-out 1.7s both}.nd4{animation:ndrop .4s ease-out 2.4s both}
+@keyframes pfill{to{color:#3157D5}}
+.pf{color:#E2E5EE;animation:pfill .2s ease both}
+@keyframes chk{from{background:#FFFFFF;color:#CDD2DF}to{background:#3157D5;color:#FFFFFF;border-color:#3157D5}}
+.ck{animation:chk .25s ease both}
+@keyframes ring2{0%{box-shadow:0 0 0 0 rgba(163,234,22,.7)}100%{box-shadow:0 0 0 12px rgba(163,234,22,0)}}
+.today{animation:pop .45s cubic-bezier(.2,.9,.3,1.3) 1.4s both, ring2 1.2s ease-out 1.9s 2}
+@keyframes on{to{background:#202A40;color:#FFFFFF;border-color:#202A40}}
+.on1{animation:on .2s ease .5s both}.on2{animation:on .2s ease .9s both}.on3{animation:on .2s ease 1.3s both}
+@keyframes knob{from{left:0}to{left:56%}}
+.knb{animation:knob 1s cubic-bezier(.2,.8,.2,1) 1.5s both}
+@keyframes trk{from{width:0}to{width:56%}}
+.trk{animation:trk 1s cubic-bezier(.2,.8,.2,1) 1.5s both}
+@keyframes vbar{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.vb{transform-origin:bottom;animation:vbar 1s cubic-bezier(.2,.8,.2,1) .4s both}.vb2{transform-origin:bottom;animation:vbar 1s cubic-bezier(.2,.8,.2,1) .7s both}
+@keyframes pick{0%{transform:none}40%{transform:scale(1.06)}100%{transform:scale(1.03);border-color:#3157D5;box-shadow:0 0 0 3px #E3E9FF,0 14px 30px rgba(32,42,64,.14)}}
+.pk{animation:pick .5s ease 1s both}
+@keyframes out{to{opacity:.35;transform:scale(.94)}}
+.ot{animation:out .4s ease 1.2s both}
+@keyframes fly{0%{opacity:0;transform:scale(.5)}18%{opacity:1;transform:scale(1.12)}35%{opacity:1;transform:scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.5)}}
+.fy{animation:fly 1s cubic-bezier(.5,0,.7,.4) both}
+@keyframes bump{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+.bp{animation:bump .3s ease 1.25s, bump .3s ease 2.05s, bump .3s ease 2.85s}
+@keyframes cdrop{0%{opacity:0;transform:translateY(-260px)}70%{opacity:1;transform:translateY(6px)}85%{transform:translateY(-3px)}100%{opacity:1;transform:none}}
+.cd1{animation:cdrop .55s cubic-bezier(.5,0,.6,1) both}
+@keyframes lbl{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+.lb1{animation:lbl .35s ease-out both}
+@keyframes rowin{from{opacity:0;max-height:0;transform:translateY(-8px)}to{opacity:1;max-height:40px;transform:none}}
+.ri{overflow:hidden;animation:rowin .4s ease-out both}
+@keyframes grow{from{width:40%}to{width:80%}}
+.gr{animation:grow 3s linear .4s both}
+@keyframes into{0%{opacity:0;transform:scale(.7)}15%{opacity:1;transform:none}70%{opacity:1;transform:none}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.4)}}
+.it{animation:into 1.1s ease-in both}
+@keyframes likeup{0%{transform:scale(1)}50%{transform:scale(1.3);color:#E5484D}100%{transform:scale(1);color:#E5484D}}
+.lk{display:inline-block;animation:likeup .4s ease both}
+@keyframes tick{0%{opacity:0;transform:translateY(12px)}12%{opacity:1;transform:none}85%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-10px)}}
+.tk{animation:tick 1.6s ease both}
+@keyframes shift1{from{width:33%}to{width:35%}}
+.sh{animation:shift1 .4s ease 2.6s both}
+@keyframes en0{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+@keyframes en1{from{opacity:0;transform:translateX(70px)}to{opacity:1;transform:none}}
+@keyframes en2{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}
+@keyframes en3{from{opacity:0;transform:translateY(-50px)}to{opacity:1;transform:none}}
+.en0{animation:en0 .45s cubic-bezier(.2,.8,.2,1) both}.en1{animation:en1 .45s cubic-bezier(.2,.8,.2,1) both}.en2{animation:en2 .5s cubic-bezier(.2,.9,.3,1.2) both}.en3{animation:soft .5s ease-out both}
+@keyframes soft{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.cardin{animation:soft .6s ease-out .1s both}
+.cmin{animation:soft .5s ease-out both}
+.pc{animation:fade .4s ease both}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FCFCFC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <sc-if value="{{s0}}" hint-placeholder-val="{{true}}"><div class="en0" style="position: absolute; inset: 0"><div style="position: absolute; left: 0; right: 0; top: 104px; height: 416px"><div style="display: flex; justify-content: center"><span class="bp" style="display: inline-flex; align-items: baseline; gap: 6px; background: #F1F4FF; color: #2949B5; padding: 9px 16px; border-radius: 999px; font-variant-numeric: tabular-nums"><span style="font-size: 12px; font-weight: 700">내 포인트</span><b style="font-size: 18px">{{c}}P</b></span></div>
+<div style="position: absolute; left: 0; right: 0; top: 60px; height: 300px"><div class="qc k1" style="top: 20px; background: #A3EA16"><div style="font-size: 12px; font-weight: 900">설문 · +30P</div><div style="margin-top: 6px; font-size: 18px; font-weight: 900">자취생 식습관 조사</div></div>
+<div class="qc k2" style="top: 10px; background: #9FB2FF"><div style="font-size: 12px; font-weight: 900">설문 · +20P</div><div style="margin-top: 6px; font-size: 18px; font-weight: 900">통학 시간 조사</div></div><div class="qc k3" style="top: 40px; background: #FFFFFF; border: 1px solid #ECEEF3; box-shadow: 0 16px 36px rgba(32,42,64,.14)">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="background: #E3E9FF; color: #2949B5; font-size: 12px; font-weight: 900; padding: 4px 10px; border-radius: 999px">오늘의 질문</span><span style="font-size: 12px; color: #545E73">1,204명 참여</span></div>
+<div style="margin-top: 14px; font-size: 22px; font-weight: 900; line-height: 1.3">아침형 vs 저녁형,<br>너는?</div>
+<div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px"><span style="height: 40px; border-radius: 12px; background: #3157D5; color: #FFFFFF; font-size: 14px; font-weight: 900; display: flex; align-items: center; justify-content: center">아침형</span><span style="height: 40px; border-radius: 12px; background: #F0F8D5; color: #506D23; font-size: 14px; font-weight: 900; display: flex; align-items: center; justify-content: center">저녁형</span></div></div></div>
+<span class="fy" style="--dx: -110px; --dy: -96px; animation-delay: 0.5s; position: absolute; left: 258px; top: 104px; z-index: 4; background: #A3EA16; color: #202A40; font-size: 16px; font-weight: 900; padding: 7px 12px; border-radius: 999px; border: 3px solid #FFFFFF; box-shadow: 0 6px 14px rgba(32,42,64,.14)">+5P</span><span class="fy" style="--dx: 104px; --dy: -172px; animation-delay: 1.3s; position: absolute; left: 44px; top: 180px; z-index: 4; background: #A3EA16; color: #202A40; font-size: 16px; font-weight: 900; padding: 7px 12px; border-radius: 999px; border: 3px solid #FFFFFF; box-shadow: 0 6px 14px rgba(32,42,64,.14)">+30P</span><span class="fy" style="--dx: -90px; --dy: -262px; animation-delay: 2.1s; position: absolute; left: 250px; top: 270px; z-index: 4; background: #A3EA16; color: #202A40; font-size: 16px; font-weight: 900; padding: 7px 12px; border-radius: 999px; border: 3px solid #FFFFFF; box-shadow: 0 6px 14px rgba(32,42,64,.14)">+20P</span>
+<div style="position: absolute; left: 0; right: 0; bottom: 6px; display: flex; justify-content: center"><span class="b1" style="animation-delay: 3.0s; font-size: 13px; color: #545E73">오늘 벌써 <b style="color: #506D23">+55P</b> 모았어요</span></div></div></div></sc-if><sc-if value="{{s1}}" hint-placeholder-val="{{false}}"><div class="en1" style="position: absolute; inset: 0"><div style="position: absolute; left: 0; right: 0; top: 100px; height: 420px"><div style="position: absolute; left: 0; right: 0; top: 0; height: 420px">
+<div aria-hidden="true" style="position: absolute; left: 50%; top: 40px; margin-left: -170px; width: 340px; height: 340px; border-radius: 50%; background: #F1F4FF"></div>
+<div class="tilt" style="position: absolute; left: 50%; top: 10px; margin-left: -115px; width: 230px; height: 400px; background: #FCFCFC; border: 6px solid #202A40; border-radius: 34px; box-shadow: 0 20px 40px rgba(32,42,64,.18); overflow: hidden; padding: 22px 12px 0; box-sizing: border-box"><div style="font-size: 12px; font-weight: 900">내 설문 · 졸업 후 진로 고민</div>
+<div style="margin-top: 8px; display: flex; align-items: baseline; gap: 4px"><b style="font-size: 30px; color: #3157D5; font-variant-numeric: tabular-nums">{{c}}</b><span style="font-size: 12px; color: #545E73">/ 30명 응답</span></div>
+<div style="margin-top: 6px; height: 7px; background: #EFF1F7; border-radius: 999px; overflow: hidden"><div class="gr" style="height: 7px; background: #3157D5; border-radius: 999px"></div></div>
+<div style="margin-top: 12px; font-size: 10px; font-weight: 700; color: #545E73">새로 온 응답</div>
+<div style="margin-top: 2px"><div class="ri" style="animation-delay: 0.2s;"><div style="display: flex; align-items: center; gap: 8px; padding: 7px 4px; border-bottom: 1px solid #EFF1F7"><span style="width: 22px; height: 22px; border-radius: 50%; background: #C7D2FF; flex-shrink: 0"></span><span style="flex: 1; font-size: 11px; font-weight: 700">경영학과 21학번</span><span style="font-size: 9px; color: #545E73">4분 전</span></div></div><div class="ri" style="animation-delay: 0.7s;"><div style="display: flex; align-items: center; gap: 8px; padding: 7px 4px; border-bottom: 1px solid #EFF1F7"><span style="width: 22px; height: 22px; border-radius: 50%; background: #C7D2FF; flex-shrink: 0"></span><span style="flex: 1; font-size: 11px; font-weight: 700">간호학과 22학번</span><span style="font-size: 9px; color: #545E73">3분 전</span></div></div><div class="ri" style="animation-delay: 1.2s;"><div style="display: flex; align-items: center; gap: 8px; padding: 7px 4px; border-bottom: 1px solid #EFF1F7"><span style="width: 22px; height: 22px; border-radius: 50%; background: #C7D2FF; flex-shrink: 0"></span><span style="flex: 1; font-size: 11px; font-weight: 700">컴공 23학번</span><span style="font-size: 9px; color: #545E73">2분 전</span></div></div><div class="ri" style="animation-delay: 1.7s;"><div style="display: flex; align-items: center; gap: 8px; padding: 7px 4px; border-bottom: 1px solid #EFF1F7"><span style="width: 22px; height: 22px; border-radius: 50%; background: #C7D2FF; flex-shrink: 0"></span><span style="flex: 1; font-size: 11px; font-weight: 700">디자인 24학번</span><span style="font-size: 9px; color: #545E73">1분 전</span></div></div><div class="ri" style="animation-delay: 2.2s;"><div style="display: flex; align-items: center; gap: 8px; padding: 7px 4px; border-bottom: 1px solid #EFF1F7"><span style="width: 22px; height: 22px; border-radius: 50%; background: #3157D5; flex-shrink: 0"></span><span style="flex: 1; font-size: 11px; font-weight: 700">경제학과 20학번</span><span style="font-size: 9px; color: #2949B5">방금</span></div></div><div class="ri" style="animation-delay: 2.7s;"><div style="display: flex; align-items: center; gap: 8px; padding: 7px 4px; border-bottom: 1px solid #EFF1F7"><span style="width: 22px; height: 22px; border-radius: 50%; background: #3157D5; flex-shrink: 0"></span><span style="flex: 1; font-size: 11px; font-weight: 700">심리학과 22학번</span><span style="font-size: 9px; color: #2949B5">방금</span></div></div></div></div></div></div></div></sc-if><sc-if value="{{s2}}" hint-placeholder-val="{{false}}"><div class="en2" style="position: absolute; inset: 0"><div style="position: absolute; left: 0; right: 0; top: 150px; height: 370px">
+<div class="t1" style="margin: 0 20px; background: #FFFFFF; border: 1px solid #ECEEF3; border-radius: 22px; box-shadow: 0 10px 28px rgba(32,42,64,.08); padding: 18px 18px 20px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 12px; font-weight: 700; color: #545E73">대학생 1,284명 응답</span></div>
+<div style="margin-top: 6px; font-size: 18px; font-weight: 900">학기 중에 아르바이트 해요?</div>
+<div style="margin-top: 12px; display: flex; gap: 6px"><span style="height: 30px; padding: 0 12px; border-radius: 999px; font-size: 12px; font-weight: 700; display: flex; align-items: center; background: #FFFFFF; color: #545E73; border: 1px solid #ECEEF3">전체</span><span style="height: 30px; padding: 0 12px; border-radius: 999px; font-size: 12px; font-weight: 900; display: flex; align-items: center; background: #202A40; color: #FFFFFF; border: 1px solid #202A40">공학</span><span style="height: 30px; padding: 0 12px; border-radius: 999px; font-size: 12px; font-weight: 700; display: flex; align-items: center; background: #FFFFFF; color: #545E73; border: 1px solid #ECEEF3">인문</span><span style="height: 30px; padding: 0 12px; border-radius: 999px; font-size: 12px; font-weight: 700; display: flex; align-items: center; background: #FFFFFF; color: #545E73; border: 1px solid #ECEEF3">사회</span></div>
+<div style="margin-top: 16px; display: flex; align-items: center; gap: 18px">
+<div style="position: relative; width: 120px; height: 120px; flex-shrink: 0">
+<svg width="120" height="120" viewBox="0 0 120 120" aria-hidden="true" style="transform: rotate(-90deg)"><circle cx="60" cy="60" r="48" fill="none" stroke="#EFF1F7" stroke-width="16"></circle><circle class="ring" cx="60" cy="60" r="48" fill="none" stroke="#3157D5" stroke-width="16" stroke-dasharray="302" stroke-dashoffset="82"></circle></svg>
+<div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center"><b style="font-size: 26px; color: #3157D5; font-variant-numeric: tabular-nums">{{c}}%</b><span style="font-size: 11px; color: #545E73">한다</span></div></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 9px; font-size: 12px">
+<div class="b1" style="display: flex; justify-content: space-between"><span style="color: #545E73">주 10시간 미만</span><b>41%</b></div>
+<div class="b2" style="display: flex; justify-content: space-between"><span style="color: #545E73">주 10~20시간</span><b>24%</b></div>
+<div class="b3" style="display: flex; justify-content: space-between"><span style="color: #545E73">주 20시간 이상</span><b>8%</b></div></div></div><div class="b3" style="animation-delay: 1.9s; margin-top: 14px; padding-top: 12px; border-top: 1px solid #ECEEF3"><div style="font-size: 11px; font-weight: 700; color: #545E73">이것도 많이 봤어요</div><div style="margin-top: 8px; display: flex; gap: 6px"><span style="background: #F7F8FC; border-radius: 10px; padding: 7px 10px; font-size: 12px; font-weight: 700">자취생 한 달 식비</span><span style="background: #F7F8FC; border-radius: 10px; padding: 7px 10px; font-size: 12px; font-weight: 700">통학 시간</span></div></div></div>
+<span class="ul" style="position: absolute; right: 26px; top: -14px; display: flex; align-items: center; gap: 6px; background: #A3EA16; color: #202A40; font-size: 13px; font-weight: 900; padding: 8px 12px; border-radius: 999px; border: 3px solid #FFFFFF; box-shadow: 0 6px 14px rgba(32,42,64,.14)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202A40" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 7.5-2"></path></svg>첫 결과 무료</span>
+</div></div></sc-if><sc-if value="{{s3}}" hint-placeholder-val="{{false}}"><div class="en3" style="position: absolute; inset: 0"><div style="position: absolute; left: 0; right: 0; top: 96px; height: 424px"><div class="cardin" style="margin: 0 20px; background: #FFFFFF; border: 1px solid #ECEEF3; border-radius: 22px; box-shadow: 0 10px 28px rgba(32,42,64,.08); padding: 14px 16px">
+<div style="display: flex; justify-content: space-between"><span style="background: #EFF1F7; color: #374158; font-size: 12px; font-weight: 900; padding: 4px 10px; border-radius: 999px">골라 줘</span><span style="font-size: 12px; color: #545E73">128명 참여</span></div>
+<div style="margin-top: 8px; font-size: 17px; font-weight: 900">종강 파티 메뉴 골라 줘</div>
+<div style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px"><div style="position: relative; height: 34px; border-radius: 11px; border: 1px solid #3157D5; background: #FFFFFF; overflow: hidden; display: flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 900"><div class="fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: 41%; background: #E3E9FF; animation-delay: 0.4s"></div><span style="position: relative; flex: 1">삼겹살 <span style="font-size: 11px; color: #2949B5">내 선택</span></span><span class="pc" style="position: relative; color: #2949B5; animation-delay: 0.8s">41%</span></div><div style="position: relative; height: 34px; border-radius: 11px; border: 1px solid #ECEEF3; background: #FFFFFF; overflow: hidden; display: flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 900"><div class="fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: 33%; background: #F7F8FC; animation-delay: 0.55s"></div><span style="position: relative; flex: 1">치킨</span><span class="pc" style="position: relative; color: #545E73; animation-delay: 0.95s">33%</span></div><div style="position: relative; height: 34px; border-radius: 11px; border: 1px solid #ECEEF3; background: #FFFFFF; overflow: hidden; display: flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 900"><div class="fill" style="position: absolute; left: 0; top: 0; bottom: 0; width: 26%; background: #F7F8FC; animation-delay: 0.7s"></div><span style="position: relative; flex: 1">마라탕</span><span class="pc" style="position: relative; color: #545E73; animation-delay: 1.1s">26%</span></div></div></div>
+<div style="margin: 10px 20px 0; display: flex; flex-direction: column; gap: 6px"><div class="cmin" style="animation-delay: 1.4s; display: flex; gap: 10px; align-items: flex-start"><span style="width: 30px; height: 30px; border-radius: 50%; background: #E3E9FF; flex-shrink: 0"></span><div style="flex: 1; background: #FFFFFF; border: 1px solid #ECEEF3; border-radius: 4px 16px 16px 16px; padding: 7px 12px; box-shadow: 0 4px 12px rgba(32,42,64,.04)"><div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 11px; font-weight: 900">컴공 23학번 <span style="background: #E3E9FF; color: #2949B5; font-size: 10px; padding: 2px 6px; border-radius: 999px; margin-left: 2px">삼겹살</span></span><span style="font-size: 11px; color: #545E73"><span class="lk" style="animation-delay: 2.2s">♥</span> 24</span></div><div style="margin-top: 3px; font-size: 13px">종강엔 무조건 고기죠</div></div></div><div class="cmin" style="animation-delay: 2.0s; display: flex; gap: 10px; align-items: flex-start"><span style="width: 30px; height: 30px; border-radius: 50%; background: #F0F8D5; flex-shrink: 0"></span><div style="flex: 1; background: #FFFFFF; border: 1px solid #ECEEF3; border-radius: 4px 16px 16px 16px; padding: 7px 12px; box-shadow: 0 4px 12px rgba(32,42,64,.04)"><div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 11px; font-weight: 900">경영 21학번 <span style="background: #F0F8D5; color: #506D23; font-size: 10px; padding: 2px 6px; border-radius: 999px; margin-left: 2px">치킨</span></span><span style="font-size: 11px; color: #545E73">♡ 17</span></div><div style="margin-top: 3px; font-size: 13px">치킨은 배달 되잖아요 ㅋㅋ</div></div></div><div class="cmin" style="animation-delay: 2.6s; display: flex; gap: 10px; align-items: flex-start"><span style="width: 30px; height: 30px; border-radius: 50%; background: #FEF6E7; flex-shrink: 0"></span><div style="flex: 1; background: #FFFFFF; border: 1px solid #ECEEF3; border-radius: 4px 16px 16px 16px; padding: 7px 12px; box-shadow: 0 4px 12px rgba(32,42,64,.04)"><div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 11px; font-weight: 900">간호 22학번 <span style="background: #FEF6E7; color: #93370D; font-size: 10px; padding: 2px 6px; border-radius: 999px; margin-left: 2px">마라탕</span></span><span style="font-size: 11px; color: #545E73">♡ 9</span></div><div style="margin-top: 3px; font-size: 13px">마라탕도 한 표 주세요</div></div></div></div></div></div></sc-if>
+  <div style="position: relative; z-index: 3; padding: 44px 16px 0; height: 100px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between"><span style="padding-left: 8px; font-size: 15px; font-weight: 900; color: {{numc}}">{{n}} / 4</span><a href="Welcome.dc.html" style="height: 44px; padding: 0 8px; display: flex; align-items: center; font-size: 15px; font-weight: 700; color: #545E73">건너뛰기</a></div>
+  <div style="height: 420px; flex-shrink: 0"></div>
+  <div style="flex: 1; padding: 26px 28px 0; text-align: center; position: relative"><sc-if value="{{s0}}" hint-placeholder-val="{{true}}"><div class="t1" style="font-size: 26px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.35">답하면 <span style="color: #3157D5">포인트</span>가 쌓여요</div><div class="t2" style="margin-top: 10px; font-size: 15px; color: #545E73; line-height: 1.6">설문 하나에 10P~200P,<br>오늘의 질문은 매일 5P예요</div></sc-if><sc-if value="{{s1}}" hint-placeholder-val="{{false}}"><div class="t1" style="font-size: 26px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.35">모은 포인트로<br><span style="color: #3157D5">내 설문</span>을 올려요</div><div class="t2" style="margin-top: 10px; font-size: 15px; color: #545E73; line-height: 1.6">학교 메일로 인증된 대학생들이 답해요</div></sc-if><sc-if value="{{s2}}" hint-placeholder-val="{{false}}"><div class="t1" style="font-size: 26px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.35">다른 설문 <span style="color: #3157D5">결과</span>도<br>볼 수 있어요</div><div class="t2" style="margin-top: 10px; font-size: 15px; color: #545E73; line-height: 1.6">데이터 탭에서 계열·학년별로 나눠 보고,<br>첫 결과 보기는 무료예요</div></sc-if><sc-if value="{{s3}}" hint-placeholder-val="{{false}}"><div class="t1" style="font-size: 26px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.35">커뮤니티에서<br><span style="color: #3157D5">같이 놀아요</span></div><div class="t2" style="margin-top: 10px; font-size: 15px; color: #545E73; line-height: 1.6">밸런스 게임, 골라 줘, 옛썰대전까지</div></sc-if></div>
+  <div style="padding: 0 24px 34px; position: relative">
+    <div style="display: flex; justify-content: center; gap: 6px; margin-bottom: 18px"><sc-for list="{{dots}}" as="d" hint-placeholder-count="4"><span style="width: {{d.w}}px; height: 8px; border-radius: 999px; background: {{d.c}}; transition: width .25s ease"></span></sc-for></div>
+    <button onClick="{{next}}" style="width: 100%; height: 58px; border: none; border-radius: 18px; background: #3157D5; color: #FFFFFF; font-family: inherit; font-size: 17px; font-weight: 900">{{btn}}</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { s: 0, c: [[1180, 1235, 1250, 1700], [18, 24, 700, 2200], [0, 73], 0][0] ? [[1180, 1235, 1250, 1700], [18, 24, 700, 2200], [0, 73], 0][0][0] : 0 }; this.run(0); }
+  run(s) {
+    var self = this, g = [[1180, 1235, 1250, 1700], [18, 24, 700, 2200], [0, 73], 0][s], goal = g ? g[1] : 0, c = g ? g[0] : 0;
+    if (this.t) clearInterval(this.t);
+    if (this.w) clearTimeout(this.w);
+    if (!goal) return;
+    var steps = g[3] ? Math.min(g[1] - g[0], 30) : 20, iv = g[3] ? g[3] / steps : 40;
+    this.w = setTimeout(function () {
+      self.t = setInterval(function () {
+        c = Math.min(goal, c + Math.max(1, Math.round((g[1] - g[0]) / steps)));
+        self.setState({ c: c });
+        if (c >= goal) clearInterval(self.t);
+      }, iv);
+    }, g[2] || 0);
+  }
+  renderVals() {
+    var self = this, s = this.state.s, dk = [false, false, false, false][s], cv = this.state.c;
+    return {
+      n: s + 1, c: cv >= 1000 ? cv.toLocaleString('ko-KR') : cv, s0: s === 0, s1: s === 1, s2: s === 2, s3: s === 3, btn: s < 3 ? '다음' : '시작하기',
+      numc: dk ? '#E3E9FF' : '#545E73', xc: '#202A40',
+      dots: [0, 1, 2, 3].map(function (i) { return { w: i === s ? 22 : 8, c: i === s ? '#3157D5' : '#E2E5EE' }; }),
+      next: function () { var t = s < 3 ? s + 1 : 0; self.setState({ s: t, c: [[1180, 1235, 1250, 1700], [18, 24, 700, 2200], [0, 73], 0][t] ? [[1180, 1235, 1250, 1700], [18, 24, 700, 2200], [0, 73], 0][t][0] : 0 }); self.run(t); }
+    };
+  }
+}
+</script>
+</body>
+</html>

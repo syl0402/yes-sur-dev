@@ -1,11 +1,13 @@
 // ys-001 회원가입 · F-102 인증번호 확인
+// 2026-11-14 온보딩 시안 ⑤: 숫자 칸(한 칸씩 자동 이동) · 남은 시간 · 다시 보내기 · 스팸함 안내 상자
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
+import CodeBoxes from "@/components/onboarding/CodeBoxes";
 import PrimaryButton from "@/components/PrimaryButton";
 import StepIndicator from "@/components/StepIndicator";
-import { Text, TextInput } from "@/components/ui/Text";
+import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { errorMessage } from "@/lib/errors";
 import { showNotice } from "@/lib/notice";
@@ -13,8 +15,10 @@ import { supabase } from "@/lib/supabase";
 
 // Supabase가 같은 이메일로 다시 보내는 것을 약 60초 동안 막는다 (Auth 설정)
 const RESEND_WAIT_SECONDS = 60;
-// 인증번호 자릿수는 Supabase 설정(Email OTP Length)을 따른다. 지금은 8자리
-const MIN_CODE_LENGTH = 6;
+// 인증번호 자릿수: Supabase 설정(Auth → Email OTP Length)과 같아야 한다. 지금 8자리 (설정을 6으로 바꾸면 여기도 6)
+const CODE_LENGTH = 8;
+// 인증번호 유효 시간(초): Supabase 설정(Email OTP Expiration)과 같게. 남은 시간 표시용
+const CODE_VALID_SECONDS = 300;
 
 export default function SignupVerify() {
   // mode=reset: 비밀번호 찾기(ys-011)에서 온 경우. 같은 인증번호 화면을 함께 쓴다
@@ -30,15 +34,20 @@ export default function SignupVerify() {
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
   const [waitSeconds, setWaitSeconds] = useState(RESEND_WAIT_SECONDS);
+  // 인증번호 남은 시간 (다시 보내면 처음부터)
+  const [validSeconds, setValidSeconds] = useState(CODE_VALID_SECONDS);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
-  // 다시 보내기까지 남은 시간 줄이기
+  // 다시 보내기까지 · 인증번호 남은 시간 줄이기 (1초마다)
   useEffect(() => {
-    if (waitSeconds <= 0) return;
-    const timer = setTimeout(() => setWaitSeconds((s) => s - 1), 1000);
+    if (waitSeconds <= 0 && validSeconds <= 0) return;
+    const timer = setTimeout(() => {
+      setWaitSeconds((s) => Math.max(0, s - 1));
+      setValidSeconds((s) => Math.max(0, s - 1));
+    }, 1000);
     return () => clearTimeout(timer);
-  }, [waitSeconds]);
+  }, [waitSeconds, validSeconds]);
 
   const verify = async () => {
     if (verifying) return;
@@ -102,10 +111,13 @@ export default function SignupVerify() {
       return;
     }
     setNotice("인증번호를 다시 보냈어요.");
+    setCode("");
     setWaitSeconds(RESEND_WAIT_SECONDS);
+    setValidSeconds(CODE_VALID_SECONDS);
   };
 
   const canResend = waitSeconds <= 0 && !resending;
+  const left = `${String(Math.floor(validSeconds / 60)).padStart(2, "0")}:${String(validSeconds % 60).padStart(2, "0")}`;
 
   return (
     <ScrollView
@@ -116,21 +128,34 @@ export default function SignupVerify() {
     >
       <Stack.Screen options={{ title: isReset ? "비밀번호 찾기" : "회원가입" }} />
 
-      {!isReset && <StepIndicator current={4} total={5} />}
-      <Text style={styles.heading}>인증번호를 입력해 주세요</Text>
+      {!isReset && <StepIndicator current={4} total={type === "org" ? 5 : 6} />}
+      <Text style={styles.heading}>메일로 온 번호를 넣어 주세요</Text>
       <Text style={styles.guide}>
-        {email}(으)로 보낸 인증번호를 입력해 주세요. 메일이 안 보이면 스팸함도 확인해 주세요.
+        <Text style={styles.guideStrong}>{email}</Text> 로 {CODE_LENGTH}자리 번호를 보냈어요.
       </Text>
 
-      <TextInput
-        style={styles.input}
-        value={code}
-        onChangeText={(text) => setCode(text.replace(/[^0-9]/g, ""))}
-        placeholder="인증번호"
-        keyboardType="number-pad"
-        maxLength={10}
-        autoFocus
-      />
+      <CodeBoxes value={code} onChange={setCode} length={CODE_LENGTH} />
+
+      {/* 남은 시간 · 다시 보내기 */}
+      <View style={styles.timeRow}>
+        <Text style={styles.timeText}>
+          {validSeconds > 0 ? (
+            <>
+              남은 시간 <Text style={styles.timeStrong}>{left}</Text>
+            </>
+          ) : (
+            "시간이 지났어요. 다시 보내 주세요"
+          )}
+        </Text>
+        <Pressable onPress={resend} disabled={!canResend} hitSlop={8}>
+          <Text style={[styles.resendText, !canResend && styles.resendDisabled]}>
+            {waitSeconds > 0 ? `${waitSeconds}초 후 다시 보내기` : "다시 보내기"}
+          </Text>
+        </Pressable>
+      </View>
+      <View style={styles.spam}>
+        <Text style={styles.spamText}>메일이 안 오면 스팸함도 확인해 주세요.</Text>
+      </View>
 
       {error !== "" && <Text style={styles.error}>{error}</Text>}
       {notice !== "" && <Text style={styles.notice}>{notice}</Text>}
@@ -139,16 +164,11 @@ export default function SignupVerify() {
         <PrimaryButton
           title="확인"
           onPress={verify}
-          disabled={code.length < MIN_CODE_LENGTH}
+          disabled={code.length < CODE_LENGTH}
           loading={verifying}
         />
       </View>
 
-      <Pressable onPress={resend} disabled={!canResend} style={styles.resend}>
-        <Text style={[styles.resendText, !canResend && styles.resendDisabled]}>
-          {waitSeconds > 0 ? `${waitSeconds}초 후 다시 보낼 수 있어요` : "인증번호 다시 보내기"}
-        </Text>
-      </Pressable>
     </ScrollView>
   );
 }
@@ -165,23 +185,43 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   heading: {
-    fontSize: fontSize.title,
-    fontWeight: "700",
+    fontSize: 25,
+    lineHeight: 34,
+    fontWeight: "800",
     color: colors.text,
   },
   guide: {
-    fontSize: fontSize.small,
-    color: colors.textMuted,
+    fontSize: 15,
+    lineHeight: 22,
+    color: colors.iconStrong,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface,
-    padding: spacing.md,
-    fontSize: fontSize.title,
-    letterSpacing: 4,
+  guideStrong: {
+    fontWeight: "700",
     color: colors.text,
+  },
+  timeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  timeText: {
+    fontSize: fontSize.label,
+    color: colors.iconStrong,
+  },
+  timeStrong: {
+    fontWeight: "700",
+    color: colors.primary,
+  },
+  spam: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSubtle,
+  },
+  spamText: {
+    fontSize: fontSize.small,
+    lineHeight: 19,
+    color: colors.iconStrong,
   },
   error: {
     fontSize: fontSize.small,
@@ -194,12 +234,8 @@ const styles = StyleSheet.create({
   footer: {
     marginTop: spacing.sm,
   },
-  resend: {
-    alignItems: "center",
-    paddingVertical: spacing.sm,
-  },
   resendText: {
-    fontSize: fontSize.small,
+    fontSize: fontSize.label,
     color: colors.primary,
     textDecorationLine: "underline",
   },

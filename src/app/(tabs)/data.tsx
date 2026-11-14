@@ -21,6 +21,7 @@ import { HUB_SORT_OPTIONS, type HubItem, type HubSort } from "@/lib/hub";
 import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
 import { formatHost } from "@/lib/surveys";
+import TabTip from "@/components/onboarding/TabTip";
 import { addTag, formatTag, matchesTags, type Tag } from "@/lib/tags";
 
 type Category = { key: string; name: string };
@@ -104,6 +105,8 @@ export default function Data() {
         <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} colors={[colors.primary]} />
       }
     >
+      {/* 처음 열 때 한 번 말풍선 (2026-11-14 온보딩 시안 ⑩) */}
+      <TabTip tab="data" />
       {/* 검색 (제목): 돋보기 아이콘 + 입력칸 */}
       <View style={styles.searchBox}>
         <AppIcon name={uiIcons.search} size={20} color={colors.textSubtle} />

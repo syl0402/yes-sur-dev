@@ -135,11 +135,17 @@ export default function SignupTerms() {
       <Stack.Screen options={{ title: "회원가입" }} />
 
       {isResume && <Text style={styles.notice}>가입을 이어서 진행할게요.</Text>}
-      <StepIndicator current={2} total={5} />
+      <StepIndicator current={2} total={isOrg ? 5 : 6} />
       <Text style={styles.heading}>약관에 동의해 주세요</Text>
 
-      <Pressable style={[styles.row, styles.allRow]} onPress={toggleAll}>
-        <CheckBox checked={allChecked} />
+      {/* 전체 동의: 큰 상자 (처음엔 꺼짐, 2026-11-14 온보딩 시안) */}
+      <Pressable
+        style={[styles.allBox, allChecked && styles.allBoxOn]}
+        onPress={toggleAll}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: allChecked }}
+      >
+        <CheckBox checked={allChecked} big />
         <Text style={styles.allText}>전체 동의</Text>
       </Pressable>
 
@@ -174,9 +180,9 @@ export default function SignupTerms() {
   );
 }
 
-function CheckBox({ checked }: { checked: boolean }) {
+function CheckBox({ checked, big }: { checked: boolean; big?: boolean }) {
   return (
-    <View style={[styles.box, checked && styles.boxChecked]}>
+    <View style={[styles.box, big && styles.boxBig, checked && styles.boxChecked]}>
       {checked && <Text style={styles.check}>✓</Text>}
     </View>
   );
@@ -198,8 +204,9 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   heading: {
-    fontSize: fontSize.title,
-    fontWeight: "700",
+    fontSize: 25,
+    lineHeight: 34,
+    fontWeight: "800",
     color: colors.text,
     marginBottom: spacing.sm,
   },
@@ -214,13 +221,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
   },
-  allRow: {
-    paddingBottom: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  allBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    height: 64,
+    paddingHorizontal: 18,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+  },
+  allBoxOn: {
+    borderColor: colors.primaryLight,
+    backgroundColor: colors.primaryFaint,
   },
   allText: {
-    fontSize: fontSize.body,
+    fontSize: 17,
     fontWeight: "700",
     color: colors.text,
   },
@@ -252,6 +269,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
+  },
+  boxBig: {
+    width: 28,
+    height: 28,
+    borderRadius: 9,
   },
   boxChecked: {
     backgroundColor: colors.primary,

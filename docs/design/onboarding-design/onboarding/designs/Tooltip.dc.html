@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>탭 처음 들어갈 때 말풍선</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+a{text-decoration:none;color:#3157D5}
+input::placeholder{color:#8B93A5}
+.lb{display:block;margin:20px 0 8px;font-size:14px;color:#545E73}
+.in{width:100%;height:56px;box-sizing:border-box;border:1px solid #E2E5EE;border-radius:16px;background:#FFFFFF;padding:0 18px;font-size:16px;font-family:inherit;color:#202A40;outline-color:#3157D5}
+.opt{height:52px;border:1px solid #E2E5EE;border-radius:16px;background:#FFFFFF;font-family:inherit;font-size:16px;color:#202A40}
+.on{border:2px solid #3157D5;background:#F1F4FF;color:#2949B5;font-weight:700}
+.chip{height:44px;padding:0 18px;border:1px solid #E2E5EE;border-radius:999px;background:#FFFFFF;font-family:inherit;font-size:15px;color:#202A40}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.up1{animation:up .45s ease-out .05s both}.up2{animation:up .45s ease-out .15s both}.up3{animation:up .45s ease-out .25s both}
+
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FCFCFC; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #202A40; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <div style="padding: 44px 20px 0">
+    <div style="height: 56px; display: flex; align-items: center; font-size: 24px; font-weight: 900">데이터</div>
+    <div style="margin-top: 6px; height: 48px; border-radius: 14px; background: #FFFFFF; border: 1px solid #E2E5EE; display: flex; align-items: center; padding: 0 14px; color: #8B93A5; font-size: 15px">궁금한 설문 결과 찾기</div>
+    <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 10px">
+      <div style="background: #FFFFFF; border: 1px solid #ECEEF3; border-radius: 22px; padding: 18px"><span style="background: #E3E9FF; color: #2949B5; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px">생활</span><div style="margin-top: 10px; font-size: 17px; font-weight: 900">[예시] 캠퍼스 카페 이용 습관</div><div style="margin-top: 6px; font-size: 13px; color: #545E73">응답 63명 · 중앙대</div></div>
+      <div style="background: #FFFFFF; border: 1px solid #ECEEF3; border-radius: 22px; padding: 18px"><span style="background: #E3E9FF; color: #2949B5; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px">학업</span><div style="margin-top: 10px; font-size: 17px; font-weight: 900">[예시] 시험 기간, 어디서 공부해요?</div><div style="margin-top: 6px; font-size: 13px; color: #545E73">응답 41명</div></div>
+    </div>
+  </div>
+  <button aria-label="안내 닫기" style="position: absolute; inset: 0; border: none; background: rgba(32,42,64,.55); padding: 0; cursor: pointer"></button>
+  <div class="up1" style="position: absolute; left: 20px; right: 20px; top: 238px; pointer-events: none">
+    <div style="background: #FFFFFF; border: 1px solid #ECEEF3; border-radius: 22px; padding: 18px; box-shadow: 0 0 0 4px #A3EA16"><span style="background: #E3E9FF; color: #2949B5; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px">생활</span><div style="margin-top: 10px; font-size: 17px; font-weight: 900">[예시] 캠퍼스 카페 이용 습관</div><div style="margin-top: 6px; font-size: 13px; color: #545E73">응답 63명 · 중앙대</div></div>
+  </div>
+  <div class="up2" style="position: absolute; left: 24px; right: 24px; top: 400px; display: flex; align-items: flex-end; gap: 6px; pointer-events: none">
+    <img src="/_blob/9d3e41c7feadffa433a445503d327a88" alt="" style="width: 110px; height: auto">
+    <div style="flex: 1; margin-bottom: 60px; background: #FFFFFF; border-radius: 20px 20px 20px 4px; padding: 14px 16px; font-size: 15px; line-height: 1.5; color: #202A40"><b>여기서 다른 설문 결과를 볼 수 있어!</b><br><span style="color: #545E73; font-size: 14px">첫 결과 보기는 무료야</span></div>
+  </div>
+  <div class="up3" style="position: absolute; left: 0; right: 0; bottom: 40px; text-align: center; color: #FFFFFF; font-size: 14px; pointer-events: none">아무 데나 눌러서 닫기</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

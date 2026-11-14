@@ -197,6 +197,15 @@ export default function InviteScreen() {
         <Text style={styles.redeemOff}>친구 코드는 가입하고 {rules.invite_window_days ?? ""}일 안에 한 번만 넣을 수 있어요.</Text>
       )}
 
+      {/* TODO(임시): 비공개 테스트 안내 · 정식 출시 때 지우기 · 2026-11-14 */}
+      <View style={styles.betaBox}>
+        <Text style={styles.betaTitle}>지금은 비공개 테스트 기간이에요</Text>
+        <Text style={styles.betaText}>
+          아직 플레이스토어에 공개되지 않아서, 초대받은 친구도 테스터로 등록돼야 앱을 설치할 수 있어요. 정식 출시 후에는
+          누구나 바로 설치할 수 있어요. 그동안 쌓은 초대 코드는 그대로 쓸 수 있어요.
+        </Text>
+      </View>
+
       {/* 안내 */}
       <View style={styles.notes}>
         <Text style={styles.note}>· 친구가 가입하고 {rules.invite_window_days ?? ""}일 안에 코드를 넣어야 해요</Text>
@@ -387,6 +396,23 @@ const styles = StyleSheet.create({
   redeemOff: {
     fontSize: fontSize.small,
     color: colors.textMuted,
+  },
+  betaBox: {
+    gap: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: radius.md,
+    backgroundColor: colors.warningSoft,
+  },
+  betaTitle: {
+    fontSize: fontSize.small,
+    fontWeight: "700",
+    color: colors.warning,
+  },
+  betaText: {
+    fontSize: fontSize.small,
+    lineHeight: 19,
+    color: colors.warning,
   },
   notes: {
     gap: 4,

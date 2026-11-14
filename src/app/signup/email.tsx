@@ -58,6 +58,8 @@ export default function SignupEmail() {
     supabase
       .from("universities")
       .select("id, name, email_domain, university_domains(domain, is_primary)")
+      // 체험 계정용 학교(옛썰 체험)는 목록에 보이지 않게 (2026-11-14)
+      .eq("is_demo", false)
       .order("name")
       .then(({ data, error }) => {
         if (error) {
@@ -126,7 +128,7 @@ export default function SignupEmail() {
     >
       <Stack.Screen options={{ title: "회원가입" }} />
 
-      <StepIndicator current={3} total={5} />
+      <StepIndicator current={3} total={isOrg ? 5 : 6} />
       {isOrg ? (
         <>
           <Text style={styles.heading}>단체 공식 메일을 입력해 주세요</Text>
@@ -148,7 +150,11 @@ export default function SignupEmail() {
           )}
         </>
       ) : (
-        <Text style={styles.heading}>학교를 선택해 주세요</Text>
+        <>
+          {/* 2026-11-14 온보딩 시안 ④ */}
+          <Text style={styles.heading}>학교 메일로 인증할게요</Text>
+          <Text style={styles.guide}>학교 메일로 대학생인지 확인해요. 메일 주소는 다른 사람에게 보이지 않아요.</Text>
+        </>
       )}
 
       {/* 고른 뒤: 선택한 학교 하나 + [변경] (목록을 접어서 화면이 길어지지 않게) */}
@@ -197,7 +203,7 @@ export default function SignupEmail() {
 
       {!isOrg && selected && (
         <>
-          <Text style={styles.label}>학교 이메일</Text>
+          <Text style={styles.label}>학교 메일</Text>
           {/* 학교 메일 주소가 여러 개면 고르기 (예: 포털 메일 · 학생용 구글 메일) */}
           {domainsOf(selected).length > 1 && (
             <View style={styles.domainChips}>
@@ -217,7 +223,7 @@ export default function SignupEmail() {
               style={styles.input}
               value={localPart}
               onChangeText={setLocalPart}
-              placeholder="아이디"
+              placeholder="메일 아이디"
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="email-address"
@@ -270,10 +276,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   heading: {
-    fontSize: fontSize.title,
-    fontWeight: "700",
+    fontSize: 25,
+    lineHeight: 34,
+    fontWeight: "800",
     color: colors.text,
-    marginBottom: spacing.sm,
   },
   guide: {
     fontSize: fontSize.small,
@@ -298,6 +304,7 @@ const styles = StyleSheet.create({
   schoolSelected: {
     borderColor: colors.primary,
     borderWidth: 2,
+    backgroundColor: colors.primaryFaint,
   },
   pickedRow: {
     flexDirection: "row",

@@ -49,6 +49,8 @@ export default function SignupOrgInfo() {
     supabase
       .from("universities")
       .select("id, name")
+      // 체험 계정용 학교(옛썰 체험)는 빼고 (2026-11-14)
+      .eq("is_demo", false)
       .order("name")
       .then(({ data }) => {
         setUniversities(data ?? []);
@@ -212,7 +214,7 @@ export default function SignupOrgInfo() {
         <Text style={styles.error}>단체 이름은 2~30자로 입력해 주세요.</Text>
       ) : (
         // 설문에 보일 작성자 이름 미리보기 (교내 단체는 서버가 학교 이름을 앞에 붙인다)
-        <Text style={styles.counter}>
+        <Text style={styles.nameHint}>
           {kind === "campus"
             ? `학교 이름은 자동으로 앞에 붙어요. 설문에는 "${universities.find((u) => u.id === universityId)?.name ?? "학교"} ${name.trim() || "경영학과 학생회"}"로 보여요.`
             : "정식 이름으로 적어 주세요. 운영자가 확인한 뒤 승인해요."}
@@ -296,6 +298,12 @@ const styles = StyleSheet.create({
   multiline: {
     minHeight: 96,
     textAlignVertical: "top",
+  },
+  // 단체 이름 아래 안내 (왼쪽 정렬, 2026-11-14 온보딩 시안)
+  nameHint: {
+    fontSize: fontSize.small,
+    lineHeight: 19,
+    color: colors.textMuted,
   },
   counter: {
     alignSelf: "flex-end",

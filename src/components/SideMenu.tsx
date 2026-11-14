@@ -1,6 +1,6 @@
 // 홈 오른쪽 위 ☰ 메뉴 (2026-11-10). 오른쪽에서 밀려 나온다.
 // 나누는 기준(푸망 방식): 이 메뉴 = 앱 안 이동·서비스 안내 / 마이 탭 = 내 정보·내 기록
-// 2026-11-14 마이 탭 시안 ⑪: 위에 프로필 카드(이름 · 내 포인트 → 마이 탭) · 메뉴 한 묶음 · 맨 아래 작은 약관 링크 · 버전. 로그아웃은 내 정보로
+// 2026-11-14 마이 탭 시안 ⑪: 위에 프로필 카드(이름 · 내 포인트 → 마이 탭) · 메뉴 한 묶음 · 맨 아래 작은 약관 링크 · 버전 · 로그아웃 (사용자 요청으로 다시 넣음)
 import Constants from "expo-constants";
 import { type Href, router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -15,6 +15,7 @@ import { type IconName, menuIcons, myIcons } from "@/constants/icons";
 import { colors, fontSize, spacing } from "@/constants/theme";
 import { formatPoints } from "@/lib/format";
 import { openLegal } from "@/lib/legal";
+import { confirmLogout } from "@/lib/logout";
 import { supabase } from "@/lib/supabase";
 
 // 개발 서버가 경로 목록을 늦게 갱신해 타입 오류가 나는 일이 있어 Href로 고정
@@ -142,6 +143,10 @@ export default function SideMenu({ visible, onClose }: { visible: boolean; onClo
             개인정보처리방침
           </Text>
           <Text style={styles.footerText}>v{Constants.expoConfig?.version ?? ""}</Text>
+          <View style={styles.footerSpacer} />
+          <Text style={styles.footerLink} onPress={go(confirmLogout)}>
+            로그아웃
+          </Text>
         </View>
       </Animated.View>
     </Modal>
@@ -220,6 +225,9 @@ const styles = StyleSheet.create({
   footerLink: {
     fontSize: fontSize.caption,
     color: colors.iconStrong,
+  },
+  footerSpacer: {
+    flex: 1,
   },
   footerText: {
     fontSize: fontSize.caption,

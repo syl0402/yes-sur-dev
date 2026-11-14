@@ -7,6 +7,7 @@ import CommunityBanner from "@/components/community/CommunityBanner";
 import PostCard from "@/components/community/PostCard";
 import TrendingTicker from "@/components/community/TrendingTicker";
 import WorldcupCard from "@/components/community/WorldcupCard";
+import TabTip from "@/components/onboarding/TabTip";
 import EmptyState from "@/components/ui/EmptyState";
 import Fab from "@/components/ui/Fab";
 import SelectButton from "@/components/ui/SelectButton";
@@ -160,6 +161,9 @@ export default function Community() {
           </>
         )}
       </ScrollView>
+
+      {/* 처음 열 때 한 번 말풍선 (2026-11-14 온보딩 시안 ⑩) */}
+      <TabTip tab="community" />
 
       {/* 글 만들기: 오른쪽 아래 둥근 버튼 */}
       <Fab onPress={() => router.push("/community/new")} accessibilityLabel="글 만들기" />
