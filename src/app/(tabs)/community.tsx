@@ -1,6 +1,6 @@
 // ys-140 커뮤니티 · F-601 (맨 위 배너: 오늘의 질문 + 이미지 배너 2026-11-10 · 🔥 HOT 롤링(펼치면 HOT TOP·학교 대항전) + 글: 밸런스 · 나만 그래? · 골라 줘 · 설문 홍보)
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { Fragment, useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
 import CommunityBanner from "@/components/community/CommunityBanner";
@@ -27,6 +27,9 @@ const KIND_FILTERS: { value: KindFilter; label: string }[] = [
   { value: "promo", label: "설문 홍보" },
 ];
 
+// 전체 피드에서 월드컵 카드 1개를 끼울 자리 (3번째, 2026-11-14 커뮤니티 시안: 피드에도 월드컵)
+const FEED_WORLDCUP_AT = 2;
+
 // HOT은 탭에 있을 때만 30초마다 새로
 const HOT_REFRESH_MS = 30000;
 
@@ -47,10 +50,14 @@ export default function Community() {
       setWorldcups((data as WorldcupItem[] | null) ?? []);
       return;
     }
-    // 투표는 세 종류를 한 번에 불러와 설문 홍보만 뺀다
-    const { data } = await supabase.rpc("get_feed", { p_kind: kind === "promo" ? "promo" : null, p_sort: sort });
+    // 투표는 세 종류를 한 번에 불러와 설문 홍보만 뺀다. 전체는 월드컵 목록도 같이 (피드에 1개 끼움)
+    const [{ data }, cups] = await Promise.all([
+      supabase.rpc("get_feed", { p_kind: kind === "promo" ? "promo" : null, p_sort: sort }),
+      kind === "all" ? supabase.rpc("get_worldcups") : Promise.resolve(null),
+    ]);
     const list = (data as Post[] | null) ?? [];
     setPosts(kind === "vote" ? list.filter((p) => p.kind !== "promo") : list);
+    if (cups) setWorldcups((cups.data as WorldcupItem[] | null) ?? []);
   }, [kind, sort]);
 
   // HOT 목록 (롤링 줄·펼친 목록·카드 뱃지가 같이 쓴다). 오류면 조용히 숨김 (보조 정보라서)
@@ -86,6 +93,9 @@ export default function Community() {
 
   // 목록 카드에 🔥 HOT 뱃지를 달 글·월드컵
   const hotIds = useMemo(() => new Set(hot.map((h) => `${h.type}-${h.id}`)), [hot]);
+  // 전체 피드에 끼울 월드컵: 아직 안 한 것 먼저, 다 했으면 가장 최근 것
+  const feedCup = kind === "all" && worldcups && worldcups.length > 0 ? (worldcups.find((w) => !w.played) ?? worldcups[0]) : null;
+  const cupCard = feedCup ? <WorldcupCard key={`wc-${feedCup.id}`} item={feedCup} hot={hotIds.has(`worldcup-${feedCup.id}`)} /> : null;
 
   return (
     <View style={styles.screen}>
@@ -133,15 +143,21 @@ export default function Community() {
             emoji={kind === "promo" ? "📣" : "🗳️"}
           />
         ) : (
-          posts.map((p) => (
-            <PostCard
-              key={p.id}
-              post={p}
-              hot={hotIds.has(`post-${p.id}`)}
-              onVoted={load}
-              onOpen={() => router.push({ pathname: "/community/[id]", params: { id: String(p.id) } })}
-            />
-          ))
+          <>
+            {posts.map((p, i) => (
+              <Fragment key={p.id}>
+                {i === FEED_WORLDCUP_AT && cupCard}
+                <PostCard
+                  post={p}
+                  hot={hotIds.has(`post-${p.id}`)}
+                  onVoted={load}
+                  onOpen={() => router.push({ pathname: "/community/[id]", params: { id: String(p.id) } })}
+                />
+              </Fragment>
+            ))}
+            {/* 글이 적어 그 자리까지 안 가면 맨 아래에 */}
+            {posts.length <= FEED_WORLDCUP_AT && cupCard}
+          </>
         )}
       </ScrollView>
 

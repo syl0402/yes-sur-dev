@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>월드컵 결과 공유 이미지</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 540px; height: 960px; box-sizing: border-box; background: #3157D5; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #FFFFFF; padding: 64px 40px 48px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <div style="position: absolute; left: -120px; top: 260px; width: 380px; height: 380px; border-radius: 50%; background: #6F8BEB; opacity: .35"></div>
+
+  <div style="position: relative; display: flex; align-items: center; gap: 8px">
+    <span style="background: #A3EA16; color: #202A40; font-size: 16px; font-weight: 900; padding: 6px 12px; border-radius: 999px">옛썰 월드컵 16강</span>
+  </div>
+  <div style="position: relative; margin-top: 20px; font-size: 40px; font-weight: 900; line-height: 1.3; letter-spacing: -0.5px">{{title}}</div>
+
+  <div style="position: relative; margin-top: 40px; background: #FFFFFF; color: #202A40; border-radius: 32px; padding: 30px 28px; text-align: center">
+    <div style="font-size: 18px; font-weight: 700; color: #545E73">나의 우승</div>
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#6F942D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-top: 12px"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M9 20h6"></path></svg>
+    <div style="margin-top: 8px; font-size: 44px; font-weight: 900; color: #3157D5; letter-spacing: -1px">{{mine}}</div>
+    <div style="margin-top: 14px; display: inline-block; background: #F0F8D5; color: #506D23; font-size: 17px; font-weight: 700; padding: 8px 14px; border-radius: 999px">{{rankLine}}</div>
+  </div>
+
+  <div style="position: relative; margin-top: 30px; font-size: 18px; font-weight: 900">모두의 순위 <span style="font-weight: 500; color: #E3E9FF; font-size: 15px">· {{count}}명 참여</span></div>
+  <div style="position: relative; margin-top: 14px; display: flex; flex-direction: column; gap: 12px">
+    <sc-for list="{{top}}" as="t" hint-placeholder-count="3">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="width: 34px; height: 34px; border-radius: 50%; background: {{t.bg}}; color: {{t.fg}}; font-size: 16px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0">{{t.r}}</span>
+        <span style="width: 150px; font-size: 19px; font-weight: {{t.w}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{t.name}}</span>
+        <div style="flex: 1; height: 12px; background: rgba(255,255,255,.18); border-radius: 999px; overflow: hidden"><div style="width: {{t.p}}%; height: 12px; background: {{t.bar}}; border-radius: 999px"></div></div>
+        <span style="width: 48px; text-align: right; font-size: 17px; font-weight: 700">{{t.p}}%</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="position: relative; margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between">
+    <div>
+      <div style="font-size: 30px; font-weight: 900">옛썰</div>
+      <div style="margin-top: 4px; font-size: 16px; color: #E3E9FF">너의 1위는? 옛썰에서 해 봐</div>
+    </div>
+    <img src="/_blob/633b6551b24b5c3c7900d0e24b0b8eb4" alt="" style="width: 140px; height: auto; margin-bottom: -10px">
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"title":{"editor":"text","default":"시험 끝나면 제일 먼저 하고 싶은 것"},"mine":{"editor":"text","default":"게임"},"count":{"editor":"number","default":132},"$preview":{"width":540,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var p = this.props, mine = p.mine ?? '게임';
+    var R = [['하루 종일 잠자기', 75], ['방 대청소', 67], ['게임', 63]];
+    var idx = R.findIndex(function (r) { return r[0] === mine; });
+    var rankLine = idx === 0 ? '모두의 1위와 같아요!' : idx > 0 ? '모두의 순위로는 ' + (idx + 1) + '위' : '나만 아는 1위';
+    return {
+      title: p.title ?? '시험 끝나면 제일 먼저 하고 싶은 것', mine: mine, count: p.count ?? 132, rankLine: rankLine,
+      top: R.map(function (r, i) {
+        var me = r[0] === mine;
+        return { r: i + 1, name: r[0], p: r[1], w: me ? 900 : 500, bg: i === 0 ? '#A3EA16' : 'rgba(255,255,255,.18)', fg: i === 0 ? '#202A40' : '#FFFFFF', bar: me ? '#A3EA16' : '#FFFFFF' };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

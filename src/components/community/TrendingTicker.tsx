@@ -9,7 +9,7 @@ import Animated, { SlideInDown, SlideOutUp, useReducedMotion } from "react-nativ
 import SchoolRankingCard from "@/components/community/SchoolRankingCard";
 import WeeklyBestCard from "@/components/community/WeeklyBestCard";
 import { Text } from "@/components/ui/Text";
-import { colors, fontSize, radius, shadow, spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { type HotItem, hotHref } from "@/lib/community";
 
 const ROLL_MS = 3000;
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
-    ...shadow.card,
+    // 그림자 없이 테두리만 (2026-11-14: 넓게 번지는 그림자 때문에 주변 바탕이 회색처럼 보였음)
   },
   title: {
     fontSize: fontSize.small,

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>밸런스 결과 공유 이미지</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 540px; height: 540px; box-sizing: border-box; background: #3157D5; font-family: Pretendard, -apple-system, 'Noto Sans KR', sans-serif; color: #FFFFFF; padding: 36px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <div style="position: absolute; right: -80px; top: -90px; width: 260px; height: 260px; border-radius: 50%; background: #6F8BEB; opacity: .45"></div>
+
+  <div style="position: relative; display: flex; align-items: center; gap: 8px">
+    <span style="background: #A3EA16; color: #202A40; font-size: 15px; font-weight: 900; padding: 6px 12px; border-radius: 999px">밸런스</span>
+    <span style="font-size: 15px; color: #E3E9FF">{{count}}명이 골랐어요</span>
+  </div>
+  <div style="position: relative; margin-top: 18px; font-size: 36px; font-weight: 900; line-height: 1.3; letter-spacing: -0.5px">{{q}}</div>
+
+  <div style="position: relative; margin-top: 30px; display: flex; justify-content: space-between; font-size: 17px; font-weight: 900"><span>{{a}}파</span><span style="color: #D0EB83">{{b}}파</span></div>
+  <div style="position: relative; margin-top: 10px; height: 96px; border-radius: 24px; overflow: hidden; display: flex; background: #FFFFFF">
+    <div style="width: {{pa}}%; background: #FFFFFF; color: #3157D5; display: flex; align-items: center; padding: 0 22px; box-sizing: border-box; font-size: 42px; font-weight: 900; letter-spacing: -1px">{{pa}}%</div>
+    <div style="flex: 1; background: #A3EA16; color: #202A40; display: flex; align-items: center; justify-content: flex-end; padding: 0 22px; font-size: 34px; font-weight: 900">{{pb}}%</div>
+    <span style="position: absolute; left: {{pa}}%; top: 50%; transform: translate(-50%,-50%); width: 50px; height: 50px; border-radius: 50%; background: #202A40; border: 4px solid #3157D5; color: #A3EA16; font-size: 15px; font-weight: 900; display: flex; align-items: center; justify-content: center">VS</span>
+  </div>
+  <div style="position: relative; margin-top: 14px; display: flex; align-items: center; gap: 8px; font-size: 16px">
+    <span style="background: rgba(255,255,255,.18); font-weight: 700; padding: 6px 12px; border-radius: 999px">나는 {{mine}}파</span>
+    <span style="color: #E3E9FF">{{lead}}</span>
+  </div>
+
+  <div style="position: relative; margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between">
+    <div>
+      <div style="font-size: 26px; font-weight: 900">옛썰</div>
+      <div style="margin-top: 2px; font-size: 14px; color: #E3E9FF">너는 어느 파? 옛썰에서 골라 봐</div>
+    </div>
+    <img src="/_blob/633b6551b24b5c3c7900d0e24b0b8eb4" alt="" style="width: 104px; height: auto; margin-bottom: -8px">
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"q":{"editor":"text","default":"통학, 어느 파야?"},"a":{"editor":"text","default":"광역버스"},"b":{"editor":"text","default":"지옥철"},"pa":{"editor":"number","default":58},"count":{"editor":"number","default":48},"mineA":{"editor":"boolean","default":true},"$preview":{"width":540,"height":540}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var p = this.props, a = p.a ?? '광역버스', b = p.b ?? '지옥철', pa = Math.max(25, Math.min(75, p.pa ?? 58)), real = p.pa ?? 58;
+    var mineA = p.mineA ?? true, mine = mineA ? a : b;
+    var winA = real >= 50, myWin = winA === mineA;
+    return { q: p.q ?? '통학, 어느 파야?', a: a, b: b, pa: real, pb: 100 - real, count: p.count ?? 48, mine: mine,
+      lead: real === 50 ? '팽팽해요!' : (myWin ? '우리 편이 이기는 중' : '우리 편이 밀리는 중') };
+  }
+}
+</script>
+</body>
+</html>
