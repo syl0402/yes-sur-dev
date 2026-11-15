@@ -92,6 +92,17 @@ export const TESTER_KIND_LABELS: Record<TesterStatus["kind"], string> = {
   org: "단체",
 };
 
+// 진행 중인 공식 설문 ([설문] 탭 마감 연장, 2026-11-15 · 서버 함수 admin_get_official_surveys)
+export type OfficialSurvey = {
+  id: number;
+  title: string;
+  closes_at: string;
+  close_day: string;
+  days_left: number;
+  responses: number;
+  target: number;
+};
+
 // 운영자면 대기 건수, 아니면 null (마이 탭 운영 카드용)
 export async function fetchAdminCounts(): Promise<AdminCounts | null> {
   const { data: isAdmin } = await supabase.rpc("is_admin");

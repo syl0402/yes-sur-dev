@@ -18,6 +18,7 @@ import {
   type PendingOrg,
   REPORT_REASON_LABELS,
   REPORT_TYPE_LABELS,
+  type OfficialSurvey,
   type ReportGroup,
   TESTER_KIND_LABELS,
   type TesterStatus,
@@ -29,7 +30,10 @@ import { formatDate } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
 
-type Tab = "reports" | "feedback" | "orgs" | "testers";
+type Tab = "reports" | "feedback" | "orgs" | "testers" | "surveys";
+
+// 마감 연장 버튼 (일)
+const EXTEND_DAYS = [3, 7];
 
 // 대상의 지금 상태 → 뱃지
 const MODERATION_BADGE: Record<string, { label: string; tone: BadgeTone }> = {
@@ -46,6 +50,7 @@ export default function Admin() {
   const [feedback, setFeedback] = useState<PendingFeedback[]>([]);
   const [orgs, setOrgs] = useState<PendingOrg[]>([]);
   const [testers, setTesters] = useState<TesterStatus[]>([]);
+  const [officialSurveys, setOfficialSurveys] = useState<OfficialSurvey[]>([]);
   const [tab, setTab] = useState<Tab>("reports");
   // 처리 중인 대상 (연타 방지)
   const [busy, setBusy] = useState("");
@@ -57,13 +62,15 @@ export default function Admin() {
       return;
     }
     setCounts(c as AdminCounts);
-    const [{ data: r }, { data: f }, { data: o }, { data: t }] = await Promise.all([
+    const [{ data: r }, { data: f }, { data: o }, { data: t }, { data: s }] = await Promise.all([
       supabase.rpc("admin_get_reports"),
       supabase.rpc("admin_get_feedback"),
       supabase.rpc("admin_get_pending_orgs"),
       supabase.rpc("admin_get_tester_status"),
+      supabase.rpc("admin_get_official_surveys"),
     ]);
     setTesters((t as TesterStatus[] | null) ?? []);
+    setOfficialSurveys((s as OfficialSurvey[] | null) ?? []);
     setOrgs((o as PendingOrg[] | null) ?? []);
     setReports((r as ReportGroup[] | null) ?? []);
     setFeedback((f as PendingFeedback[] | null) ?? []);
@@ -124,6 +131,28 @@ export default function Admin() {
       },
     });
 
+  // 공식 설문 마감 연장 (늘리기만, 서버가 한도 확인)
+  const extend = (s: OfficialSurvey, days: number) => {
+    const next = new Date(s.closes_at);
+    next.setDate(next.getDate() + days);
+    showConfirm({
+      title: `마감을 ${days}일 늘릴까요?`,
+      message: `${s.title}\n${s.close_day} → ${next.getMonth() + 1}/${next.getDate()}`,
+      okLabel: "늘리기",
+      cancelLabel: "취소",
+      onOk: async () => {
+        setBusy(`survey:${s.id}`);
+        const { error } = await supabase.rpc("admin_extend_survey", { p_id: s.id, p_days: days });
+        setBusy("");
+        if (error) {
+          showNotice("늘리지 못했어요", errorMessage(error));
+          return;
+        }
+        load();
+      },
+    });
+  };
+
   if (counts === undefined) {
     return (
       <View style={styles.center}>
@@ -148,6 +177,7 @@ export default function Admin() {
     { value: "feedback", label: `의견 ${counts.feedback}` },
     { value: "orgs", label: `단체 ${counts.orgs}` },
     { value: "testers", label: "테스터" },
+    { value: "surveys", label: "설문" },
   ];
 
   // 테스터 현황: 오래 쉰 사람이 위 (서버가 정렬). 팀원(테스트 전 가입)은 아래에 따로
@@ -357,6 +387,38 @@ export default function Admin() {
           )}
           {teamRows.length > 0 && <Text style={styles.sectionLabel}>팀원 · 테스트 전 가입 {teamRows.length}명</Text>}
           {teamRows.map(renderTester)}
+        </>
+      )}
+
+      {/* 공식 설문: 마감 빠른 순. 늘리기만 가능 */}
+      {tab === "surveys" && (
+        <>
+          <Text style={styles.muted}>진행 중인 공식 설문 {officialSurveys.length}개 · 마감 빠른 순</Text>
+          {officialSurveys.length === 0 ? (
+            <EmptyState title="진행 중인 공식 설문이 없어요" emoji="🗂️" />
+          ) : (
+            officialSurveys.map((s) => (
+              <Card key={s.id}>
+                <Text style={styles.title}>{s.title}</Text>
+                <Text style={styles.muted}>
+                  마감 {s.close_day} ({s.days_left > 0 ? `${s.days_left}일 남음` : "오늘"}) · 응답 {s.responses}/{s.target}명
+                </Text>
+                <View style={styles.actions}>
+                  {EXTEND_DAYS.map((d) => (
+                    <Button
+                      key={d}
+                      title={`+${d}일`}
+                      variant="outline"
+                      small
+                      onPress={() => extend(s, d)}
+                      disabled={busy === `survey:${s.id}`}
+                      style={styles.action}
+                    />
+                  ))}
+                </View>
+              </Card>
+            ))
+          )}
         </>
       )}
     </ScrollView>

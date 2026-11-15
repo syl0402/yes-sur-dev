@@ -7,6 +7,9 @@ const MESSAGES: Record<string, string> = {
   // 운영자 전체 알림 (2026-11-15)
   already_sent_today: "오늘은 이미 전체 알림을 보냈어요. 내일 다시 보낼 수 있어요.",
   invalid_notice: "제목은 30자, 내용은 100자까지 써 주세요.",
+  // 운영자 공식 설문 마감 연장 (2026-11-15)
+  invalid_extend: "늘릴 날짜를 다시 골라 주세요.",
+  extend_too_far: "설문은 오늘부터 최대 기간까지만 열어 둘 수 있어요. 더 짧게 늘려 주세요.",
   email_not_verified: "이메일 인증을 먼저 완료해 주세요.",
   domain_not_allowed: "가입할 수 있는 학교 이메일이 아니에요.",
   terms_not_agreed: "필수 약관에 동의해 주세요.",
