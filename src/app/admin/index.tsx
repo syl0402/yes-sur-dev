@@ -187,6 +187,8 @@ export default function Admin() {
     <ScrollView style={styles.screen} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
       <Stack.Screen options={{ title: "운영" }} />
 
+      <Button title="전체 알림 보내기" variant="soft" onPress={() => router.push("/admin/notice")} />
+
       <Segmented options={tabs} value={tab} onChange={setTab} />
 
       {tab === "reports" &&

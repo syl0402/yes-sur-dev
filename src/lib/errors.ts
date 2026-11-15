@@ -4,6 +4,9 @@
 const MESSAGES: Record<string, string> = {
   // 서버 함수 (complete_signup 등)
   not_authenticated: "다시 로그인해 주세요.",
+  // 운영자 전체 알림 (2026-11-15)
+  already_sent_today: "오늘은 이미 전체 알림을 보냈어요. 내일 다시 보낼 수 있어요.",
+  invalid_notice: "제목은 30자, 내용은 100자까지 써 주세요.",
   email_not_verified: "이메일 인증을 먼저 완료해 주세요.",
   domain_not_allowed: "가입할 수 있는 학교 이메일이 아니에요.",
   terms_not_agreed: "필수 약관에 동의해 주세요.",
