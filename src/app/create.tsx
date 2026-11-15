@@ -1,6 +1,6 @@
 // ys-120 설문 작성 · F-401~405
 import { Stack, router, useLocalSearchParams, usePreventRemove } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, ScrollView, type ScrollViewInstance, StyleSheet, View } from "react-native";
 
 import BasicsStep from "@/components/create/BasicsStep";
@@ -206,6 +206,32 @@ export default function CreateSurvey() {
     });
   });
 
+  // 오른쪽 위 [임시저장]: 지금 내용을 이 폰 임시저장함에 저장
+  // 제목줄 버튼은 한 번만 그린다 (2026-11-15 Sentry: 글자를 칠 때마다 버튼을 다시 그리면
+  // 안드로이드에서 "The specified child already has a parent"로 앱이 꺼짐). 최신 내용은 ref로 읽는다
+  const saveNowRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    saveNowRef.current = () => {
+      if (!setup || isBlankDraft(draft) || sending) {
+        showNotice("아직 저장할 내용이 없어요", "제목이나 질문을 적은 뒤에 임시저장할 수 있어요.");
+        return;
+      }
+      saveDraft(setup.userId, draftId, draft, step);
+      setSavedJson(JSON.stringify(draft));
+      showNotice("임시저장했어요", "마이 탭 '임시저장한 설문'에서 이어 쓸 수 있어요.");
+    };
+  });
+  const headerRight = useCallback(
+    () => (
+      // 웹은 제목줄 오른쪽 여백이 없어 버튼이 끝에 붙는다 (2026-11-09 피드백)
+      <Pressable onPress={() => saveNowRef.current()} hitSlop={8} style={styles.headerAction}>
+        <Text style={styles.headerButton}>임시저장</Text>
+      </Pressable>
+    ),
+    [],
+  );
+  const screenOptions = useMemo(() => ({ title: "설문 등록", headerRight }), [headerRight]);
+
   if (setup === null) {
     return (
       <View style={styles.center}>
@@ -320,27 +346,10 @@ export default function CreateSurvey() {
     });
   };
 
-  // 오른쪽 위 [임시저장]: 지금 내용을 이 폰 임시저장함에 저장
-  const canSave = !isBlankDraft(draft) && !sending;
-  const saveNow = () => {
-    saveDraft(setup.userId, draftId, draft, step);
-    setSavedJson(JSON.stringify(draft));
-    showNotice("임시저장했어요", "마이 탭 '임시저장한 설문'에서 이어 쓸 수 있어요.");
-  };
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen
-        options={{
-          title: "설문 등록",
-          headerRight: () => (
-            // 웹은 제목줄 오른쪽 여백이 없어 버튼이 끝에 붙는다 (2026-11-09 피드백)
-            <Pressable onPress={saveNow} disabled={!canSave} hitSlop={8} style={styles.headerAction}>
-              <Text style={[styles.headerButton, !canSave && styles.headerButtonDisabled]}>임시저장</Text>
-            </Pressable>
-          ),
-        }}
-      />
+      <Stack.Screen options={screenOptions} />
 
       {/* 아이폰 반투명 헤더·키보드에 입력칸이 가리지 않게. 단계가 바뀌면 맨 위부터 보이게(key) */}
       <ScrollView
@@ -468,9 +477,6 @@ const styles = StyleSheet.create({
   headerButton: {
     fontSize: fontSize.body,
     color: colors.primary,
-  },
-  headerButtonDisabled: {
-    color: colors.disabled,
   },
   nextButton: {
     flex: 1,

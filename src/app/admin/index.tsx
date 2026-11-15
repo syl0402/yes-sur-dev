@@ -1,4 +1,4 @@
-// ys-180 운영자 화면 · F-704 (팀 운영자 계정만. [신고 | 의견 | 단체] 처리, 2026-10-31)
+// ys-180 운영자 화면 · F-704 (팀 운영자 계정만. [신고 | 의견 | 단체] 처리, 2026-10-31 · [테스터] 현황 2026-11-15)
 import { Stack, router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Linking, ScrollView, StyleSheet, View } from "react-native";
@@ -19,6 +19,8 @@ import {
   REPORT_REASON_LABELS,
   REPORT_TYPE_LABELS,
   type ReportGroup,
+  TESTER_KIND_LABELS,
+  type TesterStatus,
 } from "@/lib/admin";
 import { showConfirm } from "@/lib/confirm";
 import { errorMessage } from "@/lib/errors";
@@ -27,7 +29,7 @@ import { formatDate } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
 
-type Tab = "reports" | "feedback" | "orgs";
+type Tab = "reports" | "feedback" | "orgs" | "testers";
 
 // 대상의 지금 상태 → 뱃지
 const MODERATION_BADGE: Record<string, { label: string; tone: BadgeTone }> = {
@@ -43,6 +45,7 @@ export default function Admin() {
   const [reports, setReports] = useState<ReportGroup[]>([]);
   const [feedback, setFeedback] = useState<PendingFeedback[]>([]);
   const [orgs, setOrgs] = useState<PendingOrg[]>([]);
+  const [testers, setTesters] = useState<TesterStatus[]>([]);
   const [tab, setTab] = useState<Tab>("reports");
   // 처리 중인 대상 (연타 방지)
   const [busy, setBusy] = useState("");
@@ -54,11 +57,13 @@ export default function Admin() {
       return;
     }
     setCounts(c as AdminCounts);
-    const [{ data: r }, { data: f }, { data: o }] = await Promise.all([
+    const [{ data: r }, { data: f }, { data: o }, { data: t }] = await Promise.all([
       supabase.rpc("admin_get_reports"),
       supabase.rpc("admin_get_feedback"),
       supabase.rpc("admin_get_pending_orgs"),
+      supabase.rpc("admin_get_tester_status"),
     ]);
+    setTesters((t as TesterStatus[] | null) ?? []);
     setOrgs((o as PendingOrg[] | null) ?? []);
     setReports((r as ReportGroup[] | null) ?? []);
     setFeedback((f as PendingFeedback[] | null) ?? []);
@@ -142,7 +147,41 @@ export default function Admin() {
     { value: "reports", label: `신고 ${counts.reports}` },
     { value: "feedback", label: `의견 ${counts.feedback}` },
     { value: "orgs", label: `단체 ${counts.orgs}` },
+    { value: "testers", label: "테스터" },
   ];
+
+  // 테스터 현황: 오래 쉰 사람이 위 (서버가 정렬). 팀원(테스트 전 가입)은 아래에 따로
+  // 가입을 끝내지 않은 계정(닉네임 없음)은 빼고 본다 (2026-11-15 사용자 결정)
+  const joined = testers.filter((t) => t.nickname);
+  const testerRows = joined.filter((t) => !t.is_team);
+  const teamRows = joined.filter((t) => t.is_team);
+  const renderTester = (t: TesterStatus, i: number) => {
+    const last = t.last_active_day
+      ? `마지막 활동 ${t.last_active_day}${t.idle_days ? ` (${t.idle_days}일 전)` : " (오늘)"}`
+      : "활동 없음";
+    return (
+      <Card key={`${t.email_hint ?? ""}:${i}`}>
+        <View style={styles.top}>
+          <View style={styles.badges}>
+            <Badge label={TESTER_KIND_LABELS[t.kind]} tone={t.kind === "demo" ? "accent" : "primary"} />
+            <Badge label={t.push_on ? "알림 켬" : "알림 꺼짐"} tone={t.push_on ? "muted" : "danger"} />
+          </View>
+          <Text style={styles.muted}>{last}</Text>
+        </View>
+        <Text style={styles.title}>
+          {i + 1}. {t.nickname}
+        </Text>
+        {t.email_hint ? (
+          <Text style={styles.muted} selectable>
+            {t.email_hint}
+          </Text>
+        ) : null}
+        <Text style={styles.body}>
+          1주차 {t.week1}/{t.week1_total} · 2주차 {t.week2}/{t.week2_total} · 설문 응답 {t.responses}
+        </Text>
+      </Card>
+    );
+  };
 
   return (
     <ScrollView style={styles.screen} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.container}>
@@ -303,6 +342,21 @@ export default function Admin() {
             </Card>
           ))
         ))}
+
+      {tab === "testers" && (
+        <>
+          <Text style={styles.muted}>
+            테스터 {testerRows.length}명 · 알림 켬 {testerRows.filter((t) => t.push_on).length}명 · 오래 쉰 사람이 위
+          </Text>
+          {testerRows.length === 0 ? (
+            <EmptyState title="아직 가입한 테스터가 없어요" emoji="🙂" />
+          ) : (
+            testerRows.map(renderTester)
+          )}
+          {teamRows.length > 0 && <Text style={styles.sectionLabel}>팀원 · 테스트 전 가입 {teamRows.length}명</Text>}
+          {teamRows.map(renderTester)}
+        </>
+      )}
     </ScrollView>
   );
 }
@@ -374,6 +428,12 @@ const styles = StyleSheet.create({
   },
   detail: {
     fontSize: fontSize.small,
+    color: colors.textMuted,
+  },
+  sectionLabel: {
+    marginTop: spacing.md,
+    fontSize: fontSize.small,
+    fontWeight: "700",
     color: colors.textMuted,
   },
   actions: {

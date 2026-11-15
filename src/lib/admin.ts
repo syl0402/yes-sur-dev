@@ -68,6 +68,30 @@ export type PendingOrg = {
   created_at: string;
 };
 
+// 테스터 한 명 현황 ([테스터] 탭, 2026-11-15 · 서버 함수 admin_get_tester_status)
+// 이메일은 가려서 온다 (체험 = guest7, 학생 = abc***@cau.ac.kr)
+export type TesterStatus = {
+  nickname: string | null;
+  email_hint: string | null;
+  kind: "student" | "demo" | "org";
+  // 테스트 시작일(11/14) 전 가입 = 팀원·개발 기간 계정
+  is_team: boolean;
+  week1: number;
+  week1_total: number;
+  week2: number;
+  week2_total: number;
+  responses: number;
+  last_active_day: string | null;
+  idle_days: number | null;
+  push_on: boolean;
+};
+
+export const TESTER_KIND_LABELS: Record<TesterStatus["kind"], string> = {
+  student: "학생",
+  demo: "체험",
+  org: "단체",
+};
+
 // 운영자면 대기 건수, 아니면 null (마이 탭 운영 카드용)
 export async function fetchAdminCounts(): Promise<AdminCounts | null> {
   const { data: isAdmin } = await supabase.rpc("is_admin");
