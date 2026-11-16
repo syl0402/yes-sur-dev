@@ -90,6 +90,7 @@ export function doneCount(m: MyMissions): number {
 }
 
 // 조건을 채웠지만 아직 안 받은 미션 → 화면에 오면 자동으로 받는다 (2026-11-12 결정: 자동 지급 + 완료 팝업)
+// 2026-11-16부터 서버는 미션이 열린 날 이후의 행동만 센다 (관심사·최종 설문은 예외)
 // 서버가 조건·열림·중복을 다시 확인하므로 앱은 요청만 한다. 받은 것만 돌려준다
 export async function claimReadyMissions(m: MyMissions): Promise<{ mission: Mission; result: ClaimResult }[]> {
   const claimed: { mission: Mission; result: ClaimResult }[] = [];
@@ -177,7 +178,7 @@ export const MISSION_GUIDES: Record<string, { steps: [string, string, string]; c
   post_1: { steps: ["글 쓰기 화면을 열어요", "밸런스·골라 줘 같은 투표를 만들어요", "올리면 미션 완료!"], cta: "글 쓰러 가기" },
   comment_1: { steps: ["커뮤니티 글이나 오늘의 질문을 열어요", "하고 싶은 말을 적어요", "댓글을 달면 미션 완료!"], cta: "댓글 달러 가기" },
   survey_create_1: { steps: ["설문 등록 화면을 열어요", "질문을 만들고 대상을 정해요", "등록하면 미션 완료! (가입 선물 포인트로 충분해요)"], cta: "설문 만들러 가기" },
-  survey_3: { steps: ["설문 탭에서 설문을 골라요", "끝까지 성실하게 응답해요", "응답한 설문이 3개가 되면 완료!"], cta: "설문 보러 가기" },
+  survey_3: { steps: ["설문 탭에서 설문을 골라요", "끝까지 성실하게 응답해요", "이날부터 3개에 응답하면 완료!"], cta: "설문 보러 가기" },
   share_1: {
     steps: ["투표 글·월드컵·데이터 결과를 열어요", "오른쪽 위 공유 아이콘이나 [결과 공유]를 눌러요", "[이미지로 공유]를 누르면 미션 완료!"],
     cta: "공유하러 가기",
