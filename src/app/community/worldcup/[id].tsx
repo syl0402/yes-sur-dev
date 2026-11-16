@@ -39,6 +39,7 @@ import {
   type Candidate,
   type Worldcup,
   type WorldcupResult,
+  fetchCandidateImages,
   pick,
   roundLabel,
   startBracket,
@@ -51,6 +52,8 @@ export default function WorldcupScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   // undefined = 불러오는 중, null = 없음
   const [cup, setCup] = useState<Worldcup | null | undefined>(undefined);
+  // 후보 사진 {후보 id: 주소} (운영자가 올린 것만, 2026-11-16)
+  const [images, setImages] = useState<Record<number, string>>({});
   const [phase, setPhase] = useState<Phase>("intro");
   const [bracket, setBracket] = useState<Bracket | null>(null);
   // 되돌리기용: 고르기 전 대진들
@@ -88,6 +91,11 @@ export default function WorldcupScreen() {
         }
         const w = data as Worldcup;
         setCup(w);
+        // 사진은 따로 불러와 후보에 붙인다 (없으면 글자만)
+        fetchCandidateImages(w.id).then((map) => {
+          setImages(map);
+          setCup({ ...w, candidates: w.candidates.map((c) => ({ ...c, image: map[c.id] ?? null })) });
+        });
         // 이미 한 사람은 결과부터 (다시 하기는 결과 화면에서)
         if (w.played) {
           setPhase("result");
@@ -263,7 +271,7 @@ export default function WorldcupScreen() {
             </View>
 
             {result ? (
-              <ResultView result={result} groupMin={groupMin} />
+              <ResultView result={result} groupMin={groupMin} images={images} />
             ) : (
               <ActivityIndicator color={colors.primary} />
             )}

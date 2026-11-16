@@ -1,6 +1,10 @@
 // 커뮤니티 월드컵 (ys-145 · F-608). 서버 함수 모양은 docs/DB.md "월드컵"
 
-export type Candidate = { id: number; name: string };
+import { contentImageUrl } from "@/lib/contentImage";
+import { supabase } from "@/lib/supabase";
+
+// image: 후보 사진 주소 (운영자가 올린 것만, 없으면 글자만 · 2026-11-16)
+export type Candidate = { id: number; name: string; image?: string | null };
 
 // get_worldcups 한 줄. top: 지금 순위 1~3위 (우승 비율 %, 참여가 적으면 빈 배열 · 2026-11-14)
 export type WorldcupItem = {
@@ -78,4 +82,15 @@ export function pick(b: Bracket, side: 0 | 1): { bracket: Bracket; champion: Can
   if (pair * 2 < b.round.length) return { bracket: { ...b, next, pair, matches }, champion: null };
   if (next.length === 1) return { bracket: { round: next, next: [], pair: 0, matches }, champion: winner };
   return { bracket: { round: next, next: [], pair: 0, matches }, champion: null };
+}
+
+// 후보 사진 주소 {후보 id: 주소} (사진 있는 후보만, 2026-11-16 · 서버 함수 get_worldcup_images)
+export async function fetchCandidateImages(worldcupId: number): Promise<Record<number, string>> {
+  const { data } = await supabase.rpc("get_worldcup_images", { p_id: worldcupId });
+  const map: Record<number, string> = {};
+  for (const row of (data as { id: number; image_path: string }[] | null) ?? []) {
+    const url = contentImageUrl(row.image_path);
+    if (url) map[row.id] = url;
+  }
+  return map;
 }

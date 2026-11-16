@@ -1,6 +1,7 @@
 // 월드컵 결과 (2026-11-14 커뮤니티 시안 ③ Worldcup): 시상대 2·1·3 → 전체 순위(4위부터) → 그룹별 1위
 // 들어올 때: 시상대가 3위→2위→1위 순서로 아래에서 솟고, 이름이 나타나고, 트로피가 톡. 그다음 순위 막대가 위에서부터 차례로 (2초 안)
 // 숫자는 우승 비율 (랭킹 순서와 같은 기준). 동작 줄이기 설정이면 바로 다 보인다
+import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Animated, {
@@ -35,9 +36,11 @@ type Props = {
   result: WorldcupResult;
   // 이 인원 이상인 그룹만 1위를 보여 준다 (point_rules low_response_warning)
   groupMin: number;
+  // 후보 사진 {후보 id: 주소} (있는 것만, 2026-11-16)
+  images?: Record<number, string>;
 };
 
-export default function ResultView({ result, groupMin }: Props) {
+export default function ResultView({ result, groupMin, images = {} }: Props) {
   const reduce = useReducedMotion();
   const [all, setAll] = useState(false);
   const [first, second, third] = result.ranking;
@@ -63,6 +66,13 @@ export default function ResultView({ result, groupMin }: Props) {
                 entering={reduce ? undefined : FadeIn.delay(RISE_DELAY[rank] + 300).duration(250)}
                 style={styles.label}
               >
+                {images[r.id] && (
+                  <Image
+                    source={{ uri: images[r.id] }}
+                    style={[styles.podiumPhoto, rank === 0 && styles.podiumPhotoFirst]}
+                    contentFit="cover"
+                  />
+                )}
                 <Text style={[styles.standName, rank === 0 && styles.standNameFirst]} numberOfLines={2}>
                   {r.name}
                 </Text>
@@ -83,6 +93,7 @@ export default function ResultView({ result, groupMin }: Props) {
           {shown.map((r, i) => (
             <View key={r.id} style={styles.row}>
               <Text style={styles.rank}>{i + 4}</Text>
+              {images[r.id] && <Image source={{ uri: images[r.id] }} style={styles.rowPhoto} contentFit="cover" />}
               <Text style={styles.rowName} numberOfLines={1}>
                 {r.name}
               </Text>
@@ -154,6 +165,21 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     gap: 6,
+  },
+  podiumPhoto: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.md,
+    marginBottom: 4,
+  },
+  podiumPhotoFirst: {
+    width: 60,
+    height: 60,
+  },
+  rowPhoto: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.sm,
   },
   label: {
     alignItems: "center",

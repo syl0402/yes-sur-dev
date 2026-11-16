@@ -39,12 +39,19 @@ export default function WinView({ champion, title, size, result, reward, onRanki
       <Animated.View entering={ZoomIn.duration(300)} style={styles.chip}>
         <Text style={styles.chipText}>나의 우승</Text>
       </Animated.View>
-      <View style={styles.hero}>
-        <Animated.View entering={ZoomIn.duration(400)} style={styles.circle} />
-        <Hop>
-          <Image source={CHEER} style={styles.mascot} contentFit="contain" accessibilityLabel="옛썰 캐릭터" />
-        </Hop>
-      </View>
+      {/* 우승 후보 사진이 있으면 사진, 없으면 옛썰 캐릭터 (2026-11-16) */}
+      {champion.image ? (
+        <Animated.View entering={ZoomIn.duration(400)} style={styles.photoWrap}>
+          <Image source={{ uri: champion.image }} style={styles.photo} contentFit="cover" accessibilityLabel={champion.name} />
+        </Animated.View>
+      ) : (
+        <View style={styles.hero}>
+          <Animated.View entering={ZoomIn.duration(400)} style={styles.circle} />
+          <Hop>
+            <Image source={CHEER} style={styles.mascot} contentFit="contain" accessibilityLabel="옛썰 캐릭터" />
+          </Hop>
+        </View>
+      )}
       <Animated.View entering={FadeInDown.delay(300).duration(300)} style={styles.names}>
         <Text style={styles.champion}>{champion.name}</Text>
         <Text style={styles.sub}>
@@ -108,6 +115,17 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     fontWeight: "800",
     color: colors.onAccent,
+  },
+  photoWrap: {
+    marginTop: spacing.sm,
+    padding: 4,
+    borderRadius: radius.sheet,
+    backgroundColor: colors.accent,
+  },
+  photo: {
+    width: 168,
+    height: 168,
+    borderRadius: radius.sheet - 4,
   },
   hero: {
     width: 170,

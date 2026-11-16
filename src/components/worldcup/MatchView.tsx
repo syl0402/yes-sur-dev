@@ -1,6 +1,8 @@
 // 월드컵 진행: 파랑/라임 대결 카드 2장 (2026-11-14 커뮤니티 시안 ⑤ WcPlay)
 // 고르면 체크가 0.4초 보인 뒤 다음 대결로 (월드컵은 빠른 진행이 재미라 자동으로 넘어감, 실수는 "이전 선택 다시 하기")
+// 후보 사진이 있으면 카드를 사진으로 채우고 이름은 아래 색 띠에 (2026-11-16 사진 기능)
 // 위: 라운드 배지 · "n / 대결 수" · 대결 수만큼 칸으로 나눈 진행 막대
+import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, ZoomIn } from "react-native-reanimated";
@@ -9,7 +11,7 @@ import AppIcon from "@/components/AppIcon";
 import { Text } from "@/components/ui/Text";
 import { worldcupIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
-import { type Bracket, currentPair, roundLabel } from "@/lib/worldcup";
+import { type Bracket, type Candidate, currentPair, roundLabel } from "@/lib/worldcup";
 
 // 고른 카드를 보여 주는 시간
 const PICK_SHOW_MS = 400;
@@ -42,7 +44,8 @@ export default function MatchView({ bracket, onPick, onUndo }: Props) {
     }, PICK_SHOW_MS);
   };
 
-  const card = (side: 0 | 1, name: string) => {
+  const card = (side: 0 | 1, c: Candidate) => {
+    const name = c.name;
     const on = picked === side;
     const off = picked !== null && !on;
     return (
@@ -58,11 +61,24 @@ export default function MatchView({ bracket, onPick, onUndo }: Props) {
         accessibilityRole="button"
         accessibilityLabel={`${name} 고르기`}
       >
-        {/* 모서리 장식 원 */}
-        <View style={[styles.deco, side === 0 ? styles.decoA : styles.decoB]} />
-        <Text style={[styles.name, side === 1 && styles.nameB]} numberOfLines={3}>
-          {name}
-        </Text>
+        {c.image ? (
+          <>
+            <Image source={{ uri: c.image }} style={styles.photo} contentFit="cover" transition={150} />
+            <View style={[styles.band, side === 0 ? styles.cardA : styles.cardB]}>
+              <Text style={[styles.bandName, side === 1 && styles.nameB]} numberOfLines={1}>
+                {name}
+              </Text>
+            </View>
+          </>
+        ) : (
+          <>
+            {/* 모서리 장식 원 */}
+            <View style={[styles.deco, side === 0 ? styles.decoA : styles.decoB]} />
+            <Text style={[styles.name, side === 1 && styles.nameB]} numberOfLines={3}>
+              {name}
+            </Text>
+          </>
+        )}
         {on && (
           <Animated.View entering={ZoomIn.duration(200)} style={[styles.check, side === 1 && styles.checkB]}>
             <AppIcon name={worldcupIcons.check} size={20} color={side === 0 ? colors.onAccent : colors.onPrimary} />
@@ -98,8 +114,8 @@ export default function MatchView({ bracket, onPick, onUndo }: Props) {
 
       {/* 대결이 바뀔 때마다 살짝 나타난다 */}
       <Animated.View key={`${bracket.round.length}-${bracket.pair}`} entering={FadeIn.duration(200)} style={styles.cards}>
-        {card(0, a.name)}
-        {card(1, b.name)}
+        {card(0, a)}
+        {card(1, b)}
         <View style={styles.vs} pointerEvents="none">
           <Text style={styles.vsText}>VS</Text>
         </View>
@@ -221,6 +237,28 @@ const styles = StyleSheet.create({
   },
   nameB: {
     color: colors.onAccent,
+  },
+  // 사진 카드: 사진이 카드 전체, 이름은 아래 색 띠
+  photo: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+  band: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingVertical: 10,
+    paddingHorizontal: spacing.md,
+  },
+  bandName: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: colors.onPrimary,
+    textAlign: "center",
   },
   check: {
     position: "absolute",
