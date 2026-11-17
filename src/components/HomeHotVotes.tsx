@@ -12,9 +12,9 @@ import { fetchHot, type HotItem, hotHref, KIND_LABELS } from "@/lib/community";
 const COUNT = 6;
 const NEW_MS = 24 * 60 * 60 * 1000;
 
-// 설문 홍보 글은 투표가 아니라서 뺀다
+// 설문 홍보·일반 글은 "취향 투표"가 아니라서 뺀다 (일반 글은 2026-11-16부터)
 function isVote(h: HotItem): boolean {
-  return h.kind !== "promo";
+  return h.kind !== "promo" && h.kind !== "free";
 }
 
 function kindLabel(h: HotItem): string {

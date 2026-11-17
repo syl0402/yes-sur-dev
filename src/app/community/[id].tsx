@@ -36,6 +36,7 @@ import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { KIND_LABELS, type Post } from "@/lib/community";
 import { showActions, showConfirm } from "@/lib/confirm";
 import { confirmBlock } from "@/lib/block";
+import { removeContentImages } from "@/lib/contentImage";
 import { errorMessage } from "@/lib/errors";
 import { GROUP_DIMS, type GroupDim, sortGroups } from "@/lib/hub";
 import { showNotice } from "@/lib/notice";
@@ -117,7 +118,7 @@ export default function PostDetail() {
                 showConfirm({
                   title: "글을 지울까요?",
                   message:
-                    "지우면 되돌릴 수 없어요. 투표로 이미 받은 포인트는 그대로예요.",
+                    "지우면 되돌릴 수 없어요. 붙인 사진도 함께 지워져요. 투표로 이미 받은 포인트는 그대로예요.",
                   okLabel: "삭제",
                   cancelLabel: "취소",
                   destructive: true,
@@ -129,6 +130,8 @@ export default function PostDetail() {
                       showNotice("지우지 못했어요", errorMessage(error));
                       return;
                     }
+                    // 일반 글 사진 파일도 지운다 (개인정보처리방침: 글을 지우면 사진도 삭제, 2026-11-17)
+                    await removeContentImages(p.images ?? []);
                     router.back();
                   },
                 }),

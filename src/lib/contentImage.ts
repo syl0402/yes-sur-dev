@@ -43,3 +43,9 @@ export function contentImageUrl(path: string | null | undefined): string | null 
   if (!path) return null;
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 }
+
+// 내가 올린 사진 지우기 (글을 지울 때. 본인 폴더 posts/<내 id>/만 지울 수 있다). 실패해도 글 삭제는 그대로
+export async function removeContentImages(paths: string[]): Promise<void> {
+  if (paths.length === 0) return;
+  await supabase.storage.from(BUCKET).remove(paths);
+}
