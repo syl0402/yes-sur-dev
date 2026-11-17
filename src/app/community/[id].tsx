@@ -35,6 +35,7 @@ import { uiIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { KIND_LABELS, type Post } from "@/lib/community";
 import { showActions, showConfirm } from "@/lib/confirm";
+import { confirmBlock } from "@/lib/block";
 import { errorMessage } from "@/lib/errors";
 import { GROUP_DIMS, type GroupDim, sortGroups } from "@/lib/hub";
 import { showNotice } from "@/lib/notice";
@@ -86,8 +87,8 @@ export default function PostDetail() {
   }
 
   const p = post;
-  // 결과를 볼 수 있는 투표 글만 공유 (설문 홍보는 공유 이미지 없음)
-  const canShare = p.kind !== "promo" && p.counts !== null;
+  // 결과를 볼 수 있는 투표 글만 공유 (설문 홍보·일반 글은 공유 이미지 없음)
+  const canShare = p.kind !== "promo" && p.kind !== "free" && p.counts !== null;
   const isDuel =
     (p.kind === "balance" || p.kind === "relate") && p.options.length === 2;
   const counts = post.counts ?? [];
@@ -95,7 +96,7 @@ export default function PostDetail() {
   const topIndex = counts.length > 0 ? counts.indexOf(Math.max(...counts)) : 0;
   const focusIndex = focus ?? topIndex;
 
-  // 오른쪽 위 ⋯: 내 글이면 내용 수정·삭제, 남의 글이면 신고
+  // 오른쪽 위 ⋯: 내 글이면 내용 수정·삭제, 남의 글이면 신고·차단 (2026-11-16)
   const openMenu = () =>
     showActions(
       "글",
@@ -141,6 +142,11 @@ export default function PostDetail() {
                   pathname: "/report",
                   params: { type: "post", id: String(p.id) },
                 }),
+            },
+            {
+              label: "이 사람 차단",
+              destructive: true,
+              onPress: () => confirmBlock("post", p.id, () => router.back()),
             },
           ],
     );
@@ -242,7 +248,7 @@ export default function PostDetail() {
               );
             })()}
           </View>
-        ) : post.kind === "promo" ? null : (
+        ) : post.kind === "promo" || post.kind === "free" ? null : (
           <Text style={styles.muted}>
             투표하면 계열·학년·성별·나이대별 결과를 볼 수 있어요.
           </Text>
@@ -250,7 +256,7 @@ export default function PostDetail() {
 
         <Comments
           thread={thread}
-          sides={post.kind === "promo" ? undefined : post.options}
+          sides={post.kind === "promo" || post.kind === "free" ? undefined : post.options}
         />
       </ScrollView>
       <CommentComposer thread={thread} />

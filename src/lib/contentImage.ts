@@ -17,6 +17,8 @@ export async function pickContentImage(square: boolean): Promise<PickedImage | n
   if (!canPickImage) return null;
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ["images"],
+    // 아이폰 사진(HEIC)을 jpg로 바꿔서 받는다. 저장소는 jpg·png·webp만 받음 (2026-11-16)
+    preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
     quality: 0.7,
     allowsEditing: square,
     aspect: square ? [1, 1] : undefined,

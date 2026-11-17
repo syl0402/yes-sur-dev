@@ -1,25 +1,45 @@
-// ys-142 글 만들기 · F-603 (밸런스 · 나만 그래? · 골라 줘 · 설문 홍보)
+// ys-142 글 만들기 · F-603 (밸런스 · 나만 그래? · 골라 줘 · 일반 글 · 설문 홍보)
 // 2026-11-14 커뮤니티 시안 ③: 종류 칩 + 힌트 · 질문 40자 · 밸런스 보기는 연파랑/연연두 칸 + VS (12자) ·
 // 나만 그래?는 보기 자동 · 골라 줘 3칸에서 시작해 최대 5개 · 설문 홍보는 내 설문 카드에서 고르기
+// 2026-11-16 일반 글: 제목 + 본문(꼭) + 사진 3장 + 투표(선택: 보기 2~10 · 여러 개 고르기 · 마감)
 import { Stack, router, useLocalSearchParams } from "expo-router";
+import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
+import AppIcon from "@/components/AppIcon";
 import AnonToggle from "@/components/community/AnonToggle";
 import Chips from "@/components/create/Chips";
 import { formStyles } from "@/components/create/formStyles";
 import LabelRow from "@/components/create/LabelRow";
 import PrimaryButton from "@/components/PrimaryButton";
+import CheckRow from "@/components/ui/CheckRow";
 import { Text, TextInput } from "@/components/ui/Text";
+import { feedbackIcons } from "@/constants/icons";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
-import { fetchCanAnonymous, KIND_HINTS, KIND_LABELS, POST_BODY_MAX, type PostKind } from "@/lib/community";
+import {
+  fetchCanAnonymous,
+  FREE_BODY_MAX,
+  FREE_IMAGE_MAX,
+  FREE_POLL_DAYS,
+  FREE_POLL_MAX,
+  FREE_POLL_MIN,
+  KIND_HINTS,
+  KIND_LABELS,
+  POST_BODY_MAX,
+  type PostKind,
+} from "@/lib/community";
+import { type PickedImage, pickContentImage, uploadContentImage } from "@/lib/contentImage";
 import { errorMessage } from "@/lib/errors";
+import { canPickImage } from "@/lib/nativeFeatures";
 import { fetchRules } from "@/lib/rules";
 import { supabase } from "@/lib/supabase";
 
 // 화면에서 받는 글자 수 (서버 create_post는 질문 100자 · 보기 30자까지 받는다. 화면은 시안대로 더 짧게)
 const QUESTION_MAX = 40;
+// 일반 글 제목 (서버는 100자)
+const FREE_TITLE_MAX = 50;
 const BALANCE_OPTION_MAX = 12;
 const PICK_OPTION_MAX = 30;
 // 골라 줘 보기 수: 처음 3칸, 2~5개 (서버와 같음)
@@ -50,6 +70,12 @@ export default function NewPost() {
   // 익명으로 올리기 (학생만 체크가 보인다. 기본 켜짐, 2026-11-03)
   const [anonymous, setAnonymous] = useState(true);
   const [canAnon, setCanAnon] = useState(false);
+  // 일반 글: 사진(올리기 전 폰에 있는 것) · 투표
+  const [images, setImages] = useState<PickedImage[]>([]);
+  const [pollOn, setPollOn] = useState(false);
+  const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
+  const [pollMulti, setPollMulti] = useState(false);
+  const [pollDays, setPollDays] = useState<number | null>(null);
 
   useEffect(() => {
     fetchCanAnonymous().then(setCanAnon);
@@ -63,10 +89,26 @@ export default function NewPost() {
   }, [promo]);
 
   const isPromo = kind === "promo";
+  const isFree = kind === "free";
   const needsOptions = kind === "balance" || kind === "pick";
   const filled = options.map((o) => o.trim());
   const optionsOk = !needsOptions || (filled.every((o) => o.length > 0) && new Set(filled).size === filled.length);
-  const canSend = question.trim().length > 0 && optionsOk && (!isPromo || surveyId !== null);
+  const pollFilled = pollOptions.map((o) => o.trim());
+  const pollOk =
+    !isFree || !pollOn || (pollFilled.every((o) => o.length > 0) && new Set(pollFilled).size === pollFilled.length);
+  const canSend =
+    question.trim().length > 0 &&
+    optionsOk &&
+    pollOk &&
+    (!isFree || body.trim().length > 0) &&
+    (!isPromo || surveyId !== null);
+  const titleMax = isFree ? FREE_TITLE_MAX : QUESTION_MAX;
+  const bodyMax = isFree ? FREE_BODY_MAX : POST_BODY_MAX;
+
+  const addImage = async () => {
+    const picked = await pickContentImage(false);
+    if (picked) setImages((all) => [...all, picked].slice(0, FREE_IMAGE_MAX));
+  };
 
   const changeKind = (k: PostKind) => {
     setKind(k);
@@ -81,6 +123,20 @@ export default function NewPost() {
     if (!canSend || sending) return;
     setSending(true);
     setError("");
+    // 일반 글 사진은 올리기를 누를 때 저장소에 올린다 (posts/<내 id>/)
+    let imagePaths: string[] = [];
+    if (isFree && images.length > 0) {
+      try {
+        const { data: auth } = await supabase.auth.getUser();
+        const uid = auth.user?.id;
+        if (!uid) throw new Error("not_authenticated");
+        imagePaths = await Promise.all(images.map((img) => uploadContentImage(`posts/${uid}`, img)));
+      } catch (e) {
+        setSending(false);
+        setError(errorMessage(e as Error));
+        return;
+      }
+    }
     const { data, error: sendError } = isPromo
       ? await supabase.rpc("create_promo", {
           p_survey_id: surveyId as number,
@@ -90,9 +146,12 @@ export default function NewPost() {
       : await supabase.rpc("create_post", {
           p_kind: kind,
           p_question: question.trim(),
-          p_options: needsOptions ? filled : undefined,
+          p_options: needsOptions ? filled : isFree && pollOn ? pollFilled : undefined,
           p_body: body.trim() || undefined,
           p_anonymous: anonymous,
+          p_images: isFree && imagePaths.length > 0 ? imagePaths : undefined,
+          p_poll_multi: isFree && pollOn ? pollMulti : undefined,
+          p_poll_days: isFree && pollOn && pollDays !== null ? pollDays : undefined,
         });
     setSending(false);
     if (sendError) {
@@ -147,7 +206,7 @@ export default function NewPost() {
       )}
 
       <View style={styles.field}>
-        <LabelRow label={isPromo ? "한 줄 소개" : "질문"} length={question.length} max={QUESTION_MAX} />
+        <LabelRow label={isPromo ? "한 줄 소개" : isFree ? "제목" : "질문"} length={question.length} max={titleMax} />
         <TextInput
           style={[formStyles.input, styles.box]}
           value={question}
@@ -157,9 +216,11 @@ export default function NewPost() {
               ? "예: 3분이면 끝나요! 학식 개선에 쓸게요"
               : kind === "relate"
                 ? "나만 그런지 궁금한 상황을 적어 주세요"
-                : "무엇을 물어볼까요?"
+                : isFree
+                  ? "제목을 적어 주세요"
+                  : "무엇을 물어볼까요?"
           }
-          maxLength={QUESTION_MAX}
+          maxLength={titleMax}
         />
       </View>
 
@@ -236,16 +297,94 @@ export default function NewPost() {
       )}
 
       <View style={styles.field}>
-        <LabelRow label="내용" optional length={body.length} max={POST_BODY_MAX} />
+        <LabelRow label="내용" optional={!isFree} length={body.length} max={bodyMax} />
         <TextInput
-          style={[formStyles.input, formStyles.multiline, styles.box]}
+          style={[formStyles.input, formStyles.multiline, styles.box, isFree && styles.freeBody]}
           value={body}
           onChangeText={setBody}
-          placeholder="상황이나 이유를 덧붙여 주세요"
-          maxLength={POST_BODY_MAX}
+          placeholder={isFree ? "하고 싶은 이야기를 자유롭게 적어 주세요" : "상황이나 이유를 덧붙여 주세요"}
+          maxLength={bodyMax}
           multiline
         />
       </View>
+
+      {/* 일반 글: 사진 3장 */}
+      {isFree && canPickImage && (
+        <Animated.View key="free-images" entering={FadeIn.duration(200)} style={styles.field}>
+          <Text style={styles.label}>
+            사진 <Text style={styles.labelSub}>(선택, 최대 {FREE_IMAGE_MAX}장)</Text>
+          </Text>
+          <View style={styles.thumbs}>
+            {images.map((img, i) => (
+              <View key={img.uri} style={styles.thumbWrap}>
+                <Image source={{ uri: img.uri }} style={styles.thumb} contentFit="cover" />
+                <Pressable
+                  onPress={() => setImages((all) => all.filter((_, j) => j !== i))}
+                  style={styles.thumbRemove}
+                  hitSlop={6}
+                  accessibilityLabel="사진 빼기"
+                >
+                  <AppIcon name={feedbackIcons.remove} size={14} color={colors.onPrimary} />
+                </Pressable>
+              </View>
+            ))}
+            {images.length < FREE_IMAGE_MAX && (
+              <Pressable onPress={addImage} style={styles.thumbAdd} accessibilityLabel="사진 추가">
+                <AppIcon name={feedbackIcons.image} size={22} color={colors.iconStrong} />
+                <Text style={styles.thumbAddText}>
+                  {images.length}/{FREE_IMAGE_MAX}
+                </Text>
+              </Pressable>
+            )}
+          </View>
+          <Text style={formStyles.hint}>얼굴·학생증 등 개인정보가 담긴 사진이나 남의 사진은 올리지 마세요.</Text>
+        </Animated.View>
+      )}
+
+      {/* 일반 글: 투표 (선택) */}
+      {isFree && (
+        <Animated.View key="free-poll" entering={FadeIn.duration(200)} style={styles.field}>
+          <CheckRow label="투표 추가하기" checked={pollOn} onPress={() => setPollOn((v) => !v)} />
+          {pollOn && (
+            <>
+              {pollOptions.map((o, i) => (
+                <View key={i} style={styles.optionRow}>
+                  <TextInput
+                    style={[formStyles.input, styles.box, styles.optionInput]}
+                    value={o}
+                    onChangeText={(t) => setPollOptions((all) => all.map((v, j) => (j === i ? t : v)))}
+                    placeholder={`보기 ${i + 1}`}
+                    maxLength={PICK_OPTION_MAX}
+                  />
+                  {pollOptions.length > FREE_POLL_MIN && (
+                    <Pressable onPress={() => setPollOptions((all) => all.filter((_, j) => j !== i))} hitSlop={8}>
+                      <Text style={styles.remove}>삭제</Text>
+                    </Pressable>
+                  )}
+                </View>
+              ))}
+              {pollOptions.length < FREE_POLL_MAX && (
+                <Pressable onPress={() => setPollOptions((all) => [...all, ""])} hitSlop={6}>
+                  <Text style={styles.add}>+ 보기 추가 (최대 {FREE_POLL_MAX}개)</Text>
+                </Pressable>
+              )}
+              {!pollOk && pollFilled.every((x) => x.length > 0) && (
+                <Text style={formStyles.error}>보기가 서로 달라야 해요.</Text>
+              )}
+              <CheckRow label="여러 개 고를 수 있게" checked={pollMulti} onPress={() => setPollMulti((v) => !v)} />
+              <Text style={styles.label}>투표 마감</Text>
+              <Chips
+                options={FREE_POLL_DAYS.map((d) => ({
+                  value: d === null ? "none" : String(d),
+                  label: d === null ? "없음" : `${d}일`,
+                }))}
+                selected={pollDays === null ? "none" : String(pollDays)}
+                onSelect={(v) => setPollDays(v === "none" ? null : Number(v))}
+              />
+            </>
+          )}
+        </Animated.View>
+      )}
 
       <Text style={formStyles.hint}>
         욕설·혐오, 개인정보를 묻는 글은 신고되면 숨겨지고 삭제될 수 있어요.
@@ -267,6 +406,7 @@ export default function NewPost() {
 }
 
 const VS_SIZE = 28;
+const THUMB = 84;
 
 const styles = StyleSheet.create({
   screen: {
@@ -416,6 +556,54 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     fontWeight: "700",
     color: colors.primary,
+  },
+  labelSub: {
+    fontWeight: "400",
+    color: colors.textMuted,
+  },
+  freeBody: {
+    minHeight: 160,
+  },
+  thumbs: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+  thumbWrap: {
+    width: THUMB,
+    height: THUMB,
+  },
+  thumb: {
+    width: THUMB,
+    height: THUMB,
+    borderRadius: radius.md,
+  },
+  thumbRemove: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.overlayStrong,
+  },
+  thumbAdd: {
+    width: THUMB,
+    height: THUMB,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2,
+    backgroundColor: colors.onPrimary,
+  },
+  thumbAddText: {
+    fontSize: fontSize.small,
+    color: colors.textMuted,
   },
   anonRow: {
     flexDirection: "row",

@@ -19,11 +19,13 @@ import type { WorldcupItem } from "@/lib/worldcup";
 
 // 분류 4개 (2026-11-09 팀 피드백: 6개는 많아 보임). 투표 = 밸런스·나만 그래?·골라 줘 (종류는 글 쓸 때 고르고 카드에 표시)
 // 월드컵은 글이 아니라 따로 불러온다
-type KindFilter = "all" | "vote" | "worldcup" | "promo";
+// 2026-11-16 일반 글 탭 추가 (투표 탭은 밸런스·나만 그래?·골라 줘만)
+type KindFilter = "all" | "vote" | "free" | "worldcup" | "promo";
 
 const KIND_FILTERS: { value: KindFilter; label: string }[] = [
   { value: "all", label: "전체" },
   { value: "vote", label: "투표" },
+  { value: "free", label: "일반 글" },
   { value: "worldcup", label: "월드컵" },
   { value: "promo", label: "설문 홍보" },
 ];
@@ -53,11 +55,11 @@ export default function Community() {
     }
     // 투표는 세 종류를 한 번에 불러와 설문 홍보만 뺀다. 전체는 월드컵 목록도 같이 (피드에 1개 끼움)
     const [{ data }, cups] = await Promise.all([
-      supabase.rpc("get_feed", { p_kind: kind === "promo" ? "promo" : null, p_sort: sort }),
+      supabase.rpc("get_feed", { p_kind: kind === "promo" || kind === "free" ? kind : null, p_sort: sort }),
       kind === "all" ? supabase.rpc("get_worldcups") : Promise.resolve(null),
     ]);
     const list = (data as Post[] | null) ?? [];
-    setPosts(kind === "vote" ? list.filter((p) => p.kind !== "promo") : list);
+    setPosts(kind === "vote" ? list.filter((p) => p.kind !== "promo" && p.kind !== "free") : list);
     if (cups) setWorldcups((cups.data as WorldcupItem[] | null) ?? []);
   }, [kind, sort]);
 
@@ -139,7 +141,7 @@ export default function Community() {
           <ActivityIndicator color={colors.primary} style={styles.loading} />
         ) : posts.length === 0 ? (
           <EmptyState
-            title={kind === "promo" ? "아직 설문 홍보 글이 없어요" : kind === "vote" ? "아직 투표가 없어요" : "아직 글이 없어요"}
+            title={kind === "promo" ? "아직 설문 홍보 글이 없어요" : kind === "vote" ? "아직 투표가 없어요" : kind === "free" ? "아직 일반 글이 없어요" : "아직 글이 없어요"}
             message={kind === "promo" ? "내 설문을 홍보해 응답을 더 모아 보세요!" : "첫 투표를 만들어 보세요!"}
             emoji={kind === "promo" ? "📣" : "🗳️"}
           />

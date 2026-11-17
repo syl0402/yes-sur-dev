@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { type Comment, type CommentTarget, fetchCanAnonymous } from "@/lib/community";
 import { showActions, showConfirm } from "@/lib/confirm";
+import { confirmBlock } from "@/lib/block";
 import { errorMessage } from "@/lib/errors";
 import { showNotice } from "@/lib/notice";
 import { supabase } from "@/lib/supabase";
@@ -63,7 +64,7 @@ export function useCommentThread(type: CommentTarget, id: number | null, onChang
     load();
   };
 
-  // ⋯: 내 댓글이면 삭제, 남의 댓글이면 신고
+  // ⋯: 내 댓글이면 삭제, 남의 댓글이면 신고·차단 (2026-11-16)
   const more = (c: Comment) =>
     showActions(
       "댓글",
@@ -92,6 +93,11 @@ export function useCommentThread(type: CommentTarget, id: number | null, onChang
             {
               label: "신고",
               onPress: () => router.push({ pathname: "/report", params: { type: "comment", id: String(c.id) } }),
+            },
+            {
+              label: "이 사람 차단",
+              destructive: true,
+              onPress: () => confirmBlock("comment", c.id, load),
             },
           ],
     );

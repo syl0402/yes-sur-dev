@@ -4,12 +4,14 @@ import type { Href } from "expo-router";
 import type { GroupDim } from "@/lib/hub";
 import { supabase } from "@/lib/supabase";
 
-export type PostKind = "balance" | "relate" | "pick" | "promo";
+// free: 일반 글 (제목 + 본문 + 사진 3장 + 투표 선택, 2026-11-16)
+export type PostKind = "balance" | "relate" | "pick" | "free" | "promo";
 
 export const KIND_LABELS: Record<PostKind, string> = {
   balance: "밸런스",
   relate: "나만 그래?",
   pick: "골라 줘",
+  free: "일반 글",
   promo: "설문 홍보",
 };
 
@@ -18,6 +20,7 @@ export const KIND_HINTS: Record<PostKind, string> = {
   balance: "둘 중 하나! 예: 짜장 vs 짬뽕",
   relate: "공감 투표. 예: 시험 전날에만 방 청소하고 싶어진다",
   pick: "보기 2~5개 중 골라 달라고 하기. 예: 노트북 뭐 살까?",
+  free: "자유롭게 글을 쓰고 사진·투표를 붙일 수 있어요",
   promo: "내가 올린 진행 중인 설문을 소개하고 응답을 부탁하기 (설문 하나에 한 번)",
 };
 
@@ -93,6 +96,11 @@ export type Post = {
   survey?: PromoSurvey | null;
   my_choice: number | null;
   counts: number[] | null;
+  // 일반 글 (2026-11-16): 사진 경로 · 투표 여러 개 고르기 · 투표 마감 · 내가 고른 보기들
+  images?: string[];
+  poll_multi?: boolean;
+  poll_closes_at?: string | null;
+  my_choices?: number[] | null;
   groups?: Record<GroupDim, PostGroup[]> | null;
 };
 
@@ -125,4 +133,11 @@ export async function fetchCanAnonymous(): Promise<boolean> {
 
 // 본문·댓글 글자 수 (서버와 같은 규칙)
 export const POST_BODY_MAX = 500;
+// 일반 글 (서버 create_post와 같음, 2026-11-16)
+export const FREE_BODY_MAX = 2000;
+export const FREE_IMAGE_MAX = 3;
+export const FREE_POLL_MIN = 2;
+export const FREE_POLL_MAX = 10;
+// 투표 마감 (일, null = 마감 없음)
+export const FREE_POLL_DAYS: (number | null)[] = [null, 1, 3, 7];
 export const COMMENT_MAX = 200;

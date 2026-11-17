@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -13,8 +14,10 @@ import Badge from "@/components/ui/Badge";
 import GrowBar from "@/components/ui/GrowBar";
 import { Text } from "@/components/ui/Text";
 import { uiIcons } from "@/constants/icons";
+import CheckRow from "@/components/ui/CheckRow";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { KIND_LABELS, type PromoSurvey, type Post } from "@/lib/community";
+import { contentImageUrl } from "@/lib/contentImage";
 import { errorMessage } from "@/lib/errors";
 import { formatAgo, formatPoints, formatTimeLeft } from "@/lib/format";
 import { showNotice } from "@/lib/notice";
@@ -39,6 +42,7 @@ type Props = {
 
 // 커뮤니티 글 카드 (2026-11-14 커뮤니티 시안 ①): 종류별로
 // 밸런스 = 줄다리기 막대 · 나만 그래? = 버튼 안이 비율만큼 채워짐 · 골라 줘 = 세로 보기 목록 · 설문 홍보 = 설문 미니 카드
+// 일반 글 (2026-11-16) = 사진(피드는 첫 장 + n장 더, 상세는 모두) + 투표가 있으면 골라 줘 목록 (여러 개 고르기면 체크 후 [투표하기])
 export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
   const [sending, setSending] = useState(false);
   const [earned, setEarned] = useState<number | null>(null);
@@ -46,10 +50,12 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
 
   // 보낼 동안 다시 누르면 무시한다. 버튼을 잠그지(disabled) 않는 이유: 잠긴 버튼을 누르면 그 터치가 카드로 넘어가
   // 글 안으로 들어가 버림 (2026-11-14 나만 그래? 피드백)
-  const vote = async (choice: number) => {
+  const vote = async (choice: number | number[]) => {
     if (sending) return;
     setSending(true);
-    const { data, error } = await supabase.rpc("vote_post", { p_post_id: post.id, p_choice: choice });
+    const { data, error } = Array.isArray(choice)
+      ? await supabase.rpc("vote_post_multi", { p_post_id: post.id, p_choices: choice })
+      : await supabase.rpc("vote_post", { p_post_id: post.id, p_choice: choice });
     setSending(false);
     if (error) {
       showNotice("투표하지 못했어요", errorMessage(error));
@@ -63,6 +69,9 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
   const counts = post.counts;
   const isTug = post.kind === "balance" && post.options.length === 2;
   const isRelate = post.kind === "relate" && post.options.length === 2;
+  const isFree = post.kind === "free";
+  const hasPoll = post.options.length > 0;
+  const images = (post.images ?? []).map((path) => contentImageUrl(path)).filter((u): u is string => !!u);
 
   return (
     <Pressable style={[listCardStyles.card, styles.card]} onPress={onOpen} disabled={!onOpen}>
@@ -89,8 +98,12 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
         </LinkedText>
       ) : null}
 
+      {isFree && images.length > 0 && <Photos urls={images} full={full} />}
+
       {post.kind === "promo" && post.survey ? (
         <PromoMini survey={post.survey} mine={post.mine} />
+      ) : isFree && !hasPoll ? null : isFree && post.poll_multi && !counts ? (
+        <MultiPick post={post} onVote={vote} full={full} sending={sending} />
       ) : isTug ? (
         <TugBar
           labels={[post.options[0], post.options[1]]}
@@ -112,12 +125,99 @@ export default function PostCard({ post, onVoted, onOpen, full, hot }: Props) {
       {earned !== null && earned > 0 && <Text style={styles.earned}>+{formatPoints(earned)} 받았어요</Text>}
 
       {/* 아래: 구분선 + 참여·댓글 수 (설문 홍보는 댓글만) */}
-      <CardFooter votes={post.kind === "promo" ? undefined : post.votes} comments={post.comment_count} />
+      <CardFooter
+        votes={post.kind === "promo" || (isFree && !hasPoll) ? undefined : post.votes}
+        comments={post.comment_count}
+      />
     </Pressable>
   );
 }
 
 type VoteProps = { post: Post; onVote: (choice: number) => void };
+
+// 일반 글 투표 머리말: 여러 개 고르기 · 마감까지 남은 시간 / 마감됨
+function pollNote(post: Post): string | null {
+  if (post.kind !== "free") return null;
+  const parts: string[] = [];
+  if (post.poll_multi) parts.push("여러 개 고를 수 있어요");
+  if (post.poll_closes_at) {
+    parts.push(new Date(post.poll_closes_at).getTime() <= Date.now() ? "투표 마감" : `${formatTimeLeft(post.poll_closes_at)} 남음`);
+  }
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+// 일반 글 사진: 피드는 첫 장 + "+n", 상세는 모두 세로로
+function Photos({ urls, full }: { urls: string[]; full?: boolean }) {
+  if (full) {
+    return (
+      <View style={styles.photos}>
+        {urls.map((u) => (
+          <Image key={u} source={{ uri: u }} style={styles.photoFull} contentFit="cover" transition={150} />
+        ))}
+      </View>
+    );
+  }
+  return (
+    <View>
+      <Image source={{ uri: urls[0] }} style={styles.photo} contentFit="cover" transition={150} />
+      {urls.length > 1 && (
+        <View style={styles.photoMore}>
+          <Text style={styles.photoMoreText}>+{urls.length - 1}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+// 일반 글 여러 개 고르기 (투표 전): 체크 → [투표하기]
+function MultiPick({
+  post,
+  onVote,
+  full,
+  sending,
+}: {
+  post: Post;
+  onVote: (choices: number[]) => void;
+  full?: boolean;
+  sending: boolean;
+}) {
+  const [picked, setPicked] = useState<number[]>([]);
+  const note = pollNote(post);
+  const limit = full ? post.options.length : FEED_OPTION_MAX;
+  const hidden = post.options.length - limit;
+  // 피드에서는 보기가 다 안 보여서, 고르기는 상세에서
+  if (!full) {
+    return (
+      <View style={styles.pickList}>
+        {note && <Text style={styles.pollNote}>{note}</Text>}
+        {post.options.slice(0, limit).map((label, i) => (
+          <View key={i} style={styles.pick}>
+            <Text style={styles.pickText} numberOfLines={2}>
+              {label}
+            </Text>
+          </View>
+        ))}
+        <Text style={styles.more}>{hidden > 0 ? `보기 ${hidden}개 더 · ` : ""}눌러서 투표하기</Text>
+      </View>
+    );
+  }
+  const toggle = (i: number) => setPicked((all) => (all.includes(i) ? all.filter((x) => x !== i) : [...all, i]));
+  return (
+    <View style={styles.pickList}>
+      {note && <Text style={styles.pollNote}>{note}</Text>}
+      {post.options.map((label, i) => (
+        <CheckRow key={i} label={label} checked={picked.includes(i)} onPress={() => toggle(i)} />
+      ))}
+      <Pressable
+        onPress={() => picked.length > 0 && onVote(picked)}
+        style={[styles.multiButton, (picked.length === 0 || sending) && styles.multiButtonOff]}
+        accessibilityRole="button"
+      >
+        <Text style={styles.multiButtonText}>{picked.length > 0 ? `${picked.length}개 골라서 투표하기` : "보기를 골라 주세요"}</Text>
+      </Pressable>
+    </View>
+  );
+}
 
 // 나만 그래?: 버튼 두 개. 누르면 버튼 안이 비율만큼 채워지고 퍼센트 표시 (내 선택 쪽 채움이 조금 진함)
 function RelateButtons({ post, onVote }: VoteProps) {
@@ -160,13 +260,17 @@ function RelateButtons({ post, onVote }: VoteProps) {
 function PickList({ post, onVote, full, justVoted }: VoteProps & { full?: boolean; justVoted: boolean }) {
   const reduce = useReducedMotion();
   const counts = post.counts;
-  const total = (counts ?? []).reduce((a, b) => a + b, 0);
+  // 여러 개 고르기는 "투표한 사람 중 몇 %"가 고른 보기인지
+  const total = post.poll_multi ? post.votes : (counts ?? []).reduce((a, b) => a + b, 0);
   const top = counts ? Math.max(...counts) : 0;
   const limit = full ? post.options.length : FEED_OPTION_MAX;
   const hidden = post.options.length - limit;
+  const note = pollNote(post);
+  const mineOf = (i: number) => (post.my_choices ? post.my_choices.includes(i) : post.my_choice === i);
 
   return (
     <View style={styles.pickList}>
+      {note && <Text style={styles.pollNote}>{note}</Text>}
       {post.options.slice(0, limit).map((label, i) => {
         if (!counts) {
           return (
@@ -181,7 +285,7 @@ function PickList({ post, onVote, full, justVoted }: VoteProps & { full?: boolea
             </Pressable>
           );
         }
-        const mine = post.my_choice === i;
+        const mine = mineOf(i);
         const count = counts[i] ?? 0;
         const pct = percent(count, total);
         return (
@@ -348,6 +452,54 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     fontWeight: "700",
     color: colors.textMuted,
+  },
+  pollNote: {
+    fontSize: fontSize.small,
+    fontWeight: "600",
+    color: colors.textMuted,
+  },
+  multiButton: {
+    minHeight: 44,
+    borderRadius: radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
+  },
+  multiButtonOff: {
+    backgroundColor: colors.disabled,
+  },
+  multiButtonText: {
+    fontSize: fontSize.label,
+    fontWeight: "700",
+    color: colors.onPrimary,
+  },
+  // 일반 글 사진
+  photo: {
+    width: "100%",
+    aspectRatio: 16 / 10,
+    borderRadius: radius.md,
+  },
+  photoMore: {
+    position: "absolute",
+    right: 8,
+    bottom: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    backgroundColor: colors.overlayStrong,
+  },
+  photoMoreText: {
+    fontSize: fontSize.small,
+    fontWeight: "700",
+    color: colors.onPrimary,
+  },
+  photos: {
+    gap: spacing.sm,
+  },
+  photoFull: {
+    width: "100%",
+    aspectRatio: 4 / 3,
+    borderRadius: radius.md,
   },
   more: {
     fontSize: fontSize.small,

@@ -7,6 +7,8 @@ const MESSAGES: Record<string, string> = {
   // 운영자 전체 알림 (2026-11-15)
   already_sent_today: "오늘은 이미 전체 알림을 보냈어요. 내일 다시 보낼 수 있어요.",
   invalid_notice: "제목은 30자, 내용은 100자까지 써 주세요.",
+  // 사용자 차단 (2026-11-16)
+  cannot_block: "이 글쓴이는 차단할 수 없어요.",
   // 사진 (2026-11-16)
   invalid_image: "사진을 다시 골라 주세요.",
   candidate_not_found: "후보를 찾지 못했어요. 화면을 새로 열어 주세요.",

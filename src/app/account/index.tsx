@@ -179,6 +179,7 @@ export default function AccountHome() {
         {menu([
           !account.isOrg && { label: "닉네임 바꾸기", onPress: () => router.push("/account/nickname") },
           { label: "비밀번호 변경", onPress: () => router.push("/account/password") },
+          { label: "차단한 사용자", onPress: () => router.push("/account/blocks") },
           {
             label: "의견 보내기",
             onPress: () => router.push({ pathname: "/feedback", params: { from: "내 정보" } }),
