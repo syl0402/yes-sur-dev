@@ -29,6 +29,8 @@ export type DraftQuestion = {
   // 보기 맨 아래 "해당 없음" · "기타 (직접 입력)" (문구는 서버가 정한다)
   none?: boolean;
   other?: boolean;
+  // 문항 사진 1장 (2026-11-22): 이미 올린 저장소 경로 surveys/<내 id>/… (없으면 사진 없음)
+  image?: string;
 };
 
 // 서버가 붙이는 특별한 보기 문구 (create_survey와 같게)
@@ -271,10 +273,13 @@ export function registrationCost(d: SurveyDraft, rules: Record<string, number>, 
   return Number.isInteger(target) ? estimate(d, rules).price * target : 0;
 }
 
-// create_survey에 보낼 문항 형식
+// create_survey에 보낼 문항 형식 (사진이 있으면 image 경로를 덧붙인다, 2026-11-22)
 export function toRpcQuestions(d: SurveyDraft) {
-  return d.questions.map((q) =>
-    isChoice(q.type)
+  return d.questions.map((q) => ({ ...rpcQuestion(q), ...(q.image ? { image: q.image } : {}) }));
+}
+
+function rpcQuestion(q: DraftQuestion) {
+  return isChoice(q.type)
       ? {
           type: q.type,
           text: q.text.trim(),
@@ -286,8 +291,7 @@ export function toRpcQuestions(d: SurveyDraft) {
         }
       : q.type === "text"
         ? { type: q.type, text: q.text.trim(), required: q.required !== false, long: q.long !== false }
-        : { type: q.type, text: q.text.trim(), required: q.required !== false },
-  );
+        : { type: q.type, text: q.text.trim(), required: q.required !== false };
 }
 
 // 등록한 설문을 작성 화면 내용으로 되돌린다 ("처음부터 다시 고치기", 2026-11-10). 내 설문만 읽힌다

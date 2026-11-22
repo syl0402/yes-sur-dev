@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 import Animated, { FadeInRight } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import QuestionPhoto from "@/components/QuestionPhoto";
 import BottomBar from "@/components/ui/BottomBar";
 import Button from "@/components/ui/Button";
 import OptionRow from "@/components/ui/OptionRow";
@@ -22,7 +23,16 @@ import { OTHER_TEXT_MAX, type OptionKind, type QuestionType, SCALE_LABELS } from
 
 type Option = { id: number; sort_order: number; text: string; kind: OptionKind };
 // required: false면 비워도 되는 문항 (2026-11-10 주관식 → 2026-11-14 모든 종류) · long: 긴 주관식(여러 줄) / 짧은(한 줄)
-type Question = { id: number; type: QuestionType; text: string; required: boolean; long: boolean; options: Option[] };
+type Question = {
+  id: number;
+  type: QuestionType;
+  text: string;
+  required: boolean;
+  long: boolean;
+  // 문항 사진 경로 (2026-11-22)
+  image: string | null;
+  options: Option[];
+};
 // 문항 하나의 답: 고르기는 optionIds(+ 기타를 골랐으면 otherText), 척도는 scale(1~5), 주관식은 text
 type Answer = { optionIds?: number[]; otherText?: string; scale?: number; text?: string };
 // 화면 위에 보여 줄 설문 정보 (제목·예상 시간·보상)
@@ -46,7 +56,7 @@ const CANNOT_CONTINUE = ["already_responded", "survey_closed", "survey_full", "n
 async function fetchQuestions(surveyId: number): Promise<Question[]> {
   const { data } = await supabase
     .from("questions")
-    .select("id, sort_order, type, text, is_required, shuffle_options, long_text, question_options(id, sort_order, text, kind)")
+    .select("id, sort_order, type, text, is_required, shuffle_options, long_text, image_path, question_options(id, sort_order, text, kind)")
     .eq("survey_id", surveyId)
     .order("sort_order");
 
@@ -60,6 +70,7 @@ async function fetchQuestions(surveyId: number): Promise<Question[]> {
       text: q.text,
       required: q.is_required !== false,
       long: q.long_text !== false,
+      image: q.image_path ?? null,
       options: [...(q.shuffle_options ? shuffled(normal) : normal), ...special],
     };
   });
@@ -308,6 +319,7 @@ export default function SurveyRespond() {
             {question.required ? "" : " · 선택"}
           </Text>
           <Text style={styles.question}>{question.text}</Text>
+          <QuestionPhoto path={question.image} size="large" />
           <Text style={styles.hint}>
             {question.required ? TYPE_HINT[question.type] : "선택 문항이에요. 비워 두고 넘어가도 돼요."}
           </Text>

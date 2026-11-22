@@ -64,6 +64,8 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
   // 신뢰도 기준·소표본 기준 (point_rules) · 응답 대상
   const [rules, setRules] = useState<Record<string, number>>({});
   const [audience, setAudience] = useState<"all" | "campus" | null>(null);
+  // 문항 사진 {문항 id: 경로} (2026-11-22)
+  const [images, setImages] = useState<Record<number, string>>({});
 
   useEffect(() => {
     fetchRules(RESULT_RULE_KEYS).then(setRules);
@@ -73,6 +75,10 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
       .eq("id", surveyId)
       .maybeSingle()
       .then(({ data }) => setAudience((data?.audience as "all" | "campus" | undefined) ?? null));
+    supabase.rpc("get_question_images", { p_survey_id: surveyId }).then(({ data }) => {
+      const list = (data as { id: number; image: string }[] | null) ?? [];
+      setImages(Object.fromEntries(list.map((x) => [x.id, x.image])));
+    });
   }, [surveyId]);
 
   if (full.total === 0) return <Text style={styles.muted}>결과에 반영된 응답이 없어요.</Text>;
@@ -129,7 +135,7 @@ export default function ResultsView({ surveyId, full, title, questions = full.ov
 
           {/* 나눠 보기를 바꾸면 문항 목록이 살짝 나타난다 (0.25초, 2026-11-14 시안) */}
           <Animated.View key={`${dim}-${crossId ?? ""}`} entering={FadeIn.duration(250)} style={styles.list}>
-          {dim === "all" && questions.map((q, index) => <QuestionResult key={q.id} index={index} question={q} />)}
+          {dim === "all" && questions.map((q, index) => <QuestionResult key={q.id} index={index} question={q} image={images[q.id]} />)}
 
           {dim !== "all" &&
             dim !== "cross" &&

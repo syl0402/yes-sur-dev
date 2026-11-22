@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, Switch, View } from "react-native";
 
 import AppIcon from "@/components/AppIcon";
 import { formStyles } from "@/components/create/formStyles";
+import QuestionImageField from "@/components/create/QuestionImageField";
 import BottomSheet from "@/components/ui/BottomSheet";
 import { Text, TextInput } from "@/components/ui/Text";
 import { questionIcons } from "@/constants/icons";
@@ -117,6 +118,7 @@ export default function QuestionsStep({ draft, rules, onChange }: Props) {
               <Text style={styles.summaryType}>
                 {questionTypeLabel(q)}
                 {q.required === false ? " · 선택" : ""}
+                {q.image ? " · 사진" : ""}
               </Text>
             </View>
           </Pressable>
@@ -155,6 +157,9 @@ export default function QuestionsStep({ draft, rules, onChange }: Props) {
               maxLength={QUESTION_TEXT_MAX}
               multiline
             />
+
+            {/* 문항 사진 1장 (선택, 2026-11-22) */}
+            <QuestionImageField image={q.image} onChange={(image) => update(index, { image })} />
 
             {isChoice(q.type) && (
               <View style={styles.options}>

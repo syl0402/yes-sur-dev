@@ -8,6 +8,7 @@ import Card from "@/components/ui/Card";
 import GrowBar from "@/components/ui/GrowBar";
 import { Text } from "@/components/ui/Text";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
+import QuestionPhoto from "@/components/QuestionPhoto";
 import { QUESTION_TYPE_LABELS, type QuestionType, SCALE_LABELS } from "@/lib/surveyDraft";
 
 // 서버 집계 함수(get_survey_results·get_full_results)가 돌려주는 문항 하나의 모양
@@ -29,8 +30,18 @@ export function percent(count: number, total: number): number {
   return total > 0 ? Math.round((count / total) * 100) : 0;
 }
 
-// 문항 머리: [Q1] 하나 고르기 ······ 응답 63 / 질문
-export function QuestionHeader({ index, question: q, right }: { index: number; question: QuestionStats; right?: string }) {
+// 문항 머리: [Q1] 하나 고르기 ······ 응답 63 / 질문 (+ 문항 사진 작게, 2026-11-22)
+export function QuestionHeader({
+  index,
+  question: q,
+  right,
+  image,
+}: {
+  index: number;
+  question: QuestionStats;
+  right?: string;
+  image?: string | null;
+}) {
   return (
     <View style={styles.headBox}>
       <View style={styles.head}>
@@ -39,7 +50,14 @@ export function QuestionHeader({ index, question: q, right }: { index: number; q
         </Text>
         <Text style={styles.type}>{right ?? `응답 ${q.answered}명`}</Text>
       </View>
-      <Text style={styles.questionText}>{q.text}</Text>
+      {image ? (
+        <View style={styles.questionRow}>
+          <Text style={[styles.questionText, styles.questionTextFlex]}>{q.text}</Text>
+          <QuestionPhoto path={image} size="thumb" />
+        </View>
+      ) : (
+        <Text style={styles.questionText}>{q.text}</Text>
+      )}
     </View>
   );
 }
@@ -87,10 +105,18 @@ export function QuestionBody({ question: q }: { question: QuestionStats }) {
 }
 
 // 문항 결과 카드
-export default function QuestionResult({ index, question }: { index: number; question: QuestionStats }) {
+export default function QuestionResult({
+  index,
+  question,
+  image,
+}: {
+  index: number;
+  question: QuestionStats;
+  image?: string | null;
+}) {
   return (
     <Card>
-      <QuestionHeader index={index} question={question} />
+      <QuestionHeader index={index} question={question} image={image} />
       <QuestionBody question={question} />
     </Card>
   );
@@ -149,6 +175,14 @@ function ScaleChart({ avg, counts, answered }: { avg: number | null; counts: num
 }
 
 const styles = StyleSheet.create({
+  questionRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+  },
+  questionTextFlex: {
+    flex: 1,
+  },
   headBox: {
     gap: 10,
   },
