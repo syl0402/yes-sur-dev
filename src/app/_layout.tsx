@@ -9,6 +9,7 @@ import HeaderBack from "@/components/ui/HeaderBack";
 import { colors, fontFamily } from "@/constants/theme";
 import { usePush } from "@/hooks/usePush";
 import { initSentry, wrapWithSentry } from "@/lib/sentry";
+import { initWebReload } from "@/lib/webReload";
 import { useRequireLogin } from "@/hooks/useRequireLogin";
 import { useResumeSignup } from "@/hooks/useResumeSignup";
 
@@ -17,6 +18,8 @@ SplashScreen.preventAutoHideAsync();
 
 // 오류 자동 수집 (테스터 폰·웹, 개발 중엔 꺼짐, 2026-11-10)
 initSentry();
+// 웹 새 배포 직후 옛 파일 오류가 나면 한 번 새로고침 (2026-11-22)
+initWebReload();
 
 function RootLayout() {
   // 인증만 하고 가입을 마치지 않은 사람은 가입을 이어서 하게 한다
